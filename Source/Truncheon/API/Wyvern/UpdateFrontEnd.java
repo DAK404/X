@@ -39,7 +39,6 @@ public final class UpdateFrontEnd
             System.gc();
             System.out.println("Press ENTER to continue..");
             System.in.read();
-            return;
         }
         catch(Exception E)
         {

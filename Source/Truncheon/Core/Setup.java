@@ -52,7 +52,7 @@ public class Setup
         System.gc();
         showSetupDetails();
         showPrerequisites();
-        if(checkMosaic()==false)
+        if(checkMosaic() == false)
         {
             createDirs();
             initializeDatabase();
@@ -108,7 +108,6 @@ public class Setup
             System.exit(2);
 
         _legal = true;
-        return;
     }
 
     private final boolean checkMosaic()throws Exception
@@ -193,7 +192,6 @@ public class Setup
             }
 
             _dirs = true;
-            return;
         }
         catch(Exception E)
         {
@@ -241,7 +239,6 @@ public class Setup
         {
             new Truncheon.API.ErrorHandler().handleException(E);
         }
-        return;
     }
 
     private final void createAdminUser()throws Exception
@@ -265,7 +262,7 @@ public class Setup
         {
             String sysName;
             sysName = console.readLine("Enter the name of this system\n\nThis will be used to identify your system in the prompt. The default name is SYSTEM.\n\n> ");
-            if(sysName.equals("") || sysName.startsWith(" ") || sysName.equals(null))
+            if(sysName.equals("") || sysName.startsWith(" ") || sysName == null)
                 sysName = "SYSTEM";
             if(sysName.contains(" "))
                 sysName = sysName.replaceAll(" ", "");
@@ -291,7 +288,6 @@ public class Setup
             output.close();
             System.gc();
             _policyInit = true;
-            return;
         }
         catch(Exception E)
         {

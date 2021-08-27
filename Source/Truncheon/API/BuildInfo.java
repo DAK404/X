@@ -40,7 +40,6 @@ public final class BuildInfo
                 new ProcessBuilder("/bin/bash", "-c" ,"reset").inheritIO().start().waitFor();
             
             System.out.flush();
-            return;
         }
         catch(Exception E)
         {
@@ -61,6 +60,10 @@ public final class BuildInfo
         System.out.println("OS          : " + System.getProperty("os.name"));
         System.out.println("\nDescription :\nTruncheon is the successor of Mosaic,\nbut now focusing on simplifying the\nprogram to give back the power to the\ndevelopers and end users.\n\n");
         System.gc();
-        return;
+    }
+
+    public void debugMemoryInformation()
+    {
+
     }
 }

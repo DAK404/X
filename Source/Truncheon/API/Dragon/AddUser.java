@@ -93,11 +93,11 @@ public final class AddUser
                 {
                     case "yes":
                             ADM="Yes";
-                            return;
+                            break;
 
                     case "no":
                             ADM="No";
-                            return;
+                            break;
 
                     default:
                             console.readLine("Please enter a valid choice. Press ENTER to continue..");
@@ -154,7 +154,7 @@ public final class AddUser
         System.out.println("* Name must have a minimum of 2 characters or more.");
         System.out.println("* Name cannot contain spaces");
         NAME=console.readLine("\nAccount Name: ");
-        if(NAME.equals("") | NAME.equals(null) | (NAME.matches("^[a-zA-Z0-9]*$")==false) | NAME.equalsIgnoreCase("Administrator") | NAME.length()<2)
+        if(NAME.equals("") | NAME == null | (NAME.matches("^[a-zA-Z0-9]*$")==false) | NAME.equalsIgnoreCase("Administrator") | NAME.length()<2)
         {
             NAME="";
             console.readLine("Name Policy has not been followed. Please try again.");
@@ -251,19 +251,19 @@ public final class AddUser
         System.gc();
         System.out.println("Administrator Account: "+ADM);
 
-        if(! (NAME.equals(null) | NAME.equals("")) )
+        if(! (NAME == null | NAME.equals("")) )
             System.out.println("Account Name : " + NAME);
 
-        if(! (UNM.equals(null) | UNM.equals("")) )
+        if(! (UNM == null | UNM.equals("")) )
             System.out.println("Username     : " + UNM);
 
-        if(! (PWD.equals(null) | PWD.equals("")) )
+        if(! (PWD == null | PWD.equals("")) )
             System.out.println("Password     : ********");
 
-        if(! (KEY.equals(null) | KEY.equals("")) )
+        if(! (KEY == null | KEY.equals("")) )
             System.out.println("Security Key : ********");
 
-        if(! (PIN.equals(null) | PIN.equals("")) )
+        if(! (PIN == null | PIN.equals("")) )
             System.out.println("Unlock PIN   : ****");
         return;
     }

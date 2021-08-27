@@ -13,14 +13,26 @@ public final class ReadFile
     {
         try
         {
-            file=new File("./Information/Truncheon/"+helpFile);
-            readFile(true);
-            return;
+            if(checkFileValidity(helpFile) == true)
+            {
+                file=new File("./Information/Truncheon/"+helpFile);
+                readFile(true);
+            }    
         }
         catch(Exception E)
         {
             E.printStackTrace();
         }
+    }
+
+    private boolean checkFileValidity(String fn)throws Exception
+    {
+        if(fn.equals("") | fn == null || fn.startsWith(" "))
+        {
+            System.out.println("Please enter a valid file name to open.");
+            return false;
+        }
+        return true;
     }
 
     public final void readUserFile(String fileName, String dir)throws Exception
@@ -29,14 +41,11 @@ public final class ReadFile
         {
             if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("read") == false)
                 return;
-            if(fileName.equals("") | fileName.equals(null))
+            if(checkFileValidity(fileName) == true)
             {
-                System.out.println("Please enter a file name to open.");
-                return;
+                file = new File( dir + fileName);
+                readFile(false);
             }
-            file = new File( dir + fileName);
-            readFile(false);
-            return;
         }
         catch(Exception E)
         {
@@ -55,8 +64,10 @@ public final class ReadFile
 
         //This checks if the file doesnt exist. If it doesnt exist, the error text is shown on terminal.
         if (file.exists() == false)
-            System.out.println("[ ERROR ] : The specified file cannot be read, found or loaded.");
-
+            System.out.println("[ ERROR ] : Unable to locate file: The specified file cannot be read, found or loaded.");
+        //This checks if the filename points to a directory
+        else if (file.isDirectory() == true)
+            System.out.println("[ ERROR ] : Unable to read file : The specified file name is a directory.");
         //If the file exists, the file is displayed on the terminal.
         else
         {
@@ -88,7 +99,7 @@ public final class ReadFile
                         System.out.println("\n\nEnd of Help File.");
                         break;
                     }
-                    else if(p.toString().startsWith("#"))
+                    else if(p.startsWith("#"))
                         continue;
                     
                     System.out.println(p);
@@ -100,7 +111,6 @@ public final class ReadFile
         }
         console.readLine("Press ENTER to continue.");
         new Truncheon.API.BuildInfo().versionViewer();
-        return;
     }
 
 }

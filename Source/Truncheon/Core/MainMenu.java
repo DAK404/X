@@ -46,15 +46,6 @@ import java.sql.ResultSet;
  */
 public final class MainMenu
 {
-
-    /**
-    * Sole constructor. (For invocation by subclass constructors, typically implicit.)
-    */
-    public MainMenu()
-    {
-
-    }
-
     /**
      * The following are the numeric datatypes in this program:
      *
@@ -95,6 +86,13 @@ public final class MainMenu
     //Initialize the Console class for IO operations
     Console console=System.console();
 
+    /**
+    * Sole constructor. (For invocation by subclass constructors, typically implicit.)
+    */
+    public MainMenu()
+    {
+
+    }
 
     /**
      * Method which handles the login, information retrieval and the menu shell of the program
@@ -208,7 +206,7 @@ public final class MainMenu
                 System.out.println("[ ATTENTION ] : Script file "+fileName.replace(_username, _name)+" has not been found.\nPlease check the directory of the script file and try again.");
                 return;
             }
-            if(fileName.equalsIgnoreCase(""))
+            if(fileName.equalsIgnoreCase("") || fileName.startsWith(" ") || fileName == null)
             {
                 System.out.println("[ ERROR ] : The name of the script file cannot be be blank.");
                 return;
@@ -229,7 +227,7 @@ public final class MainMenu
             while ((scriptLine = br.readLine()) != null)
             {
                 //Check if the line is a comment or is blank in the script file and skip the line.
-                if(scriptLine.toString().startsWith("#") || scriptLine.equalsIgnoreCase(""))
+                if(scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
                     continue;
 
                 //Check if End Script command is encountered, which will stop the execution of the script.
@@ -237,7 +235,7 @@ public final class MainMenu
                     break;
 
                 //Read the command in the script file, and pass it on to menuLogic(<command>) for it to be processed.
-                commandProcessor(scriptLine.toString());
+                commandProcessor(scriptLine);
             }
 
             //Close the streams, run the garbage collector and clean.
@@ -337,7 +335,7 @@ public final class MainMenu
                 {
                     //Print the correct syntax and return the control back.
                     System.out.println("\nWait Syntax:\nwait <timeout>\nWhere timeout is the number of milliseconds for the interpreter to wait.\n\n");
-                    return;
+                    break;
                 }
 
                 //Initialize the wait time as an int.
@@ -358,7 +356,6 @@ public final class MainMenu
                 {
                     //print the syntax and then return the control back.
                     System.out.println("\nWait Syntax:\nwait <timeout>\nWhere timeout is the number of milliseconds for the interpreter to wait.\n\n");
-                    return;
                 }
                 break;
 
@@ -386,7 +383,7 @@ public final class MainMenu
                 {
                     //Print the correct syntax if script syntax is malformed and return the program control.
                     System.out.println("\nScript Syntax:\n\nscript <script_name/path>\n");
-                    return;
+                    break;
                 }
 
                 /**
@@ -474,7 +471,7 @@ public final class MainMenu
                 if(_admin == false)
                 {
                     System.out.println("Cannot execute syshell command as a standard user.");
-                    return;
+                    break;
                 }
                 if(System.getProperty("os.name").contains("Windows"))
                 new ProcessBuilder("cmd").inheritIO().start().waitFor();
@@ -491,12 +488,12 @@ public final class MainMenu
                 if(_admin == false)
                 {
                     System.out.println("Cannot execute sys command as a standard user.");
-                    return;
+                    break;
                 }
                 if(cmd.length < 2)
                 {
                     System.out.println("Syntax:\n\nsys \"<host_OS_command>\"");
-                    return;
+                    break;
                 }
                 if(System.getProperty("os.name").contains("Windows"))
                 new ProcessBuilder("cmd", "/c", cmd[1]).inheritIO().start().waitFor();
@@ -513,7 +510,7 @@ public final class MainMenu
                 if(cmd.length < 2)
                 {
                     System.out.println("Echo Syntax: echo \"<string>\"");
-                    return;
+                    break;
                 }
                 if(cmd[1].equalsIgnoreCase(null))
                 System.out.println("null");
@@ -581,7 +578,7 @@ public final class MainMenu
                 if(cmd.length < 2)
                 {
                     System.out.println("Syntax:\n\nusermgmt <option>\n\nConsult the HELP file for more information.\n");
-                    return;
+                    break;
                 }
                 switch(cmd[1].toLowerCase())
                 {
@@ -614,9 +611,6 @@ public final class MainMenu
             }
 
             System.gc();
-
-            //Return the program control to the previous method to receive new inputs.
-            return;
         }
         catch(Exception E)
         {
@@ -695,8 +689,6 @@ public final class MainMenu
             while(! (new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("\nPlase Authenticate with the Unlock PIN:\nPIN : "))).equals(_PIN)))
                 counterLogic();
             new Truncheon.API.BuildInfo().versionViewer();
-
-            return;
         }
         catch(Exception E)
         {

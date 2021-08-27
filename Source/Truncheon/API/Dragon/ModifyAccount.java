@@ -34,7 +34,6 @@ public final class ModifyAccount
             return;
         }
         while(modifyAccountMenu() == true);
-        //return;
     }
 
     private final boolean authenticateUser()throws Exception
@@ -106,21 +105,20 @@ public final class ModifyAccount
         System.gc();
         System.out.println("Administrator Account: "+_admin);
 
-        if(! (_name.equals(null) | _name.equals("")) )
+        if(! (_name == null | _name.equals("")) )
             System.out.println("Account Name : " + _name);
 
-        if(! (_user.equals(null) | _user.equals("")) )
+        if(! (_user == null | _user.equals("")) )
             System.out.println("Username     : " + _user);
 
-        if(! (_password.equals(null) | _password.equals("")) )
+        if(! (_password == null | _password.equals("")) )
             System.out.println("Password     : ********");
 
-        if(! (_key.equals(null) | _key.equals("")) )
+        if(! (_key == null | _key.equals("")) )
             System.out.println("Security Key : ********");
 
-        if(! (_pin.equals(null) | _pin.equals("")) )
+        if(! (_pin == null | _pin.equals("")) )
             System.out.println("Unlock PIN   : ****");
-        return;
     }
 
     private final boolean getPassword()throws Exception

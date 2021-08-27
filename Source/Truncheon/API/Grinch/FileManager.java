@@ -11,7 +11,10 @@ import java.io.OutputStream;
 
 public class FileManager 
 {
-    private String _user, _name, _curDir, _scriptName;
+    private String _user;
+    private String _name;
+    private String _curDir;
+    private String _scriptName;
     private boolean _admin = false;
     private boolean _scriptMode = false;
 
@@ -98,7 +101,7 @@ public class FileManager
             while ((scriptLine = br.readLine()) != null)
             {
                 //Check if the line is a comment or is blank in the script file and skip the line.
-                if(scriptLine.toString().startsWith("#") || scriptLine.equalsIgnoreCase(""))
+                if(scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
                     continue;
 
                 //Check if End Script command is encountered, which will stop the execution of the script.
@@ -106,7 +109,7 @@ public class FileManager
                     break;
 
                 //Read the command in the script file, and pass it on to menuLogic(<command>) for it to be processed.
-                fileManagerShell(scriptLine.toString());
+                fileManagerShell(scriptLine);
             }
 
             //Close the streams, run the garbage collector and clean.
@@ -311,6 +314,7 @@ public class FileManager
         }
         return false;
     }
+
     private final void changeDir(String tPath)throws Exception
     {
         if(tPath.equals(".."))
@@ -320,18 +324,17 @@ public class FileManager
             return;
         }
         
-        tPath=_curDir+tPath+"/";
+        tPath = _curDir + tPath + "/";
         if(checkFile(tPath)==true)
             _curDir=tPath;
         else
             System.out.println("[ ERROR ] : The specified file/directory does not exist.");
         System.gc();
-        return;
     }
 
     private final void prevDir()throws Exception
     {
-        _curDir = _curDir.substring(0, _curDir.length()-1);
+        _curDir = _curDir.substring(0, _curDir.length() - 1);
         _curDir = _curDir.replace(_curDir.substring(_curDir.lastIndexOf('/'), _curDir.length()), "/");
 
         if(_curDir.equals("./Users/Truncheon/"))
@@ -340,7 +343,6 @@ public class FileManager
             _curDir="./Users/Truncheon/"+_user+"/";
         }
         System.gc();
-        return;
     }
 
     private final boolean checkFile(String fName)throws Exception
@@ -360,7 +362,6 @@ public class FileManager
             TreeHelper(0, tree);
             System.out.println();
             System.gc();
-            return;
         }
         catch(Exception E)
         {
@@ -405,7 +406,6 @@ public class FileManager
         else
             System.out.println("[ ERROR ] : The specified file/directory does not exist.");
         System.gc();
-        return;
     }
 
     private final void makeDir(String mkFile)throws Exception
@@ -443,7 +443,6 @@ public class FileManager
             else
                 System.out.println("[ ERROR ] : The specified file/directory does not exist.");
             System.gc();
-            return;
         }
         catch (Exception E)
         {
@@ -473,7 +472,6 @@ public class FileManager
             else
                 System.out.println("[ ERROR ] : The specified file/directory does not exist.");
             System.gc();            
-            return;
         }
         catch (Exception E)
         {
@@ -535,7 +533,6 @@ public class FileManager
                 out.close();
             }
             System.gc();
-            return;
         }
         catch(Exception E)
         {

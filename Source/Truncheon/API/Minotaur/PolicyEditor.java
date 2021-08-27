@@ -33,7 +33,6 @@ public class PolicyEditor
                 return;
         }
         policyEditor();
-        return;
     }
 
     private final boolean authenticationLogic()
@@ -128,7 +127,6 @@ public class PolicyEditor
         props.list(System.out);
         System.out.println("\n--------------------------------------------\n");
         System.gc();
-        return;
     }
 
     private final void editPolicy()throws Exception
@@ -153,7 +151,6 @@ public class PolicyEditor
         output.close();
         System.out.println("Policy " + policyName + " has been saved successfully.");
         System.gc();
-        return;
     }
 
     private final void resetPolicyFile()throws Exception
@@ -164,6 +161,5 @@ public class PolicyEditor
         String [] resetValues = { "update", "download", "script", "filemanager", "read", "write", "usermgmt"};
         for(int i = 0; i < resetValues.length; ++i)
             savePolicy(resetValues[i], "on");
-        return;
     }
 }

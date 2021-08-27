@@ -14,25 +14,37 @@ public final class WriteFile
     {
         try
         {
-            DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-            Date date = new Date();
-            System.gc();
-            File logFile = new File("./Logs");
-            if(logFile.exists()==false)
+            if(checkFileValidity(fileName) == true)
             {
-                logFile.mkdir();
+                DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                Date date = new Date();
+                System.gc();
+                File logFile = new File("./Logs");
+                if(logFile.exists()==false)
+                {
+                    logFile.mkdir();
+                }
+                BufferedWriter obj = new BufferedWriter(new FileWriter("./" + fileName + ".log", true));
+                PrintWriter pr = new PrintWriter(obj);
+                pr.println(dateFormat.format(date) + ": " + PrintToFile);
+                pr.close();
+                obj.close();
             }
-            BufferedWriter obj = new BufferedWriter(new FileWriter("./" + fileName + ".log", true));
-            PrintWriter pr = new PrintWriter(obj);
-            pr.println(dateFormat.format(date) + ": " + PrintToFile);
-            pr.close();
-            obj.close();
-            return;
         }
         catch(Exception E)
         {
             new Truncheon.API.ErrorHandler().handleException(E);
         }
+    }
+
+    private boolean checkFileValidity(String fn)throws Exception
+    {
+        if(fn.equals("") | fn == null || fn.startsWith(" "))
+        {
+            System.out.println("Please enter a valid file name to open.");
+            return false;
+        }
+        return true;
     }
 
     public final void editFile(String fileName, String dir)
@@ -41,71 +53,74 @@ public final class WriteFile
         {
             if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("write") == false)
                 return;
-            boolean appendFile = true;
-            String message = "";
 
-            System.out.println("Wraith Text Editor 1.5");
-            System.out.println("______________________\n");
-            
-            Console console=System.console();
-
-            if(fileName.equals("") | fileName.equals(null))
+            if(checkFileValidity(fileName) == true)
             {
-                System.out.println("Filename cannot be left blank.");
-                return;
-            }
-            File writeToFile = new File(dir+fileName);
-            System.out.println("\nEditing File : " + fileName + "\n\n");
+                boolean appendFile = true;
+                String message = "";
 
-            if(writeToFile.exists()==true)
-            {
-                switch(console.readLine("[ ATTENTION ] : A file with the same name has been found in this directory. Do you want to OVERWRITE it, APPEND to the file, or GO BACK? \n\nOptions:\n[ OVERWRITE | APPEND | RETURN | HELP ]\n\n> ").toLowerCase())
+                System.out.println("Wraith Text Editor 1.5");
+                System.out.println("______________________\n");
+                
+                Console console=System.console();
+
+                if(fileName.equals("") | fileName == null)
                 {
-                    case "overwrite":
-
-                            appendFile = false;
-                            System.out.println("The new content will overwrite the previous content present in the file!");
-                            break;
-
-                    case "append":
-
-                            System.out.println("The new content will be added to the end of the file! Previous data will remain unchanged.");
-                            break;
-
-                    case "return":
-
-                            return;
-
-                    case "help":
-
-                            System.out.println("Work in Progress");
-                            break;
-
-                    default:
-
-                            System.out.println("Invalid choice. Exiting...");
-                            return;
+                    System.out.println("Filename cannot be left blank.");
+                    return;
                 }
-            }
+                File writeToFile = new File(dir+fileName);
+                System.out.println("\nEditing File : " + fileName + "\n\n");
 
-            BufferedWriter obj = new BufferedWriter(new FileWriter(writeToFile, appendFile));
-            PrintWriter pr = new PrintWriter(obj);
+                if(writeToFile.exists()==true)
+                {
+                    switch(console.readLine("[ ATTENTION ] : A file with the same name has been found in this directory. Do you want to OVERWRITE it, APPEND to the file, or GO BACK? \n\nOptions:\n[ OVERWRITE | APPEND | RETURN | HELP ]\n\n> ").toLowerCase())
+                    {
+                        case "overwrite":
 
-            do
-            {
-                pr.println(message);
-                message=console.readLine();
+                                appendFile = false;
+                                System.out.println("The new content will overwrite the previous content present in the file!");
+                                break;
+
+                        case "append":
+
+                                System.out.println("The new content will be added to the end of the file! Previous data will remain unchanged.");
+                                break;
+
+                        case "return":
+
+                                return;
+
+                        case "help":
+
+                                System.out.println("Work in Progress");
+                                break;
+
+                        default:
+                        
+                                System.out.println("Invalid choice. Exiting...");
+                                return;
+                    }
+                }
+
+                BufferedWriter obj = new BufferedWriter(new FileWriter(writeToFile, appendFile));
+                PrintWriter pr = new PrintWriter(obj);
+
+                do
+                {
+                    pr.println(message);
+                    message=console.readLine();
+                }
+                while( !(message.equals("<exit>")) );
+                
+                pr.close();
+                obj.close();
+                System.gc();
             }
-            while( !(message.equals("<exit>")) );
-            
-            pr.close();
-            obj.close();
-            System.gc();
         }
         catch(Exception E)
         {
             new Truncheon.API.ErrorHandler().handleException(E);
         }
-        return;
     }
 }
