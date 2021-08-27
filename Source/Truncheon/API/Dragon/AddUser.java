@@ -53,7 +53,7 @@ public final class AddUser
     {
         try
         {
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("usermgmt") == false)
+            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("usermgmt"))
                 return;
             if(authenticateUser()==false)
             {
@@ -62,11 +62,11 @@ public final class AddUser
             }
             else
             {
-                if(Admin==true)
+                if(Admin)
                     userType();
-                while (getUserDetails() == false);
+                while (! getUserDetails());
             }
-            if(add() == false)
+            if(! add())
             {
                 System.out.println("Failed to perform requested operations.");
                 System.in.read();
@@ -115,11 +115,11 @@ public final class AddUser
     {
         try
         {
-            while(getName()==false);
-            while(getUsername()==false);
-            while(getPassword()==false);
-            while(getKey()==false);
-            while(getPIN()==false);
+            while(! getName());
+            while(! getUsername());
+            while(! getPassword());
+            while(! getKey());
+            while(! getPIN());
 
             //Show an account summary after a user has been created.
             displayDetails();
@@ -139,9 +139,9 @@ public final class AddUser
         NAME = "Administrator";
         UNM  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256("Administrator");
         ADM  = "Yes";
-        while(getPassword()==false);
-        while(getKey()==false);
-        while(getPIN()==false);
+        while(! getPassword());
+        while(! getKey());
+        while(! getPIN());
         add();
     }
 
@@ -153,8 +153,8 @@ public final class AddUser
         System.out.println("* Name must be in english, can contain alphabet and number combination");
         System.out.println("* Name must have a minimum of 2 characters or more.");
         System.out.println("* Name cannot contain spaces");
-        NAME=console.readLine("\nAccount Name: ");
-        if(NAME.equals("") | NAME == null | (NAME.matches("^[a-zA-Z0-9]*$")==false) | NAME.equalsIgnoreCase("Administrator") | NAME.length()<2)
+        NAME = console.readLine("\nAccount Name: ");
+        if(NAME == null | NAME.equals("") | ! (NAME.matches("^[a-zA-Z0-9]*$")) | NAME.equalsIgnoreCase("Administrator") | NAME.length() < 2)
         {
             NAME="";
             console.readLine("Name Policy has not been followed. Please try again.");
@@ -168,7 +168,7 @@ public final class AddUser
         displayDetails();
         System.out.println("\nUsername Policy\n");
         System.out.println("* Username cannot contain the word \"Administrator\"\n");
-        UNM  = console.readLine("\nAccount Username: ");
+        UNM = console.readLine("\nAccount Username: ");
         if(UNM.equals("") | UNM.contains("Administrator"))
         {
             UNM="";
@@ -185,9 +185,9 @@ public final class AddUser
         System.out.println("\nPassword Policy\n");
         System.out.println("* Password must be atleast 8 characters long.");
         System.out.println("* Password must be the same as the password confirmation\n");
-        PWD  = String.valueOf(console.readPassword("\nAccount Password : "));
+        PWD = String.valueOf(console.readPassword("\nAccount Password : "));
         String CPWD = String.valueOf(console.readPassword("Confirm Password : "));
-        if(PWD.length() < 8 | ( PWD.equals(CPWD) == false ) )
+        if(PWD.length() < 8 | ! (PWD.equals(CPWD)) )
         {
             PWD="";
             console.readLine("Password Policy not followed. Please try again which follows the Password Policy.");
@@ -208,9 +208,9 @@ public final class AddUser
         displayDetails();
         System.out.println("\nSecurity Key Policy\n");
         System.out.println("* Security Key must be the same as the Security Key confirmation\n");
-        KEY  = String.valueOf(console.readPassword("\nSecurity Key : "));
+        KEY = String.valueOf(console.readPassword("\nSecurity Key : "));
         String CKEY = String.valueOf(console.readPassword("Confirm Key  : "));
-        if(KEY.equals(CKEY) == false)
+        if(! KEY.equals(CKEY))
         {
             KEY="";
             console.readLine("Security Key Policy not followed. Please try again which follows the Security Key Policy.");
@@ -232,11 +232,11 @@ public final class AddUser
         System.out.println("\nPIN Policy\n");
         System.out.println("* PIN must be atleast 4 characters long.");
         System.out.println("* PIN must be the same as the PIN confirmation\n");
-        PIN  = String.valueOf(console.readPassword("\nUnlock PIN   : "));
+        PIN = String.valueOf(console.readPassword("\nUnlock PIN   : "));
         String CPIN = String.valueOf(console.readPassword("Confirm PIN  : "));
-        if(PIN.length() < 4 | ( PIN.equals(CPIN) == false ))
+        if(PIN.length() < 4 | ! PIN.equals(CPIN))
         {
-            PIN="";
+            PIN = "";
             console.readLine("PIN Policy not followed. Please use a valid PIN and try again.");
             return false;
         }
@@ -286,7 +286,7 @@ public final class AddUser
             pstmt.executeUpdate();
             pstmt.close();
             conn.close();
-            console.readLine("The user \""+NAME+"\" was successfully created! Press ENTER to continue..");
+            console.readLine("The user \"" + NAME + "\" was successfully created! Press ENTER to continue..");
             createDir();
             return true;
         }
@@ -303,9 +303,9 @@ public final class AddUser
     {
         try
         {
-            String[] dirNames = {UNM, UNM+"/Scripts", UNM+"/Properties"};
-            for(int i = 0; i < dirNames.length; i++)
-                new File("./Users/Truncheon/"+dirNames[i]).mkdir();
+            String[] dirNames = {UNM, UNM + "/Scripts", UNM + "/Properties"};
+            for(int i = 0 ; i < dirNames.length ; i++)
+                new File("./Users/Truncheon/" + dirNames[i]).mkdir();
         }
         catch(Exception E)
         {

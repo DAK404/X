@@ -57,7 +57,7 @@ public final class LoginAPI
                 if (rs.getString("Username").equals(_User) & rs.getString("Password").equals(_Pass) & rs.getString("SecurityKey").equals(_SecKey))
                     loginStatus = true;
 
-            if(loginStatus == false)
+            if(! loginStatus)
                 System.out.println("Incorrect Credentials, Please try again.");
 
             rs.close();

@@ -73,10 +73,10 @@ public class DeleteUser
     {
         try 
         {
-            File f=new File("./Users/"+_user);
-            if(f.exists()==true)
+            File f = new File("./Users/"+_user);
+            if(f.exists())
             {
-                if(f.isDirectory()==true)
+                if(f.isDirectory())
                     delHelper(f);
                 else
                     f.delete();
