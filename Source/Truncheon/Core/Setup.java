@@ -52,7 +52,7 @@ public class Setup
         System.gc();
         showSetupDetails();
         showPrerequisites();
-        if(checkMosaic() == false)
+        if(! checkMosaic())
         {
             createDirs();
             initializeDatabase();
@@ -112,7 +112,7 @@ public class Setup
 
     private final boolean checkMosaic()throws Exception
     {
-        if(new File("./System/Private/Fractal.db").exists() == true)
+        if(new File("./System/Private/Fractal.db").exists())
         {
             System.out.println("[ ATTENTION ] : Mosaic Files have been found. Do you want to copy over existing data?");
             if(console.readLine("[ Y | N ]\n> ").equalsIgnoreCase("Y"))
@@ -185,7 +185,7 @@ public class Setup
             {
                 File makeDir =  new File(directoryList[i]);
 
-                if(makeDir.exists() == false)
+                if(! makeDir.exists())
                     makeDir.mkdirs();
                 else
                     System.out.println("Folder " + directoryList[i]+ " Exists.");
@@ -302,15 +302,15 @@ public class Setup
             new Truncheon.API.BuildInfo().versionViewer();
             System.out.println("SETUP CHECKLIST");
             System.out.println("===============\n");
-            if(_legal == true)
+            if(_legal)
                 System.out.println("1. Legal and Important Information    : COMPLETE");
-            if(_dirs == true)
+            if(_dirs)
                 System.out.println("2. Initialize Truncheon Dependencies  : COMPLETE");
-            if(_dbInit == true)
+            if(_dbInit)
                 System.out.println("3. Initialize Database Files          : COMPLETE");
-            if(_policyInit == true)
+            if(_policyInit)
                 System.out.println("4. Initialize Policies and BURN Files : COMPLETE");
-            if(_adminAccCreate == true)
+            if(_adminAccCreate)
                 System.out.println("5. Administrator account creation     : COMPLETE");
         }
         catch (Exception E)

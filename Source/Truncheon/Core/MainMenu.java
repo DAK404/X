@@ -104,7 +104,7 @@ public final class MainMenu
         try
         {
             //By default, check the _count value and provive the user a chance to login to the program
-            while(login() == false && _count <= 5 && _count > 0);
+            while(! login() && _count <= 5 && _count > 0);
             /*
             * Retrieve the important information that the program requires.
             * See the method getUserDetails() for more information
@@ -191,14 +191,14 @@ public final class MainMenu
         try
         {
             //Verify is the script functionality is allowed by the Administrator policy
-            if(_admin == false && new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script") == false)
+            if(! _admin && ! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script"))
             //bypass the policy if the user has the administrator permissions, either by pseudo or by account privileges
                 return;
 
             System.gc();
 
             //Check if the script file specifed exists.
-            if(new File(fileName).exists() == false)
+            if(! new File(fileName).exists())
             {
 
                 //Return an error and pass the control back in case the file is not found.
@@ -271,7 +271,7 @@ public final class MainMenu
 
         mainMenuVerView();
 
-        if(new File("./Users/Truncheon/" + _username + "/Scripts/Startup.shx").exists() == true)
+        if(new File("./Users/Truncheon/" + _username + "/Scripts/Startup.shx").exists())
             scriptEngine("./Users/Truncheon/" + _username + "/Scripts/Startup.shx");
 
         System.gc();
@@ -471,7 +471,7 @@ public final class MainMenu
                  * Opens the native OS's shell allow the user to execute the native OS's commands.
                  */
                 case "syshell":
-                if(_admin == false)
+                if(! _admin)
                 {
                     System.out.println("Cannot execute syshell command as a standard user.");
                     break;
@@ -488,7 +488,7 @@ public final class MainMenu
                  * executes the specified operation in the native OS's shell.
                  */
                 case "sys":
-                if(_admin == false)
+                if(! _admin)
                 {
                     System.out.println("Cannot execute sys command as a standard user.");
                     break;
@@ -734,7 +734,7 @@ public final class MainMenu
             System.gc();
 
             //Check if the current user has the Administrator privileges.
-            if(_admin == true)
+            if(_admin)
             {
                 //Do nothing if the user has administrator privileges.
                 System.out.println("Unable to run Pseudo: Administrator privileges already available.");
@@ -776,7 +776,7 @@ public final class MainMenu
         System.gc();
         new Truncheon.API.BuildInfo().versionViewer();
         System.out.println("Account Type : " + _privilegeStatus + "\n");
-        if(new File("./System/Private/Truncheon/Policy.burn").exists() == false)
+        if(! new File("./System/Private/Truncheon/Policy.burn").exists())
             System.out.println("[ ATTENTION ] : POLICY FILE CORRUPT!\nPolicy File Reconfiguration Required!\n");
         System.out.println("[ HINT ] : Type \'HELP\' to get the contextual help.\n");
     }
