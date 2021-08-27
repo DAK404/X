@@ -246,7 +246,7 @@ public class Setup
         try
         {
             displayStatus();
-            new Truncheon.API.Dragon.AddUser().Setup();
+            new Truncheon.API.Dragon.AddUser().setupAdminUser();
 
             _adminAccCreate = true;
         }

@@ -354,7 +354,7 @@ public class FileManager
         {
             File tree=new File(_curDir);
             System.out.println("\n--- [ TREE VIEW ] ---\n");
-            TreeHelper(0, tree);
+            treeViewHelper(0, tree);
             System.out.println();
             System.gc();
         }
@@ -364,7 +364,7 @@ public class FileManager
         }
     }
 
-    private final void TreeHelper(int indent, File file)
+    private final void treeViewHelper(int indent, File file)
     {
         System.out.print("|");
 
@@ -378,7 +378,7 @@ public class FileManager
             File[] files = file.listFiles();
 
             for (int i = 0; i < files.length; ++i)
-                TreeHelper(indent + 2, files[i]);
+                treeViewHelper(indent + 2, files[i]);
         }
     }
 
@@ -489,7 +489,7 @@ public class FileManager
                 System.out.println("The Destination File Does Not Exist");
                 return;
             }
-            copy_move_helper(new File(_curDir+source), new File(_curDir+destination+"/"+source));
+            copyMoveHelper(new File(_curDir+source), new File(_curDir+destination+"/"+source));
             if(move==true)
                 delHelper(new File(_curDir+source));
             System.gc();
@@ -501,7 +501,7 @@ public class FileManager
         }
     }
 
-    private final void copy_move_helper( File src, File dest ) throws Exception 
+    private final void copyMoveHelper( File src, File dest ) throws Exception 
     {
         try
         {
@@ -511,7 +511,7 @@ public class FileManager
                 for( File sourceChild : src.listFiles() ) 
                 {
                     File destChild = new File( dest, sourceChild.getName() );
-                    copy_move_helper( sourceChild, destChild );
+                    copyMoveHelper( sourceChild, destChild );
                 }
             } 
             else

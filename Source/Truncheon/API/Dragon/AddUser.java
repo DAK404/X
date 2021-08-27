@@ -64,7 +64,7 @@ public final class AddUser
             {
                 if(Admin==true)
                     userType();
-                while (Details() == false);
+                while (getUserDetails() == false);
             }
             if(add() == false)
             {
@@ -111,7 +111,7 @@ public final class AddUser
         }
     }
 
-    private final boolean Details() throws Exception
+    private final boolean getUserDetails() throws Exception
     {
         try
         {
@@ -133,7 +133,7 @@ public final class AddUser
         return false;
     }
 
-    public final void Setup()throws Exception
+    public final void setupAdminUser()throws Exception
     {
         Admin= true;
         NAME = "Administrator";
