@@ -14,7 +14,7 @@ public class Download
     {
         try
         {
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("download") == false)
+            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("download"))
                 return false;
                 
             if(URL == null || fileName == null || URL.equalsIgnoreCase("")  || fileName.equalsIgnoreCase(""))

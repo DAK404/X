@@ -13,7 +13,7 @@ public final class ReadFile
     {
         try
         {
-            if(checkFileValidity(helpFile) == true)
+            if(checkFileValidity(helpFile))
             {
                 file=new File("./Information/Truncheon/"+helpFile);
                 readFile(true);
@@ -39,7 +39,7 @@ public final class ReadFile
     {
         try
         {
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("read") == false)
+            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("read"))
                 return;
             if(checkFileValidity(fileName))
             {

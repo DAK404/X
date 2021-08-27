@@ -7,7 +7,7 @@ public final class UpdateFrontEnd
     {
         try
         {
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("update") == false)
+            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("update"))
                 return;
 
             new Truncheon.API.BuildInfo().about();

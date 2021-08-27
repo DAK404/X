@@ -26,7 +26,7 @@ public final class AddUser
 
     public AddUser(String u, String n, boolean Administrator)
     {
-        if(Administrator==true)
+        if(Administrator)
         {
             Admin=true;
         }
@@ -55,7 +55,7 @@ public final class AddUser
         {
             if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("usermgmt"))
                 return;
-            if(authenticateUser()==false)
+            if(! authenticateUser())
             {
                 console.readLine();
                 return;

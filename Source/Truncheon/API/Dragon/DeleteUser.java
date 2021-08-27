@@ -28,7 +28,7 @@ public class DeleteUser
             return;
         }
 
-        if(authenticateUser() == false)
+        if(authenticateUser())
         {
             System.out.println("Incorrect Credentials. Access Denied.");
             return;

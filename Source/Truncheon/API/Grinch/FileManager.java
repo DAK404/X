@@ -45,7 +45,7 @@ public class FileManager
             _curDir="./Users/Truncheon/"+_user+'/';
             new Truncheon.API.BuildInfo().versionViewer();
             System.out.println("Grinch File Manager 1.10.0");
-            while(fileManagerShell(console.readLine(_name+"@"+_curDir.replace(_user, _name)+">: ")) == true);
+            while(fileManagerShell(console.readLine(_name+"@"+_curDir.replace(_user, _name)+">: ")));
         }
         catch(Exception E)
         {
@@ -170,7 +170,7 @@ public class FileManager
                  * 
                  * DOCUMENTATION UNAVAILABLE.
                  */
-                if(_scriptMode == true & _scriptName.equals(cmd[1]))
+                if(_scriptMode & _scriptName.equals(cmd[1]))
                 {
                     System.out.println(_scriptName + " - Cannot Recursively Execute scripts.");
                     break;
@@ -388,7 +388,7 @@ public class FileManager
     {
         //String format = "%1$-60s|%2$-50s|%3$-20s\n";
         String format = "%1$-50s|%2$-20s\n";
-        if(checkFile(_curDir)==true)
+        if(checkFile(_curDir))
         {
             File dPath=new File(_curDir);
             System.out.println("\n");

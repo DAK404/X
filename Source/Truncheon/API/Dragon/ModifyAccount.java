@@ -55,7 +55,7 @@ public final class ModifyAccount
         System.out.println("* User Account Password");
         System.out.println("* User Account Security Key");
         System.out.println("* User Account PIN");
-        if(_admin==true)
+        if(_admin)
             System.out.println("* Promote an Account");
             System.out.println("* Demote an Account");
         System.out.println("* Exit\n");
@@ -191,7 +191,7 @@ public final class ModifyAccount
     {
         try
         {
-            if(_admin == false)
+            if(! _admin)
                 return;
 
             String user = console.readLine("Enter the name of the user to " + status + ": ");
