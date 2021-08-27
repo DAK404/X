@@ -260,7 +260,7 @@ public class FileManager
                         System.out.println("Syntax:\n\ncopy <directory_name><new_directory_name>\ncp <directory_name><new_directory_name>\n\nOR\n\ncopy <filename> <new_filename>\ncp <filename> <new_filename>\n");
                         break;
                     }
-                    copy_move_frontend(false, cmd[1], cmd[2]);
+                    copyMove(false, cmd[1], cmd[2]);
                     break;
                     
                 case "mv":
@@ -270,7 +270,7 @@ public class FileManager
                         System.out.println("Syntax:\n\nmove <directory_name><new_directory_name>\nmv <directory_name><new_directory_name>\n\nOR\n\nmove <filename> <new_filename>\nmv <filename> <new_filename>\n");
                         break;
                     }
-                    copy_move_frontend(true, cmd[1], cmd[2]);
+                    copyMove(true, cmd[1], cmd[2]);
                     break;
 
                 case "read":
@@ -475,7 +475,7 @@ public class FileManager
         }
     }
 
-    private final void copy_move_frontend(boolean move, String source, String destination)throws Exception
+    private final void copyMove(boolean move, String source, String destination)throws Exception
     {
         try
         {
