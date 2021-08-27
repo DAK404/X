@@ -57,9 +57,8 @@ public class FileManager
     {
         try
         {
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script") == false)
-                if(_admin == false)
-                    return;
+            if(_admin == false && new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script") == false)
+                return;
 
             System.gc();
             //Check if the script file specifed exists.
