@@ -57,10 +57,16 @@ public class FileManager
     {
         try
         {
-            if( ! _admin  && ! ! (new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script")))
+            if( ! _admin  && !(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script")))
                 return;
 
             System.gc();
+            if(sName == null || sName.equalsIgnoreCase("") || sName.startsWith(" ") || new File(sName).isDirectory() )
+            {
+                System.out.println("[ ERROR ] : The name of the script file is invalid.");
+                return;
+            }
+
             //Check if the script file specifed exists.
             if( ! (new File("./Users/Truncheon/"+_user+"/"+sName+".fmx").exists()) )
             {
@@ -68,16 +74,12 @@ public class FileManager
                 System.out.println("[ ATTENTION ] : Script file "+sName.replace(_user, _name)+" has not been found.\nPlease check the directory of the script file and try again.");
                 return;
             }
-            if(sName == null || sName.equalsIgnoreCase("") || sName.startsWith(" ") || new File(sName).isDirectory() )
-            {
-                System.out.println("[ ERROR ] : The name of the script file is invalid.");
-                return;
-            }
+            
 
             if(! authenticationLogic())
             {
                 System.out.println("Authentication failed. Returning to main menu.");
-                Thread.sleep(5000);
+                Thread.sleep(2500);
                 return;
             }
 
