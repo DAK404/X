@@ -101,7 +101,7 @@ public class Setup
     {
         new Truncheon.API.Wraith.ReadFile().showHelp("License.eula");
         System.out.println("\nDo you accept the Product License? [Y/N]");
-        if(console.readLine().toLowerCase().equalsIgnoreCase("y"))
+        if(console.readLine().toLowerCase().equals("y"))
             //read changelog file
             new Truncheon.API.Wraith.ReadFile().showHelp("changelog.txt");
         else
@@ -262,7 +262,7 @@ public class Setup
         {
             String sysName;
             sysName = console.readLine("Enter the name of this system\n\nThis will be used to identify your system in the prompt. The default name is SYSTEM.\n\n> ");
-            if(sysName.equals("") || sysName.startsWith(" ") || sysName == null)
+            if(sysName == null || sysName.equals("") || sysName.startsWith(" "))
                 sysName = "SYSTEM";
             if(sysName.contains(" "))
                 sysName = sysName.replaceAll(" ", "");

@@ -32,9 +32,8 @@ public class FileManager
     {
         try
         {
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("update") == false)
-                if(_admin == false)
-                    return;
+            if(_admin == false && new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("filemanager") == false)
+                return;
 
             if(authenticationLogic() == false)
             {
@@ -347,10 +346,7 @@ public class FileManager
 
     private final boolean checkFile(String fName)throws Exception
     {
-        if(new File(fName).exists() == false)
-            return false;
-
-        return true;
+        return new File(fName).exists();
     }
 
     private final void treeView()throws Exception

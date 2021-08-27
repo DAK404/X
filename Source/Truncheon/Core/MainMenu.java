@@ -191,10 +191,9 @@ public final class MainMenu
         try
         {
             //Verify is the script functionality is allowed by the Administrator policy
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script") == false)
+            if(_admin == false && new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script") == false)
             //bypass the policy if the user has the administrator permissions, either by pseudo or by account privileges
-                if(_admin == false)
-                    return;
+                return;
 
             System.gc();
 
@@ -206,7 +205,7 @@ public final class MainMenu
                 System.out.println("[ ATTENTION ] : Script file "+fileName.replace(_username, _name)+" has not been found.\nPlease check the directory of the script file and try again.");
                 return;
             }
-            if(fileName.equalsIgnoreCase("") || fileName.startsWith(" ") || fileName == null)
+            if(fileName == null || fileName.equalsIgnoreCase("") || fileName.startsWith(" "))
             {
                 System.out.println("[ ERROR ] : The name of the script file cannot be be blank.");
                 return;
@@ -321,6 +320,10 @@ public final class MainMenu
             //process the command in the String Array.
             switch(cmd[0].toLowerCase())
             {
+                /*case "debug_mem_info":
+                debugMemoryInformation();
+                break;*/
+
                 /**
                  * Wait Functionality.
                  *
@@ -609,7 +612,6 @@ public final class MainMenu
                     System.out.println(input+" - Command not found.");
                     break;
             }
-
             System.gc();
         }
         catch(Exception E)
@@ -778,4 +780,25 @@ public final class MainMenu
             System.out.println("[ ATTENTION ] : POLICY FILE CORRUPT!\nPolicy File Reconfiguration Required!\n");
         System.out.println("[ HINT ] : Type \'HELP\' to get the contextual help.\n");
     }
+
+    /*
+    private void debugMemoryInformation()
+	{
+		// get Runtime instance
+		Runtime instance = Runtime.getRuntime();
+		System.out.println("*****************************************");
+		System.out.println("      ---   DEBUG INFORMATION   ---      ");
+		System.out.println("*****************************************");
+		System.out.println("\n  - Heap utilization statistics -  \n ");
+		System.out.println(" [*]  Process ID   : " + ProcessHandle.current().pid());
+ 		// available memory
+		System.out.println(" [*]  Total Memory : " + instance.totalMemory()  + " Bytes");
+		// free memory
+		System.out.println(" [*]  Free Memory  : " + instance.freeMemory()  + " Bytes");
+		// used memory
+		System.out.println(" [*]  Used Memory  : " + (instance.totalMemory() - instance.freeMemory())  + " Bytes"); 
+		// Maximum available memory
+		System.out.println(" [*]  Max Memory   : " + instance.maxMemory()  + " Bytes");
+		System.out.println("\n*****************************************\n\n");
+	}*/
 }

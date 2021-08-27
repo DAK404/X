@@ -74,9 +74,7 @@ public class PolicyEditor
 
         System.gc();
 
-        if(temp.equalsIgnoreCase("Yes"))
-            return true;
-        return false;
+        return temp.equalsIgnoreCase("Yes");
     }
 
     private final void policyEditor()throws Exception

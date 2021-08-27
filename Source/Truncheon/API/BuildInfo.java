@@ -15,6 +15,7 @@ public final class BuildInfo
         System.out.println("     Version " + _version +"     \n");
         System.out.println("///////////////////////");
         System.out.println(" - RELEASE CANDIDATE - \n");
+        //debugMemoryInformation();
     }
 
     public final void clearScreen()
@@ -62,8 +63,23 @@ public final class BuildInfo
         System.gc();
     }
 
-    public void debugMemoryInformation()
+    /* private void debugMemoryInformation()
     {
-
-    }
+        // get Runtime instance
+        Runtime instance = Runtime.getRuntime();
+        System.out.println("*****************************************");
+        System.out.println("      ---   DEBUG INFORMATION   ---      ");
+        System.out.println("*****************************************");
+        System.out.println("\n  - Heap utilization statistics -  \n ");
+        System.out.println(" [*]  Process ID   : " + ProcessHandle.current().pid());
+         // available memory
+        System.out.println(" [*]  Total Memory : " + instance.totalMemory()  + " Bytes");
+        // free memory
+        System.out.println(" [*]  Free Memory  : " + instance.freeMemory()  + " Bytes");
+        // used memory
+        System.out.println(" [*]  Used Memory  : " + (instance.totalMemory() - instance.freeMemory())  + " Bytes"); 
+        // Maximum available memory
+        System.out.println(" [*]  Max Memory   : " + instance.maxMemory()  + " Bytes");
+        System.out.println("\n*****************************************\n\n");
+    } */
 }

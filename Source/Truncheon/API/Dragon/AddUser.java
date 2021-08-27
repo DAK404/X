@@ -265,7 +265,6 @@ public final class AddUser
 
         if(! (PIN == null | PIN.equals("")) )
             System.out.println("Unlock PIN   : ****");
-        return;
     }
 
     private final boolean add() throws Exception
