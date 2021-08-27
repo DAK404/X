@@ -147,7 +147,7 @@ public final class MainMenu
             loginStatus = challenge();
 
             //If the login stasus is false, pass it on to decrement the login counter.
-            if(loginStatus==false)
+            if(! loginStatus)
                 counterLogic();
             else
                 _count = 5;
@@ -395,7 +395,7 @@ public final class MainMenu
                  *
                  * DOCUMENTATION UNAVAILABLE.
                  */
-                if(_scriptMode==true & _scriptName.equals(cmd[1]))
+                if(_scriptMode & _scriptName.equals(cmd[1]))
                 {
                     System.out.println(_scriptName + " - Cannot Recursively Execute scripts.");
                     return;
@@ -743,7 +743,7 @@ public final class MainMenu
             else
             {
                 //Ask for the user to enter administrator credentials to elevate status
-                if(challenge() == true && retrieveInfo("SELECT Administrator FROM FCAD WHERE Username = ? ;", "Administrator").equals("Yes") )
+                if(challenge() && retrieveInfo("SELECT Administrator FROM FCAD WHERE Username = ? ;", "Administrator").equals("Yes") )
                     elevateStatus();
             }
             System.gc();

@@ -14,13 +14,13 @@ public final class WriteFile
     {
         try
         {
-            if(checkFileValidity(fileName) == true)
+            if(checkFileValidity(fileName))
             {
                 DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
                 Date date = new Date();
                 System.gc();
                 File logFile = new File("./Logs");
-                if(logFile.exists()==false)
+                if(! logFile.exists())
                 {
                     logFile.mkdir();
                 }
@@ -29,6 +29,7 @@ public final class WriteFile
                 pr.println(dateFormat.format(date) + ": " + PrintToFile);
                 pr.close();
                 obj.close();
+                System.gc();
             }
         }
         catch(Exception E)
@@ -39,7 +40,7 @@ public final class WriteFile
 
     private boolean checkFileValidity(String fn)throws Exception
     {
-        if(fn.equals("") | fn == null || fn.startsWith(" "))
+        if(fn == null || fn.equals("") || fn.startsWith(" "))
         {
             System.out.println("Please enter a valid file name to open.");
             return false;
@@ -51,10 +52,10 @@ public final class WriteFile
     {
         try
         {
-            if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("write") == false)
+            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("write"))
                 return;
 
-            if(checkFileValidity(fileName) == true)
+            if(checkFileValidity(fileName))
             {
                 boolean appendFile = true;
                 String message = "";
@@ -64,15 +65,10 @@ public final class WriteFile
                 
                 Console console=System.console();
 
-                if(fileName.equals("") | fileName == null)
-                {
-                    System.out.println("Filename cannot be left blank.");
-                    return;
-                }
-                File writeToFile = new File(dir+fileName);
+                File writeToFile = new File(dir + fileName);
                 System.out.println("\nEditing File : " + fileName + "\n\n");
 
-                if(writeToFile.exists()==true)
+                if(writeToFile.exists())
                 {
                     switch(console.readLine("[ ATTENTION ] : A file with the same name has been found in this directory. Do you want to OVERWRITE it, APPEND to the file, or GO BACK? \n\nOptions:\n[ OVERWRITE | APPEND | RETURN | HELP ]\n\n> ").toLowerCase())
                     {
@@ -109,7 +105,7 @@ public final class WriteFile
                 do
                 {
                     pr.println(message);
-                    message=console.readLine();
+                    message = console.readLine();
                 }
                 while( !(message.equals("<exit>")) );
                 

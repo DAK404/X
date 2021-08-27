@@ -27,7 +27,7 @@ public final class ReadFile
 
     private boolean checkFileValidity(String fn)throws Exception
     {
-        if(fn.equals("") | fn == null || fn.startsWith(" "))
+        if(fn == null || fn.equals("") || fn.startsWith(" "))
         {
             System.out.println("Please enter a valid file name to open.");
             return false;
@@ -41,7 +41,7 @@ public final class ReadFile
         {
             if(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("read") == false)
                 return;
-            if(checkFileValidity(fileName) == true)
+            if(checkFileValidity(fileName))
             {
                 file = new File( dir + fileName);
                 readFile(false);
@@ -63,10 +63,10 @@ public final class ReadFile
         //A condition to check if the given file is found or not. This prevents exception, which may or may not disrupt the program.
 
         //This checks if the file doesnt exist. If it doesnt exist, the error text is shown on terminal.
-        if (file.exists() == false)
+        if (! file.exists())
             System.out.println("[ ERROR ] : Unable to locate file: The specified file cannot be read, found or loaded.");
         //This checks if the filename points to a directory
-        else if (file.isDirectory() == true)
+        else if (file.isDirectory())
             System.out.println("[ ERROR ] : Unable to read file : The specified file name is a directory.");
         //If the file exists, the file is displayed on the terminal.
         else
@@ -77,7 +77,7 @@ public final class ReadFile
             //Initialize the string to be null
             String p = "";
 
-            if(helpMode == false)
+            if(! helpMode)
             {
                 //Logic to read the file line by line.
                 while ((p = ob.readLine()) != null)
