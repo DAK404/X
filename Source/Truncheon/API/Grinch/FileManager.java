@@ -32,10 +32,10 @@ public class FileManager
     {
         try
         {
-            if(_admin == false && new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("filemanager") == false)
+            if( !_admin  && ! (new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("filemanager")) )
                 return;
 
-            if(authenticationLogic() == false)
+            if(! authenticationLogic())
             {
                 System.out.println("Authentication failed. Returning to main menu.");
                 Thread.sleep(5000);
@@ -44,7 +44,7 @@ public class FileManager
 
             _curDir="./Users/Truncheon/"+_user+'/';
             new Truncheon.API.BuildInfo().versionViewer();
-            System.out.println("Grinch File Manager 1.9");
+            System.out.println("Grinch File Manager 1.10.0");
             while(fileManagerShell(console.readLine(_name+"@"+_curDir.replace(_user, _name)+">: ")) == true);
         }
         catch(Exception E)
@@ -57,24 +57,24 @@ public class FileManager
     {
         try
         {
-            if(_admin == false && new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script") == false)
+            if( ! _admin  && ! ! (new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script")))
                 return;
 
             System.gc();
             //Check if the script file specifed exists.
-            if(new File("./Users/Truncheon/"+_user+"/"+sName+".fmx").exists() == false)
+            if( ! (new File("./Users/Truncheon/"+_user+"/"+sName+".fmx").exists()) )
             {
                 //Return an error and pass the control back in case the file is not found.
                 System.out.println("[ ATTENTION ] : Script file "+sName.replace(_user, _name)+" has not been found.\nPlease check the directory of the script file and try again.");
                 return;
             }
-            if(sName.equalsIgnoreCase(""))
+            if(sName == null || sName.equalsIgnoreCase("") || sName.startsWith(" ") || new File(sName).isDirectory() )
             {
-                System.out.println("[ ERROR ] : The name of the script file cannot be be blank.");
+                System.out.println("[ ERROR ] : The name of the script file is invalid.");
                 return;
             }
 
-            if(authenticationLogic() == false)
+            if(! authenticationLogic())
             {
                 System.out.println("Authentication failed. Returning to main menu.");
                 Thread.sleep(5000);
@@ -168,7 +168,7 @@ public class FileManager
                  * 
                  * DOCUMENTATION UNAVAILABLE.
                  */
-                if(_scriptMode==true & _scriptName.equals(cmd[1]))
+                if(_scriptMode == true & _scriptName.equals(cmd[1]))
                 {
                     System.out.println(_scriptName + " - Cannot Recursively Execute scripts.");
                     break;
@@ -323,7 +323,7 @@ public class FileManager
         }
         
         tPath = _curDir + tPath + "/";
-        if(checkFile(tPath)==true)
+        if(checkFile(tPath))
             _curDir=tPath;
         else
             System.out.println("[ ERROR ] : The specified file/directory does not exist.");
@@ -407,8 +407,8 @@ public class FileManager
     {
         try
         {
-            mkFile=_curDir+mkFile+"/";
-            if(checkFile(mkFile)==false)
+            mkFile=_curDir+mkFile + "/";
+            if(! checkFile(mkFile))
                 new File(mkFile).mkdir();
             else
                 System.out.println("[ ERROR ] : The specified directory name already exists. Please try again.");
@@ -427,10 +427,10 @@ public class FileManager
         try
         {
             delFile=_curDir+delFile;
-            if(checkFile(delFile)==true)
+            if(! checkFile(delFile))
             {
                 File f=new File(delFile);
-                if(f.isDirectory()==true)
+                if(f.isDirectory())
                     delHelper(f);
                 else
                     f.delete();
@@ -462,7 +462,7 @@ public class FileManager
         {
             oldFileName = _curDir + oldFileName;
             newFileName = _curDir + newFileName;
-            if(checkFile(oldFileName)==true)
+            if(checkFile(oldFileName))
                 new File(oldFileName).renameTo(new File(newFileName));
             else
                 System.out.println("[ ERROR ] : The specified file/directory does not exist.");
@@ -479,18 +479,18 @@ public class FileManager
     {
         try
         {
-            if(checkFile(_curDir + source) == false)
+            if(! checkFile(_curDir + source))
             {
                 System.out.println("The Source File Does Not Exist");
                 return;
             }
-            if(checkFile(_curDir + destination) == false)
+            if(! checkFile(_curDir + destination))
             {
                 System.out.println("The Destination File Does Not Exist");
                 return;
             }
-            copyMoveHelper(new File(_curDir+source), new File(_curDir+destination+"/"+source));
-            if(move==true)
+            copyMoveHelper(new File(_curDir+source), new File(_curDir+destination + "/" + source));
+            if(move)
                 delHelper(new File(_curDir+source));
             System.gc();
             return;
