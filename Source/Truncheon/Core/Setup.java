@@ -101,7 +101,7 @@ public class Setup
     {
         new Truncheon.API.Wraith.ReadFile().showHelp("License.eula");
         System.out.println("\nDo you accept the Product License? [Y/N]");
-        if(console.readLine().toLowerCase().equals("y"))
+        if(console.readLine().equalsIgnoreCase("y"))
             //read changelog file
             new Truncheon.API.Wraith.ReadFile().showHelp("changelog.txt");
         else
