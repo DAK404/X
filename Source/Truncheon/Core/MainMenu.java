@@ -141,7 +141,7 @@ public final class MainMenu
             new Truncheon.API.BuildInfo().versionViewer();
 
             //Display the number of login attempts remaining.
-            System.out.println("Login Attempts Remaining: "+_count+"\n===========================\n");
+            System.out.println("Login Attempts Remaining: " + _count + "\n===========================\n");
 
             //Query the login details to check the credentials.
             loginStatus = challenge();
