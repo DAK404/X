@@ -7,12 +7,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 
-public class DeleteUser 
+public class DeleteUser
 {
     private String _user;
     private String _name;
 
-    Console console = System.console();
+    private Console console = System.console();
 
     public DeleteUser(String User, String Name)throws Exception
     {
@@ -34,7 +34,7 @@ public class DeleteUser
             return;
         }
         deleteLogic();
-        
+
     }
 
     private final boolean authenticateUser()throws Exception
@@ -71,16 +71,16 @@ public class DeleteUser
 
     private final void cleanUp()throws Exception
     {
-        try 
+        try
         {
             File f = new File("./Users/"+_user);
             if(f.exists())
             {
                 if(f.isDirectory())
-                    delHelper(f);
+                delHelper(f);
                 else
-                    f.delete();
-            }   
+                f.delete();
+            }
         }
         catch (Exception E)
         {
@@ -89,10 +89,10 @@ public class DeleteUser
     }
     private final void delHelper(File delfile)throws Exception
     {
-        if (delfile.listFiles() != null) 
+        if (delfile.listFiles() != null)
         {
-            for (File fock : delfile.listFiles()) 
-                delHelper(fock);
+            for (File fock : delfile.listFiles())
+            delHelper(fock);
         }
         delfile.delete();
     }

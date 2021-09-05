@@ -58,7 +58,7 @@ public class Setup
     private boolean _mosaicSetup = false;
 
     //Initialize the Console class for IO via the STDIN
-    Console console = System.console();
+    private Console console = System.console();
 
     //Initialize the Properties class to create the policy file and set the default policy values
     Properties props = null;
@@ -387,9 +387,10 @@ public class Setup
             _adminAccCreate = true;
         }
         catch(Exception E)
-        {
-            new Truncheon.API.ErrorHandler().handleException(E);
-        }
+{
+    //Handle any exceptions thrown during runtime
+    new Truncheon.API.ErrorHandler().handleException(E);
+}
     }
 
     /**

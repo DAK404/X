@@ -16,7 +16,7 @@ public class PolicyEditor
 {
     private final String fileName = "./System/Private/Truncheon/Policy.burn";
 
-    Console console = System.console();
+    private Console console = System.console();
     Properties props = null;
 
     public PolicyEditor()
@@ -52,9 +52,10 @@ public class PolicyEditor
             }
         }
         catch(Exception E)
-        {
-            new Truncheon.API.ErrorHandler().handleException(E);
-        }
+{
+    //Handle any exceptions thrown during runtime
+    new Truncheon.API.ErrorHandler().handleException(E);
+}
         return false;
     }
 

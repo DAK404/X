@@ -15,7 +15,7 @@ public final class ModifyAccount
     private String _pin;
     private boolean _admin;
 
-    Console console = System.console();
+    private Console console = System.console();
 
     public ModifyAccount(String User, String Name, String Pin, boolean Admin)
     {
