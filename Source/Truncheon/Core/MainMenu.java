@@ -1,25 +1,21 @@
 /*
-
------ PROGRAM DOCUMENTATION -----
-
-THIS PROGRAM IS UNDER DEVELOPMENT
-AND SHOULD NOT BE CONSIDERED
-RELEASE READY. FEATURES MAY BE
-BROKEN OR INCOMPLETE. COMPILE AND
-TEST AT YOUR OWN RISK.
-
----------------------------------
-
---- Program Details ---
-
-Author  : DAK404
-Date    : 17-June-2021
-Version : 0.1.22
-
------------------------
-
-*/
-
+ * ---------------!DISCLAIMER!--------------- *
+ *                                            *
+ *         THIS CODE IS RELEASE READY         *
+ *                                            *
+ *  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
+ *   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
+ *    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
+ *     GITHUB IF YOU FIND ANY PROBLEMS OR     *
+ *              ERRORS IN THE CODE.           *
+ *                                            *
+ *   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
+ *    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
+ *        DISTRIBUTING THE SOURCE CODE.       *
+ *   (SEE LICENSE FILE FOR MORE INFORMATION)  *
+ *                                            *
+ * ------------------------------------------ *
+ */
 
 package Truncheon.Core;
 
@@ -226,6 +222,8 @@ public final class MainMenu
             //Retrieve the PIN, Name and admin status from the database and store it to the variables.
             _PIN  = retrieveInfo("SELECT PIN FROM FCAD WHERE Username = ? ;", "PIN");
             _name = retrieveInfo("SELECT Name FROM FCAD WHERE Username = ? ;", "Name");
+
+            //Elevate the user status if the credential have the administrator privileges
             if( retrieveInfo("SELECT Administrator FROM FCAD WHERE Username = ? ;", "Administrator").equals("Yes") )
             elevateStatus();
 
@@ -249,19 +247,28 @@ public final class MainMenu
     */
     private final String retrieveInfo(String command, String info)throws Exception
     {
+        //Initialize the database connection
         String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
         Connection conn = DriverManager.getConnection(url);
+
+        //Execute the statement to retrieve the criteria specified by command (the SQL command) and info (the name of the column)
         PreparedStatement pstmt = conn.prepareStatement(command);
         pstmt.setString(1, _username);
+
+        //Store the result of the query in the resultset
         ResultSet rs = pstmt.executeQuery();
 
+        //Store the value of the result after retrieving the value of the query
         String temp = rs.getString(info);
 
+        //close connections and cleanup memory space
         rs.close();
         pstmt.close();
         conn.close();
 
         System.gc();
+
+        //Return the result in the string format
         return temp;
     }
 
@@ -296,6 +303,7 @@ public final class MainMenu
 
         //Check if the startup script file exists
         if(new File("./Users/Truncheon/" + _username + "/Scripts/Startup.shx").exists())
+
         //execute the script if it exists
         scriptEngine("./Users/Truncheon/" + _username + "/Scripts/Startup.shx");
 
@@ -684,7 +692,6 @@ public final class MainMenu
             //Check if the script file specified exists.
             if(! new File(fileName).exists())
             {
-
                 //Return an error and pass the control back in case the file is not found.
                 System.out.println("[ ATTENTION ] : Script file "+fileName.replace(_username, _name)+" has not been found.\nPlease check the directory of the script file and try again.");
                 return;
