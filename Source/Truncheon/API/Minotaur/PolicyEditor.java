@@ -18,11 +18,6 @@ public class PolicyEditor
 
     private Console console = System.console();
     Properties props = null;
-
-    public PolicyEditor()
-    {
-
-    }   
     
     public final void policyEditorLogic()throws Exception
     {
