@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class FileManager 
+public class FileManager
 {
     private String _user;
     private String _name;
@@ -17,31 +17,31 @@ public class FileManager
     private String _scriptName;
     private boolean _admin = false;
     private boolean _scriptMode = false;
-    
-    
+
+
     private Console console = System.console();
-    
+
     public FileManager(String usn, String nm, boolean admin)
     {
         _user = usn;
         _name = nm;
         _admin = admin;
     }
-    
+
     public final void fileManagerLogic()throws Exception
     {
         try
         {
             if( !_admin  && ! (new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("filemanager")) )
             return;
-            
+
             if(! authenticationLogic())
             {
                 System.out.println("Authentication failed. Returning to main menu.");
                 Thread.sleep(5000);
                 return;
             }
-            
+
             _curDir="./Users/Truncheon/"+_user+'/';
             new Truncheon.API.BuildInfo().versionViewer();
             System.out.println("Grinch File Manager 1.10.0");
@@ -53,90 +53,101 @@ public class FileManager
             new Truncheon.API.ErrorHandler().handleException(E);
         }
     }
-    
+
     public final void fileManagerLogic(String sName)throws Exception
     {
         try
         {
             if( ! _admin  && !(new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("script")))
             return;
-            
+
             System.gc();
             if(sName == null || sName.equalsIgnoreCase("") || sName.startsWith(" ") || new File(sName).isDirectory() )
             {
                 System.out.println("[ ERROR ] : The name of the script file is invalid.");
                 return;
             }
-            
-            //Check if the script file specifed exists.
+
+            //Check if the script file specified exists.
             if( ! (new File("./Users/Truncheon/"+_user+"/"+sName+".fmx").exists()) )
             {
                 //Return an error and pass the control back in case the file is not found.
                 System.out.println("[ ATTENTION ] : Script file "+sName.replace(_user, _name)+" has not been found.\nPlease check the directory of the script file and try again.");
                 return;
             }
-            
-            
+
+
             if(! authenticationLogic())
             {
                 System.out.println("Authentication failed. Returning to main menu.");
-                Thread.sleep(2500);
+                Thread.sleep(1000);
                 return;
             }
-            
+
             _curDir="./Users/Truncheon/"+_user+'/';
-            _scriptName = "./Users/Truncheon/"+_user+"/"+sName+".gScript";
-            
+            _scriptName = "./Users/Truncheon/"+_user+"/"+sName+".fmx";
+
             //else begin executing the script.
-            
-            //Activate the script mode.
-            _scriptMode = true;
-            
-            //Initialize a stream to read the given file.
-            BufferedReader br = new BufferedReader(new FileReader(_scriptName));
-            
-            //Initialize a string to hold the contents of the script file being executed.
-            String scriptLine;
-            
-            //Read the script file, line by line.
-            while ((scriptLine = br.readLine()) != null)
-            {
-                //Check if the line is a comment or is blank in the script file and skip the line.
-                if(scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
-                continue;
-                
-                //Check if End Script command is encountered, which will stop the execution of the script.
-                else if(scriptLine.equalsIgnoreCase("End Script"))
-                break;
-                
-                //Read the command in the script file, and pass it on to menuLogic(<command>) for it to be processed.
-                fileManagerShell(scriptLine);
-            }
-            
-            //Close the streams, run the garbage collector and clean.
-            br.close();
+            executeScriptFile();
             System.gc();
-            
-            //Deactivate the script mode.
-            _scriptMode = false;        
         }
         catch (Exception E)
         {
             E.printStackTrace();
         }
     }
-    
+
+    private final void executeScriptFile()throws Exception
+    {
+        try
+        {
+            //Activate the script mode.
+            _scriptMode = true;
+
+            //Initialize a stream to read the given file.
+            BufferedReader br = new BufferedReader(new FileReader(_scriptName));
+
+            //Initialize a string to hold the contents of the script file being executed.
+            String scriptLine;
+
+            //Read the script file, line by line.
+            while ((scriptLine = br.readLine()) != null)
+            {
+                //Check if the line is a comment or is blank in the script file and skip the line.
+                if(scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
+                continue;
+
+                //Check if End Script command is encountered, which will stop the execution of the script.
+                else if(scriptLine.equalsIgnoreCase("End Script"))
+                break;
+
+                //Read the command in the script file, and pass it on to menuLogic(<command>) for it to be processed.
+                fileManagerShell(scriptLine);
+            }
+
+            //Close the streams, run the garbage collector and clean.
+            br.close();
+
+            //Deactivate the script mode.
+            _scriptMode = false;
+        }
+        catch(Exception E)
+        {
+            E.printStackTrace();
+        }
+    }
+
     private final boolean authenticationLogic()throws Exception
     {
         try
         {
             new Truncheon.API.BuildInfo().versionViewer();
             System.out.println("[ ATTENTION ] : This module requires the user to authenticate to continue. Please enter the user credentials.");
-            
+
             System.out.println("Username: " + _name);
             String password=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
             String securityKey=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Security Key: ")));
-            
+
             return new Truncheon.API.Dragon.LoginAPI(_user, password, securityKey).status();
         }
         catch(Exception E)
@@ -146,7 +157,7 @@ public class FileManager
         }
         return false;
     }
-    
+
     private final boolean fileManagerShell(String input)throws Exception
     {
         try
@@ -154,7 +165,7 @@ public class FileManager
             String[] cmd = input.split(" (?=([^\"]*\"[^\"]*\")*[^\"]*$)");
             if(cmd.length > 1)
             cmd[1] = cmd[1].replaceAll("\"", "");
-            
+
             switch(cmd[0].toLowerCase())
             {
                 case "script":
@@ -165,11 +176,11 @@ public class FileManager
                     System.out.println("\nScript Syntax:\n\nscript <script_name/path>\n");
                     break;
                 }
-                
+
                 /**
-                * 
+                *
                 * --- FOR FURTHER ANALYSIS AND TESTING ---
-                * 
+                *
                 * DOCUMENTATION UNAVAILABLE.
                 */
                 if(_scriptMode & _scriptName.equals(cmd[1]))
@@ -184,7 +195,7 @@ public class FileManager
                     _scriptName = "";
                 }
                 break;
-                
+
                 case "echo":
                 if(cmd.length < 2)
                 {
@@ -196,23 +207,23 @@ public class FileManager
                 else
                 System.out.println(cmd[1]);
                 break;
-                
+
                 case "exit":
-                new Truncheon.API.BuildInfo().versionViewer();  
+                new Truncheon.API.BuildInfo().versionViewer();
                 return false;
-                
+
                 case "?":
                 case "help":
                 new Truncheon.API.Wraith.ReadFile().showHelp("HelpDocuments/Grinch.manual");
                 break;
-                
+
                 case "":
                 break;
-                
+
                 case "clear":
                 new Truncheon.API.BuildInfo().versionViewer();
                 break;
-                
+
                 case "cd":
                 if(cmd.length < 2)
                 {
@@ -221,15 +232,15 @@ public class FileManager
                 }
                 changeDir(cmd[1]);
                 break;
-                
+
                 case "ls":
                 listFiles();
                 break;
-                
+
                 case "tree":
                 treeView();
                 break;
-                
+
                 case "mkdir":
                 if(cmd.length < 2)
                 {
@@ -238,7 +249,7 @@ public class FileManager
                 }
                 makeDir(cmd[1]);
                 break;
-                
+
                 case "rm":
                 if(cmd.length < 2)
                 {
@@ -247,7 +258,7 @@ public class FileManager
                 }
                 del(cmd[1]);
                 break;
-                
+
                 case "rename":
                 if(cmd.length < 3)
                 {
@@ -256,7 +267,7 @@ public class FileManager
                 }
                 rename(cmd[1], cmd[2]);
                 break;
-                
+
                 case "cp":
                 case "copy":
                 if(cmd.length < 3)
@@ -266,7 +277,7 @@ public class FileManager
                 }
                 copyMove(false, cmd[1], cmd[2]);
                 break;
-                
+
                 case "mv":
                 case "move":
                 if(cmd.length < 3)
@@ -276,7 +287,7 @@ public class FileManager
                 }
                 copyMove(true, cmd[1], cmd[2]);
                 break;
-                
+
                 case "read":
                 if(cmd.length < 2)
                 {
@@ -285,7 +296,7 @@ public class FileManager
                 }
                 new Truncheon.API.Wraith.ReadFile().readUserFile(cmd[1], _curDir);
                 break;
-                
+
                 case "write":
                 if(cmd.length < 2)
                 {
@@ -294,7 +305,7 @@ public class FileManager
                 }
                 new Truncheon.API.Wraith.WriteFile().editFile(cmd[1], _curDir);
                 break;
-                
+
                 case "download":
                 if(cmd.length < 3)
                 {
@@ -303,7 +314,7 @@ public class FileManager
                 }
                 new Truncheon.API.Wyvern.Download().downloadFile(cmd[1], _curDir+cmd[2]);
                 break;
-                
+
                 default:
                 System.out.println(input+" - Command not found.");
                 break;
@@ -317,7 +328,7 @@ public class FileManager
         }
         return false;
     }
-    
+
     private final void changeDir(String tPath)throws Exception
     {
         if(tPath.equals(".."))
@@ -326,7 +337,7 @@ public class FileManager
             System.gc();
             return;
         }
-        
+
         tPath = _curDir + tPath + "/";
         if(checkFile(tPath))
         _curDir=tPath;
@@ -334,12 +345,12 @@ public class FileManager
         System.out.println("[ ERROR ] : The specified file/directory does not exist.");
         System.gc();
     }
-    
+
     private final void prevDir()throws Exception
     {
         _curDir = _curDir.substring(0, _curDir.length() - 1);
         _curDir = _curDir.replace(_curDir.substring(_curDir.lastIndexOf('/'), _curDir.length()), "/");
-        
+
         if(_curDir.equals("./Users/Truncheon/"))
         {
             System.out.println("[ WARNING ] : Permission Denied.");
@@ -347,12 +358,12 @@ public class FileManager
         }
         System.gc();
     }
-    
+
     private final boolean checkFile(String fName)throws Exception
     {
         return new File(fName).exists();
     }
-    
+
     private final void treeView()throws Exception
     {
         try
@@ -368,25 +379,25 @@ public class FileManager
             E.printStackTrace();
         }
     }
-    
+
     private final void treeViewHelper(int indent, File file)
     {
         System.out.print("|");
-        
+
         for (int i = 0; i < indent; ++i)
         System.out.print('-');
-        
+
         System.out.println(file.getName().replace(_user, _name + " [ USER ROOT DIRECTORY ]"));
-        
+
         if (file.isDirectory())
         {
             File[] files = file.listFiles();
-            
+
             for (int i = 0; i < files.length; ++i)
             treeViewHelper(indent + 2, files[i]);
         }
     }
-    
+
     private final void listFiles()throws Exception
     {
         //String format = "%1$-60s|%2$-50s|%3$-20s\n";
@@ -396,7 +407,7 @@ public class FileManager
             File dPath=new File(_curDir);
             System.out.println("\n");
             System.out.format(String.format(format, "File Name", "File Size [In KB]\n"));
-            for(File file : dPath.listFiles()) 
+            for(File file : dPath.listFiles())
             {
                 //System.out.format(String.format(format, file.getPath().replace(User,Name), file.getName().replace(User,Name), file.length()/1024+" KB"));
                 System.out.format(String.format(format, file.getName().replace(_user, _name), file.length()/1024+" KB"));
@@ -407,7 +418,7 @@ public class FileManager
         System.out.println("[ ERROR ] : The specified file/directory does not exist.");
         System.gc();
     }
-    
+
     private final void makeDir(String mkFile)throws Exception
     {
         try
@@ -426,7 +437,7 @@ public class FileManager
             E.printStackTrace();
         }
     }
-    
+
     private final void del(String delFile)throws Exception
     {
         try
@@ -450,17 +461,17 @@ public class FileManager
             E.printStackTrace();
         }
     }
-    
+
     private final void delHelper(File delfile)throws Exception
     {
-        if (delfile.listFiles() != null) 
+        if (delfile.listFiles() != null)
         {
-            for (File fock : delfile.listFiles()) 
+            for (File fock : delfile.listFiles())
             delHelper(fock);
         }
         delfile.delete();
     }
-    
+
     private final void rename(String oldFileName, String newFileName)throws Exception
     {
         try
@@ -471,7 +482,7 @@ public class FileManager
             new File(oldFileName).renameTo(new File(newFileName));
             else
             System.out.println("[ ERROR ] : The specified file/directory does not exist.");
-            System.gc();            
+            System.gc();
         }
         catch (Exception E)
         {
@@ -479,7 +490,7 @@ public class FileManager
             E.printStackTrace();
         }
     }
-    
+
     private final void copyMove(boolean move, String source, String destination)throws Exception
     {
         try
@@ -505,27 +516,27 @@ public class FileManager
             E.printStackTrace();
         }
     }
-    
-    private final void copyMoveHelper( File src, File dest ) throws Exception 
+
+    private final void copyMoveHelper( File src, File dest ) throws Exception
     {
         try
         {
             if( src.isDirectory() )
             {
                 dest.mkdirs();
-                for( File sourceChild : src.listFiles() ) 
+                for( File sourceChild : src.listFiles() )
                 {
                     File destChild = new File( dest, sourceChild.getName() );
                     copyMoveHelper( sourceChild, destChild );
                 }
-            } 
+            }
             else
             {
                 InputStream in = new FileInputStream(src);
                 OutputStream out = new FileOutputStream(dest);
                 byte[] buf = new byte[1024];
                 int len;
-                while ((len = in.read(buf)) > 0) 
+                while ((len = in.read(buf)) > 0)
                 {
                     out.write(buf, 0, len);
                 }
