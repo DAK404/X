@@ -1,7 +1,6 @@
 package Truncheon.API.Wyvern;
 
 //Import the required Java IO classes
-import java.io.Console;
 import java.io.FileOutputStream;
 
 //Import the required Java New IO classes
@@ -16,8 +15,6 @@ import java.net.URL;
 */
 public class Download
 {
-    Console console=System.console();
-
     /**
     *
     * @param URL

@@ -10,6 +10,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+*
+*/
 public class FileManager
 {
     private String _user;
@@ -22,6 +25,12 @@ public class FileManager
 
     private Console console = System.console();
 
+    /**
+    *
+    * @param usn
+    * @param nm
+    * @param admin
+    */
     public FileManager(String usn, String nm, boolean admin)
     {
         _user = usn;
@@ -29,6 +38,10 @@ public class FileManager
         _admin = admin;
     }
 
+    /**
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     public final void fileManagerLogic()throws Exception
     {
         try
@@ -55,6 +68,11 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @param sName
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     public final void fileManagerLogic(String sName)throws Exception
     {
         try
@@ -98,6 +116,10 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void executeScriptFile()throws Exception
     {
         try
@@ -138,6 +160,11 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @return
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final boolean authenticationLogic()throws Exception
     {
         try
@@ -159,6 +186,12 @@ public class FileManager
         return false;
     }
 
+    /**
+    *
+    * @param input
+    * @return
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final boolean fileManagerShell(String input)throws Exception
     {
         try
@@ -178,12 +211,6 @@ public class FileManager
                     break;
                 }
 
-                /**
-                *
-                * --- FOR FURTHER ANALYSIS AND TESTING ---
-                *
-                * DOCUMENTATION UNAVAILABLE.
-                */
                 if(_scriptMode & _scriptName.equals(cmd[1]))
                 {
                     System.out.println(_scriptName + " - Cannot Recursively Execute scripts.");
@@ -330,6 +357,11 @@ public class FileManager
         return false;
     }
 
+    /**
+    *
+    * @param tPath
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void changeDir(String tPath)throws Exception
     {
         if(tPath.equals(".."))
@@ -347,6 +379,10 @@ public class FileManager
         System.gc();
     }
 
+    /**
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void prevDir()throws Exception
     {
         _curDir = _curDir.substring(0, _curDir.length() - 1);
@@ -360,11 +396,21 @@ public class FileManager
         System.gc();
     }
 
+    /**
+    *
+    * @param fName
+    * @return
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final boolean checkFile(String fName)throws Exception
     {
         return new File(fName).exists();
     }
 
+    /**
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void treeView()throws Exception
     {
         try
@@ -381,6 +427,11 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @param indent
+    * @param file
+    */
     private final void treeViewHelper(int indent, File file)
     {
         System.out.print("|");
@@ -399,6 +450,10 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void listFiles()throws Exception
     {
         //String format = "%1$-60s|%2$-50s|%3$-20s\n";
@@ -420,6 +475,11 @@ public class FileManager
         System.gc();
     }
 
+    /**
+    *
+    * @param mkFile
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void makeDir(String mkFile)throws Exception
     {
         try
@@ -439,6 +499,11 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @param delFile
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void del(String delFile)throws Exception
     {
         try
@@ -463,6 +528,11 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @param delfile
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void delHelper(File delfile)throws Exception
     {
         if (delfile.listFiles() != null)
@@ -473,6 +543,12 @@ public class FileManager
         delfile.delete();
     }
 
+    /**
+    *
+    * @param oldFileName
+    * @param newFileName
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void rename(String oldFileName, String newFileName)throws Exception
     {
         try
@@ -492,6 +568,13 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @param move
+    * @param source
+    * @param destination
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void copyMove(boolean move, String source, String destination)throws Exception
     {
         try
@@ -518,6 +601,12 @@ public class FileManager
         }
     }
 
+    /**
+    *
+    * @param src
+    * @param dest
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void copyMoveHelper( File src, File dest ) throws Exception
     {
         try

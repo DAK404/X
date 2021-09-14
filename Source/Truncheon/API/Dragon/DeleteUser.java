@@ -1,21 +1,21 @@
 /*
- * ---------------!DISCLAIMER!--------------- *
- *                                            *
- *         THIS CODE IS RELEASE READY         *
- *                                            *
- *  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
- *   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
- *    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
- *     GITHUB IF YOU FIND ANY PROBLEMS OR     *
- *              ERRORS IN THE CODE.           *
- *                                            *
- *   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
- *    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
- *        DISTRIBUTING THE SOURCE CODE.       *
- *   (SEE LICENSE FILE FOR MORE INFORMATION)  *
- *                                            *
- * ------------------------------------------ *
- */
+* ---------------!DISCLAIMER!--------------- *
+*                                            *
+*         THIS CODE IS RELEASE READY         *
+*                                            *
+*  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
+*   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
+*    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
+*     GITHUB IF YOU FIND ANY PROBLEMS OR     *
+*              ERRORS IN THE CODE.           *
+*                                            *
+*   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
+*    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
+*        DISTRIBUTING THE SOURCE CODE.       *
+*   (SEE LICENSE FILE FOR MORE INFORMATION)  *
+*                                            *
+* ------------------------------------------ *
+*/
 
 package Truncheon.API.Dragon;
 
@@ -29,8 +29,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 
 /**
- *
- */
+*
+*/
 public class DeleteUser
 {
     private String _user;
@@ -39,11 +39,11 @@ public class DeleteUser
     private Console console = System.console();
 
     /**
-     *
-     * @param User
-     * @param Name
-     * @throws Exception : Handle exceptions thrown during program runtime.
-     */
+    *
+    * @param User
+    * @param Name
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     public DeleteUser(String User, String Name)throws Exception
     {
         _user = User;
@@ -51,9 +51,9 @@ public class DeleteUser
     }
 
     /**
-     *
-     * @throws Exception : Handle exceptions thrown during program runtime.
-     */
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     public void deleteUserLogic()throws Exception
     {
         if(_user.equalsIgnoreCase("Administrator"))
@@ -62,7 +62,7 @@ public class DeleteUser
             return;
         }
 
-        if(authenticateUser())
+        if(!authenticateUser())
         {
             System.out.println("Incorrect Credentials. Access Denied.");
             return;
@@ -72,10 +72,10 @@ public class DeleteUser
     }
 
     /**
-     *
-     * @return
-     * @throws Exception : Handle exceptions thrown during program runtime.
-     */
+    *
+    * @return
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final boolean authenticateUser()throws Exception
     {
         new Truncheon.API.BuildInfo().versionViewer();
@@ -87,13 +87,13 @@ public class DeleteUser
     }
 
     /**
-     *
-     * @throws Exception : Handle exceptions thrown during program runtime.
-     */
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void deleteLogic()throws Exception
     {
         new Truncheon.API.BuildInfo().versionViewer();
-        if(console.readLine("Are you sure you want to delete your user account? ALL files and directories will be deleted!").equalsIgnoreCase("y"))
+        if(console.readLine("Are you sure you want to delete your user account?\nALL files and directories will be deleted!\n\nAvailable Options : [ Y | N ]\n> ").equalsIgnoreCase("y"))
         {
             String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
             Class.forName("org.sqlite.JDBC");
@@ -113,9 +113,9 @@ public class DeleteUser
     }
 
     /**
-     *
-     * @throws Exception : Handle exceptions thrown during program runtime.
-     */
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void cleanUp()throws Exception
     {
         try
@@ -136,10 +136,10 @@ public class DeleteUser
     }
 
     /**
-     *
-     * @param delfile
-     * @throws Exception : Handle exceptions thrown during program runtime.
-     */
+    *
+    * @param delfile
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void delHelper(File delfile)throws Exception
     {
         if (delfile.listFiles() != null)

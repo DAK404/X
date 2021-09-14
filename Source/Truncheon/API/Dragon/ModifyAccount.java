@@ -51,32 +51,32 @@ public final class ModifyAccount
     /**
     * Variable to store the username
     */
-    private String _user;
+    private String _user = "";
 
     /**
     * Variable to store the user account name
     */
-    private String _name;
+    private String _name = "";
 
     /**
     * Variable to store the new password
     */
-    private String _password;
+    private String _password = "";
 
     /**
     * Variable to store the new Security Key
     */
-    private String _key;
+    private String _key = "";
 
     /**
     * Variable to store the new PIN value
     */
-    private String _pin;
+    private String _pin = "";
 
     /**
     * Variable to store the administrator privileges
     */
-    private boolean _admin;
+    private boolean _admin = false;
 
     /**
     * Initialize the console class for Input operations
@@ -176,8 +176,10 @@ public final class ModifyAccount
         System.out.println("* User Account Security Key");
         System.out.println("* User Account PIN");
         if(_admin)
-        System.out.println("* Promote an Account");
-        System.out.println("* Demote an Account");
+        {
+            System.out.println("* Promote an Account");
+            System.out.println("* Demote an Account");
+        }
         System.out.println("* Exit\n");
         System.out.println("------------------------------------------");
         System.out.println("\n[ HELP | PSW | KEY | PIN | EXIT ]\n");
@@ -232,22 +234,13 @@ public final class ModifyAccount
     {
         new Truncheon.API.BuildInfo().versionViewer();
         System.gc();
+        System.out.println("===================");
+        System.out.println("- Account Details -");
+        System.out.println("===================\n");
         System.out.println("Administrator Account: " + _admin);
-
-        if(! (_name == null | _name.equals("")) )
         System.out.println("Account Name : " + _name);
-
-        if(! (_user == null | _user.equals("")) )
         System.out.println("Username     : " + _user);
-
-        if(! (_password == null | _password.equals("")) )
-        System.out.println("Password     : ********");
-
-        if(! (_key == null | _key.equals("")) )
-        System.out.println("Security Key : ********");
-
-        if(! (_pin == null | _pin.equals("")) )
-        System.out.println("Unlock PIN   : ****");
+        System.out.println("\n===================");
     }
 
     /**
