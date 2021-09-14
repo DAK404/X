@@ -55,8 +55,8 @@ public final class MainMenu
     * The following are the boolean datatype in this program:
     *
     * _scriptMode : Denotes to the interpreter that a script is already running.
-    * _admin : denotes to the interpreter that the user who has logged in is an administrator or not.
-    * _pseudo : denotes to the interpreter that if a module is run with the admin privileges.
+    * _admin      : denotes to the interpreter that the user who has logged in is an administrator or not.
+    * _pseudo     : denotes to the interpreter that if a module is run with the admin privileges.
     */
     private boolean _scriptMode = false;
     private boolean _admin = false;
@@ -65,12 +65,12 @@ public final class MainMenu
     /**
     * The following are the String datatypes in this program.
     *
-    * _username : Holds the username of the authenticated user.
-    * _name : Holds the name of the account holder authenticated.
-    * _PIN : holds the unlock PIN, required to unlock the console.
-    * _scriptName : holds the name of the script being currently run.
+    * _username        : Stores the username of the authenticated user.
+    * _name            : Stores the name of the account holder authenticated.
+    * _PIN             : Stores the unlock PIN, required to unlock the console.
+    * _scriptName      : Stores the name of the script being currently run.
     * _privilegeStatus : The string displayed for the type of user logged in.
-    * _sysName : Loads the name of the system defined in the policy file.
+    * _sysName         : Loads the name of the system defined in the policy file.
     */
     private String _username="";
     private String _name = "";
@@ -97,6 +97,7 @@ public final class MainMenu
         {
             //By default, check the _count value and provide the user a chance to login to the program
             while(! login() && _count <= 5 && _count > 0);
+            
             /*
             * Retrieve the important information that the program requires.
             * See the method getUserDetails() for more information
