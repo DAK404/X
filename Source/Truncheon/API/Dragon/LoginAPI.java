@@ -1,3 +1,22 @@
+/*
+* ---------------!DISCLAIMER!--------------- *
+*                                            *
+*         THIS CODE IS RELEASE READY         *
+*                                            *
+*  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
+*   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
+*    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
+*     GITHUB IF YOU FIND ANY PROBLEMS OR     *
+*              ERRORS IN THE CODE.           *
+*                                            *
+*   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
+*    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
+*        DISTRIBUTING THE SOURCE CODE.       *
+*   (SEE LICENSE FILE FOR MORE INFORMATION)  *
+*                                            *
+* ------------------------------------------ *
+*/
+
 package Truncheon.API.Dragon;
 
 //Import the required Java SQL classes
@@ -6,8 +25,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+
 /**
-*
+* 
 */
 public final class LoginAPI
 {
