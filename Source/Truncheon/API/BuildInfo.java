@@ -1,12 +1,12 @@
 package Truncheon.API;
 
 /**
- * Program to display the information of the current build
- * 
- * @version 0.3.1
- * @since 0.0.1
- * @author DAK404
- */
+* Program to display the information of the current build
+*
+* @version 0.3.1
+* @since 0.0.1
+* @author DAK404
+*/
 public final class BuildInfo
 {
     /**The String Constant which holds the version number of the program*/
@@ -22,8 +22,8 @@ public final class BuildInfo
     public final String _buildDate = "11-August-2021";
 
     /**
-     * Displays the basic program information on the screen
-     */
+    * Displays the basic program information on the screen
+    */
     public final void versionViewer()
     {
         clearScreen();
@@ -36,30 +36,30 @@ public final class BuildInfo
     }
 
     /**
-     * Clears the screen, dependent on the OS
-     */
+    * Clears the screen, dependent on the OS
+    */
     public final void clearScreen()
     {
         try
         {
             /*
-                Clear Screen Notes:
-                
-                * The program is reliant on clearing the screen based on the OS being run
-                * Clear screen has been tested on Windows and Linux platforms only
-                * Clear screen should have the IO Flush right after clearing the screen
+            * Clear Screen Notes:
+
+            * The program is reliant on clearing the screen based on the OS being run
+            * Clear screen has been tested on Windows and Linux platforms only
+            * Clear screen should have the IO Flush right after clearing the screen
 
             */
 
             if(System.getProperty("os.name").contains("Windows"))
-                
-                //Spawns a new process within cmd to clear the screen
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            
+
+            //Spawns a new process within cmd to clear the screen
+            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+
             else
-                //invokes bash to clear the screen
-                new ProcessBuilder("/bin/bash", "-c" ,"reset").inheritIO().start().waitFor();
-            
+            //invokes bash to clear the screen
+            new ProcessBuilder("/bin/bash", "-c" ,"reset").inheritIO().start().waitFor();
+
             System.out.flush();
         }
         catch(Exception E)
@@ -70,11 +70,11 @@ public final class BuildInfo
     }
 
     /**
-     * Displays detailed information about the program.
-     * 
-     * useful for extra information 
-     * @throws Exception
-     */
+    * Displays detailed information about the program.
+    *
+    * useful for extra information
+    * @throws Exception
+    */
     public final void about()throws Exception
     {
         clearScreen();
@@ -91,8 +91,8 @@ public final class BuildInfo
     }
 
     /**
-     * The Information about the memeory used when this API is called
-     */
+    * The Information about the memeory used when this API is called
+    */
     /*
     private void debugMemoryInformation()
     {
@@ -103,12 +103,12 @@ public final class BuildInfo
         System.out.println("*****************************************");
         System.out.println("\n  - Heap utilization statistics -  \n ");
         System.out.println(" [*]  Process ID   : " + ProcessHandle.current().pid());
-         // available memory
+        // available memory
         System.out.println(" [*]  Total Memory : " + instance.totalMemory()  + " Bytes");
         // free memory
         System.out.println(" [*]  Free Memory  : " + instance.freeMemory()  + " Bytes");
         // used memory
-        System.out.println(" [*]  Used Memory  : " + (instance.totalMemory() - instance.freeMemory())  + " Bytes"); 
+        System.out.println(" [*]  Used Memory  : " + (instance.totalMemory() - instance.freeMemory())  + " Bytes");
         // Maximum available memory
         System.out.println(" [*]  Max Memory   : " + instance.maxMemory()  + " Bytes");
         System.out.println("\n*****************************************\n\n");

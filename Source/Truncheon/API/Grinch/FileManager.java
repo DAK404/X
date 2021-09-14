@@ -1,5 +1,6 @@
 package Truncheon.API.Grinch;
 
+//Import the required Java IO classes
 import java.io.Console;
 import java.io.File;
 import java.io.BufferedReader;

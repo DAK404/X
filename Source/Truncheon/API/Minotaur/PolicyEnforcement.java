@@ -1,8 +1,10 @@
 package Truncheon.API.Minotaur;
 
+//Import the required Java IO classes
 import java.io.Console;
 import java.io.FileInputStream;
 
+//Import the required Java Util classes
 import java.util.Properties;
 
 public class PolicyEnforcement
@@ -16,23 +18,23 @@ public class PolicyEnforcement
             switch(retrivePolicyValue(Policy).toLowerCase())
             {
                 case "off":
-                    System.out.println("[ ATTENTION ] : This module access is denied due to the policy configuration.n\nPlease contact the system administrator for more information.");
-                    console.readLine();
-                    break;
-                
+                System.out.println("[ ATTENTION ] : This module access is denied due to the policy configuration.n\nPlease contact the system administrator for more information.");
+                console.readLine();
+                break;
+
                 case "on":
-                    stat = true;
-                    break;
+                stat = true;
+                break;
 
                 case "error":
-                    System.out.println("[ WARNING ] : Module Policy is not configured. Please contact the system admnistrator to initialize the policy.");
-                    console.readLine();
-                    break;
+                System.out.println("[ WARNING ] : Module Policy is not configured. Please contact the system admnistrator to initialize the policy.");
+                console.readLine();
+                break;
 
                 default:
-                    System.out.println("[ ERROR ] : POLICY CONFIGURATION ERROR!.");
-                    console.readLine();
-                    break;
+                System.out.println("[ ERROR ] : POLICY CONFIGURATION ERROR!.");
+                console.readLine();
+                break;
             }
         }
         catch(Exception E)
@@ -41,12 +43,12 @@ public class PolicyEnforcement
         }
         return stat;
     }
-    
+
     public final String retrivePolicyValue(String policyParameter)throws Exception
     {
         String policyValue = "";
         try
-        {           
+        {
             Properties prop = new Properties();
             String propsFileName="./System/Private/Truncheon/Policy.burn";
             FileInputStream configStream = new FileInputStream(propsFileName);

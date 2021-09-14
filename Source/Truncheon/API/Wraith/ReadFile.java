@@ -1,5 +1,6 @@
 package Truncheon.API.Wraith;
 
+//Import the required Java IO classes
 import java.io.Console;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -17,7 +18,7 @@ public final class ReadFile
             {
                 file=new File("./Information/Truncheon/"+helpFile);
                 readFile(true);
-            }    
+            }
         }
         catch(Exception E)
         {
@@ -40,7 +41,7 @@ public final class ReadFile
         try
         {
             if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("read"))
-                return;
+            return;
             if(checkFileValidity(fileName))
             {
                 file = new File( dir + fileName);
@@ -64,10 +65,10 @@ public final class ReadFile
 
         //This checks if the file doesnt exist. If it doesnt exist, the error text is shown on terminal.
         if (! file.exists())
-            System.out.println("[ ERROR ] : Unable to locate file: The specified file cannot be read, found or loaded.");
+        System.out.println("[ ERROR ] : Unable to locate file: The specified file cannot be read, found or loaded.");
         //This checks if the filename points to a directory
         else if (file.isDirectory())
-            System.out.println("[ ERROR ] : Unable to read file : The specified file name is a directory.");
+        System.out.println("[ ERROR ] : Unable to read file : The specified file name is a directory.");
         //If the file exists, the file is displayed on the terminal.
         else
         {
@@ -81,7 +82,7 @@ public final class ReadFile
             {
                 //Logic to read the file line by line.
                 while ((p = ob.readLine()) != null)
-                    System.out.println(p);
+                System.out.println(p);
             }
             else
             {
@@ -93,15 +94,15 @@ public final class ReadFile
                         console.readLine("\nPress ENTER to Continue.");
                         new Truncheon.API.BuildInfo().versionViewer();
                         continue;
-                    }                    
+                    }
                     else if(p.equalsIgnoreCase("<end of help>"))
                     {
                         System.out.println("\n\nEnd of Help File.");
                         break;
                     }
                     else if(p.startsWith("#"))
-                        continue;
-                    
+                    continue;
+
                     System.out.println(p);
                 }
             }

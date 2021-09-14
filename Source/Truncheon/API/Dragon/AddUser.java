@@ -42,7 +42,7 @@ public final class AddUser
     private String curName = "";
     //Stores the current username of the logged in user (in the hashed format)
     private String curUser = "";
-    
+
     //The new account name
     private String NAME= "";
     //The new account username (in hashed format)
@@ -56,18 +56,18 @@ public final class AddUser
     //The new account Administrator status
     private String ADM = "No";
     private boolean Admin=false;
-    
+
     //
     private Console console = System.console();
-    
+
     /**
     * Default constructor to create user while setting the program up
     */
     public AddUser()
     {
     }
-    
-    
+
+
     /**
     * Parametrized constructor to create a user when setting up Truncheon
     *
@@ -79,7 +79,7 @@ public final class AddUser
         curName=n;
         curUser=u;
     }
-    
+
     /**
     * Authenticates the user currently logged in
     *
@@ -90,31 +90,31 @@ public final class AddUser
     {
         //Clear the screen and display the build information
         new Truncheon.API.BuildInfo().versionViewer();
-        
+
         System.out.println("[ ATTENTION ] : Please authenticate credentials before creating a new account.");
         System.out.println("Username: "+curName);
         String CurrentPassword=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
         String CurrentKey=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Security Key: ")));
         return new Truncheon.API.Dragon.LoginAPI(curUser, CurrentPassword, CurrentKey).status();
     }
-    
+
     private final void checkPrivileges()throws Exception
     {
         try
         {
+            System.gc();
             String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
             Connection conn = DriverManager.getConnection(url);
             PreparedStatement pstmt = conn.prepareStatement("SELECT Administrator FROM FCAD WHERE Username = ? ;");
-            pstmt.setString(1, curName);
+            pstmt.setString(1, curUser);
             ResultSet rs = pstmt.executeQuery();
-            
-            if(rs.getString("Administrator").equals("Yes"))
-            Admin = true;
-            
+
+            Admin = rs.getString("Administrator").equals("Yes");
+
             rs.close();
             pstmt.close();
             conn.close();
-            
+
             System.gc();
         }
         catch(Exception E)
@@ -123,7 +123,7 @@ public final class AddUser
             new Truncheon.API.ErrorHandler().handleException(E);
         }
     }
-    
+
     /**
     *
     * @throws Exception
@@ -139,13 +139,11 @@ public final class AddUser
                 console.readLine();
                 return;
             }
-            else
-            {
-                checkPrivileges();
-                if(Admin)
-                userType();
-                while (! getUserDetails());
-            }
+            checkPrivileges();
+            if(Admin)
+            userType();
+            while (! getUserDetails());
+
             if(! add())
             {
                 System.out.println("Failed to perform requested operations.");
@@ -158,7 +156,7 @@ public final class AddUser
             E.printStackTrace();
         }
     }
-    
+
     /**
     *
     * @throws Exception
@@ -172,17 +170,17 @@ public final class AddUser
                 new Truncheon.API.BuildInfo().versionViewer();
                 System.out.println("[ ATTENTION ] : Do you want this account to be an Administrative account?");
                 System.out.println("An Administrator account has additional privileges compared to a standard user account.");
-                
+
                 switch(console.readLine("Choice: [ Yes | No ]\n>> ").toLowerCase())
                 {
                     case "yes":
                     ADM="Yes";
-                    break;
-                    
+                    return;
+
                     case "no":
                     ADM="No";
-                    break;
-                    
+                    return;
+
                     default:
                     console.readLine("Please enter a valid choice. Press ENTER to continue..");
                     break;
@@ -194,7 +192,7 @@ public final class AddUser
             E.printStackTrace();
         }
     }
-    
+
     /**
     *
     * @return
@@ -209,7 +207,7 @@ public final class AddUser
             while(! getPassword());
             while(! getKey());
             while(! getPIN());
-            
+
             //Show an account summary after a user has been created.
             displayDetails();
             return true;
@@ -221,7 +219,7 @@ public final class AddUser
         }
         return false;
     }
-    
+
     /**
     *
     * @throws Exception
@@ -237,7 +235,7 @@ public final class AddUser
         while(! getPIN());
         add();
     }
-    
+
     /**
     *
     * @return
@@ -260,7 +258,7 @@ public final class AddUser
         }
         return true;
     }
-    
+
     /**
     *
     * @return
@@ -281,7 +279,7 @@ public final class AddUser
         UNM  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(UNM);
         return true;
     }
-    
+
     /**
     *
     * @return
@@ -305,7 +303,7 @@ public final class AddUser
         PWD  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(PWD);
         return true;
     }
-    
+
     /**
     *
     * @return
@@ -328,7 +326,7 @@ public final class AddUser
         KEY  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(KEY);
         return true;
     }
-    
+
     /**
     * Method to receive the account Unlock PIN.
     *
@@ -352,7 +350,7 @@ public final class AddUser
         PIN  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(PIN);
         return true;
     }
-    
+
     /**
     *
     * @throws Exception
@@ -362,23 +360,23 @@ public final class AddUser
         new Truncheon.API.BuildInfo().versionViewer();
         System.gc();
         System.out.println("Administrator Account: " + ADM);
-        
+
         if(! (NAME == null | NAME.equals("")) )
         System.out.println("Account Name : " + NAME);
-        
+
         if(! (UNM == null | UNM.equals("")) )
         System.out.println("Username     : " + UNM);
-        
+
         if(! (PWD == null | PWD.equals("")) )
         System.out.println("Password     : ********");
-        
+
         if(! (KEY == null | KEY.equals("")) )
         System.out.println("Security Key : ********");
-        
+
         if(! (PIN == null | PIN.equals("")) )
         System.out.println("Unlock PIN   : ****");
     }
-    
+
     /**
     *
     * @return
@@ -415,7 +413,7 @@ public final class AddUser
         }
         return false;
     }
-    
+
     /**
     *
     * @throws Exception

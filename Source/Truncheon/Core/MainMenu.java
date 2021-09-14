@@ -1,31 +1,31 @@
 /*
- * ---------------!DISCLAIMER!--------------- *
- *                                            *
- *         THIS CODE IS RELEASE READY         *
- *                                            *
- *  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
- *   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
- *    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
- *     GITHUB IF YOU FIND ANY PROBLEMS OR     *
- *              ERRORS IN THE CODE.           *
- *                                            *
- *   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
- *    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
- *        DISTRIBUTING THE SOURCE CODE.       *
- *   (SEE LICENSE FILE FOR MORE INFORMATION)  *
- *                                            *
- * ------------------------------------------ *
- */
+* ---------------!DISCLAIMER!--------------- *
+*                                            *
+*         THIS CODE IS RELEASE READY         *
+*                                            *
+*  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
+*   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
+*    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
+*     GITHUB IF YOU FIND ANY PROBLEMS OR     *
+*              ERRORS IN THE CODE.           *
+*                                            *
+*   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
+*    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
+*        DISTRIBUTING THE SOURCE CODE.       *
+*   (SEE LICENSE FILE FOR MORE INFORMATION)  *
+*                                            *
+* ------------------------------------------ *
+*/
 
 package Truncheon.Core;
 
-//import Java IO packages and classes
+//Import the required Java IO classes
 import java.io.Console;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 
-//Import the JDBC/SQL classes and packages
+//Import the required Java SQL classes
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -89,7 +89,7 @@ public final class MainMenu
     /**
     * Method which handles the login, information retrieval and the menu shell of the program
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime. : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle general exceptions during thrown during runtime.
     */
     public final void mainMenuLogic()throws Exception
     {
@@ -130,7 +130,7 @@ public final class MainMenu
     * The method will help in validate the credentials and provide a frontend for the login information to MainMenu program
     *
     * @return boolean : Returns the status of the login inputs.
-    * @throws Exception : Handle general exceptions during thrown during runtime. : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle general exceptions during thrown during runtime.
     */
     private final boolean login()throws Exception
     {
@@ -170,7 +170,7 @@ public final class MainMenu
     * A reusable method which can be used for various login challenges.
     *
     * @return boolean : Returns the LoginAPI return value for the provided username, password and the security key
-    * @throws Exception : Handle general exceptions during thrown during runtime. : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle general exceptions during thrown during runtime.
     */
     private final boolean challenge()throws Exception
     {
@@ -676,7 +676,7 @@ public final class MainMenu
     * The logic to handle the script files.
     *
     * @param fileName : The script file name to be processed by the interpreter.
-    * @throws Exception : Handle general exceptions during thrown during runtime. : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle general exceptions during thrown during runtime.
     */
     private final void scriptEngine(String fileName)throws Exception
     {

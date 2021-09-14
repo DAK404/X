@@ -29,60 +29,60 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 /**
- * Program to modify user credentials.
- * 
- * Provides an interface to Administrators to either promote or demote a user status.
- * 
- * @version 0.3.42
- * @since 0.1.0
- * @author DAK404
- */
+* Program to modify user credentials.
+*
+* Provides an interface to Administrators to either promote or demote a user status.
+*
+* @version 0.3.42
+* @since 0.1.0
+* @author DAK404
+*/
 public final class ModifyAccount
 {
     /**
-     * -----------------------------------
-     * |        STRING VARIABLES         |
-     * -----------------------------------
-     * 
-     * String Variables required by the program. 
-     * These are dependent to perform program operations.
-     */
+    * -----------------------------------
+    * |        STRING VARIABLES         |
+    * -----------------------------------
+    *
+    * String Variables required by the program.
+    * These are dependent to perform program operations.
+    */
 
     /**
-     * Variable to store the username
-     */
+    * Variable to store the username
+    */
     private String _user;
 
     /**
-     * Variable to store the user account name
-     */
+    * Variable to store the user account name
+    */
     private String _name;
 
     /**
-     * Variable to store the new password
-     */
+    * Variable to store the new password
+    */
     private String _password;
 
     /**
-     * Variable to store the new Security Key
-     */
+    * Variable to store the new Security Key
+    */
     private String _key;
 
     /**
-     * Variable to store the new PIN value
-     */
+    * Variable to store the new PIN value
+    */
     private String _pin;
 
     /**
-     * Variable to store the administrator privileges
-     */
+    * Variable to store the administrator privileges
+    */
     private boolean _admin;
-    
+
     /**
-     * Initialize the console class for Input operations
-     */
+    * Initialize the console class for Input operations
+    */
     private Console console = System.console();
-    
+
     /**
     * Constructor which will initialize the username, name, pin and the administrator rights.
     *
@@ -98,9 +98,9 @@ public final class ModifyAccount
         _pin = Pin;
         _admin = Admin;
     }
-    
+
     /**
-    * 
+    *
     * @throws Exception
     */
     public final void modifyAccountLogic()throws Exception
@@ -114,9 +114,9 @@ public final class ModifyAccount
         checkPrivileges();
         while(modifyAccountMenu());
     }
-    
+
     /**
-    * 
+    *
     * @return
     * @throws Exception
     */
@@ -131,9 +131,9 @@ public final class ModifyAccount
     }
 
     /**
-     * 
-     * @throws Exception
-     */
+    *
+    * @throws Exception
+    */
     private final void checkPrivileges()throws Exception
     {
         try
@@ -143,14 +143,14 @@ public final class ModifyAccount
             PreparedStatement pstmt = conn.prepareStatement("SELECT Administrator FROM FCAD WHERE Username = ? ;");
             pstmt.setString(1, _user);
             ResultSet rs = pstmt.executeQuery();
-            
+
             if(rs.getString("Administrator").equals("Yes"))
             _admin = true;
-            
+
             rs.close();
             pstmt.close();
             conn.close();
-            
+
             System.gc();
         }
         catch(Exception E)
@@ -159,9 +159,9 @@ public final class ModifyAccount
             new Truncheon.API.ErrorHandler().handleException(E);
         }
     }
-    
+
     /**
-    * 
+    *
     * @return
     * @throws Exception
     */
@@ -185,76 +185,76 @@ public final class ModifyAccount
         {
             case "":
             break;
-            
+
             case "?":
             case "help":
             new Truncheon.API.Wraith.ReadFile().showHelp("HelpDocuments/ModifyAccount.manual");
             break;
-            
+
             case "psw":
             while(! getPassword());
             updateValues("Password", _password, _user);
             break;
-            
+
             case "key":
             while(! getKey());
             updateValues("SecurityKey", _key, _user);
             break;
-            
+
             case "pin":
             while(! getPIN());
             updateValues("PIN", _pin, _user);
             break;
-            
+
             case "promote":
             userStatusChange("promote");
             break;
-            
+
             case "demote":
             userStatusChange("demote");
             break;
-            
+
             case "exit":
             return false;
-            
+
             default:
             System.out.println("Invalid option. Please try again.");
             break;
         }
         return true;
     }
-    
+
     /**
-     * 
-     * @throws Exception
-     */
+    *
+    * @throws Exception
+    */
     private final void displayDetails()throws Exception
     {
         new Truncheon.API.BuildInfo().versionViewer();
         System.gc();
         System.out.println("Administrator Account: " + _admin);
-        
+
         if(! (_name == null | _name.equals("")) )
         System.out.println("Account Name : " + _name);
-        
+
         if(! (_user == null | _user.equals("")) )
         System.out.println("Username     : " + _user);
-        
+
         if(! (_password == null | _password.equals("")) )
         System.out.println("Password     : ********");
-        
+
         if(! (_key == null | _key.equals("")) )
         System.out.println("Security Key : ********");
-        
+
         if(! (_pin == null | _pin.equals("")) )
         System.out.println("Unlock PIN   : ****");
     }
-    
+
     /**
-     * 
-     * @return
-     * @throws Exception
-     */
+    *
+    * @return
+    * @throws Exception
+    */
     private final boolean getPassword()throws Exception
     {
         displayDetails();
@@ -273,7 +273,7 @@ public final class ModifyAccount
         _password  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(_password);
         return true;
     }
-    
+
     /**
     * Method to receive the account Security _key.
     *
@@ -296,7 +296,7 @@ public final class ModifyAccount
         _key  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(_key);
         return true;
     }
-    
+
     /**
     * Method to receive the account Unlock PIN.
     *
@@ -320,19 +320,19 @@ public final class ModifyAccount
         _pin  = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(_pin);
         return true;
     }
-    
+
     /**
-     * 
-     * @param status
-     * @throws Exception
-     */
+    *
+    * @param status
+    * @throws Exception
+    */
     private void userStatusChange(String status)throws Exception
     {
         try
         {
             if(! _admin)
             return;
-            
+
             String user = console.readLine("Enter the name of the user to " + status + ": ");
             if(user.equalsIgnoreCase("Administrator"))
             {
@@ -347,7 +347,7 @@ public final class ModifyAccount
                     case "promote":
                     updateValues("Administrator", "Yes", user);
                     break;
-                    
+
                     case "demote":
                     updateValues("Administrator", "No", user);
                     break;
@@ -355,14 +355,14 @@ public final class ModifyAccount
             }
             System.gc();
         }
-        catch (Exception E) 
+        catch (Exception E)
         {
             E.printStackTrace();
         }
     }
-    
-   /**
-    * 
+
+    /**
+    *
     * @param credential
     * @param value
     * @param targetUser

@@ -1,35 +1,49 @@
 package Truncheon.API.Minotaur;
 
+//Import the required Java IO classes
 import java.io.Console;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 
+//Import the required Java Util classes
 import java.util.Properties;
 
+//Import the required Java SQL classes
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class PolicyEditor 
+/**
+*
+*/
+public class PolicyEditor
 {
     private final String fileName = "./System/Private/Truncheon/Policy.burn";
 
     private Console console = System.console();
     Properties props = null;
-    
+
+    /**
+    *
+    * @throws Exception
+    */
     public final void policyEditorLogic()throws Exception
     {
         if(! authenticationLogic())
         {
             System.out.println("Authentication failed. Returning to main menu.");
-                Thread.sleep(5000);
-                return;
+            Thread.sleep(5000);
+            return;
         }
         policyEditor();
     }
 
+    /**
+    *
+    * @return
+    */
     private final boolean authenticationLogic()
     {
         try
@@ -47,13 +61,19 @@ public class PolicyEditor
             }
         }
         catch(Exception E)
-{
-    //Handle any exceptions thrown during runtime
-    new Truncheon.API.ErrorHandler().handleException(E);
-}
+        {
+            //Handle any exceptions thrown during runtime
+            new Truncheon.API.ErrorHandler().handleException(E);
+        }
         return false;
     }
 
+    /**
+    *
+    * @param u
+    * @return
+    * @throws Exception
+    */
     private final boolean checkAdminStatus(String u)throws Exception
     {
         String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
@@ -73,10 +93,12 @@ public class PolicyEditor
         return temp.equalsIgnoreCase("Yes");
     }
 
+    /**
+    *
+    * @throws Exception
+    */
     private final void policyEditor()throws Exception
     {
-        
-
         while(true)
         {
             props = new Properties();
@@ -86,26 +108,29 @@ public class PolicyEditor
             switch(console.readLine("[ MODIFY | RESET | HELP | EXIT ]\n\nPolicyEditor)> ").toLowerCase())
             {
                 case "modify":
-                    editPolicy();
-                    break;
-                
+                editPolicy();
+                break;
+
                 case "reset":
-                    resetPolicyFile();
-                    break;
+                resetPolicyFile();
+                break;
 
                 case "exit":
-                    return;
+                return;
 
                 case "":
-                    break;
+                break;
 
                 default:
-                    System.out.println("Invalid command. Please try again.");
-                    break;
+                System.out.println("Invalid command. Please try again.");
+                break;
             }
         }
     }
 
+    /**
+    *
+    */
     private final void displaySettings()throws Exception
     {
         new Truncheon.API.BuildInfo().versionViewer();
@@ -123,6 +148,10 @@ public class PolicyEditor
         System.gc();
     }
 
+    /**
+    *
+    * @throws Exception
+    */
     private final void editPolicy()throws Exception
     {
         displaySettings();
@@ -137,6 +166,12 @@ public class PolicyEditor
         while(console.readLine("Do you want to modify another policy? [ Y | N ] > ").equalsIgnoreCase("y"));
     }
 
+    /**
+    *
+    * @param policyName
+    * @param policyValue
+    * @throws Exception
+    */
     private final void savePolicy(String policyName, String policyValue)throws Exception
     {
         props.setProperty(policyName, policyValue);
@@ -147,6 +182,10 @@ public class PolicyEditor
         System.gc();
     }
 
+    /**
+    *
+    * @throws Exception
+    */
     private final void resetPolicyFile()throws Exception
     {
         System.out.println(new File("./System/Private/Truncheon/Policy.BURN").delete());
@@ -154,6 +193,6 @@ public class PolicyEditor
         savePolicy("sysname", "SYSTEM");
         String [] resetValues = { "update", "download", "script", "filemanager", "read", "write", "usermgmt"};
         for(int i = 0; i < resetValues.length; ++i)
-            savePolicy(resetValues[i], "on");
+        savePolicy(resetValues[i], "on");
     }
 }

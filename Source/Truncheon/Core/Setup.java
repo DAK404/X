@@ -1,21 +1,21 @@
 /*
- * ---------------!DISCLAIMER!--------------- *
- *                                            *
- *         THIS CODE IS RELEASE READY         *
- *                                            *
- *  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
- *   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
- *    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
- *     GITHUB IF YOU FIND ANY PROBLEMS OR     *
- *              ERRORS IN THE CODE.           *
- *                                            *
- *   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
- *    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
- *        DISTRIBUTING THE SOURCE CODE.       *
- *   (SEE LICENSE FILE FOR MORE INFORMATION)  *
- *                                            *
- * ------------------------------------------ *
- */
+* ---------------!DISCLAIMER!--------------- *
+*                                            *
+*         THIS CODE IS RELEASE READY         *
+*                                            *
+*  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
+*   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
+*    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
+*     GITHUB IF YOU FIND ANY PROBLEMS OR     *
+*              ERRORS IN THE CODE.           *
+*                                            *
+*   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
+*    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
+*        DISTRIBUTING THE SOURCE CODE.       *
+*   (SEE LICENSE FILE FOR MORE INFORMATION)  *
+*                                            *
+* ------------------------------------------ *
+*/
 
 package Truncheon.Core;
 
@@ -32,17 +32,17 @@ import java.util.Properties;
 
 //Import the required Java SQL classes
 import java.sql.Connection;
-import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.DriverManager;
 
 /**
- * Program to set Truncheon up for the initial use.
- *
- * Sets up the required directories, files and the database.
- * @version 0.8.67
- * @since 0.7.5
- * @author DAK404
- */
+* Program to set Truncheon up for the initial use.
+*
+* Sets up the required directories, files and the database.
+* @version 0.8.67
+* @since 0.7.5
+* @author DAK404
+*/
 public class Setup
 {
     //The boolean data required to indicate if the setup for a section has been completed or not.
@@ -60,12 +60,12 @@ public class Setup
     Properties props = null;
 
     /**
-     * Logic which will help in setting up the program before first use.
-     *
-     * Directories and files are created if they are not found
-     * or can be imported from a pre existsing installation from Mosaic.
-     * @throws Exception : Handle general exceptions during thrown during runtime.
-     */
+    * Logic which will help in setting up the program before first use.
+    *
+    * Directories and files are created if they are not found
+    * or can be imported from a pre existsing installation from Mosaic.
+    * @throws Exception : Handle general exceptions during thrown during runtime.
+    */
     public final void setupLogic()throws Exception
     {
         System.gc();
@@ -78,15 +78,15 @@ public class Setup
 
         createDirs();
         /*
-         * Check and import the pre-existing databases and contents
-         * from Mosaic if it exists
-         */
+        * Check and import the pre-existing databases and contents
+        * from Mosaic if it exists
+        */
         if(! checkMosaic())
         {
             /*
-             * If it does not exist, The program will then
-             * create a new database and an Administrator account.
-             */
+            * If it does not exist, The program will then
+            * create a new database and an Administrator account.
+            */
             initializeDatabase();
             createAdminUser();
         }
@@ -98,20 +98,20 @@ public class Setup
         displayStatus();
 
         //Request the user for a Truncheon update. This will check and apply an update if required.
-        System.out.println("\n===============\n\nSetup Complete! Would you like to check for a system update?\n[ ATTENTION ] : You will require an internet connection to check and download the updates.\n");
+        System.out.println("\nSetup Complete! Would you like to check for a system update?\n[ ATTENTION ] : You will require an internet connection to check and download the updates.\n\nAvailable Options : [ Y | N ]");
         if(console.readLine("> ").equalsIgnoreCase("y"))
-            new Truncheon.API.Wyvern.UpdateFrontEnd().updateLogic();
+        new Truncheon.API.Wyvern.UpdateFrontEnd().updateLogic();
 
         //Restart the program after the setup is complete to apply changes.
         System.exit(1);
     }
 
     /**
-     * Display the details of the setup program.
-     *
-     * The user will then know the steps of the setup program.
-     * @throws Exception : Handle general exceptions during thrown during runtime.
-     */
+    * Display the details of the setup program.
+    *
+    * The user will then know the steps of the setup program.
+    * @throws Exception : Handle general exceptions during thrown during runtime.
+    */
     private final void showSetupDetails()throws Exception
     {
         //clear the screen and display the build information.
@@ -147,10 +147,10 @@ public class Setup
     }
 
     /**
-     * Show the legal documents, readme file, the changelog file and the credits file
-     *
-     * @throws Exception : Handle general exceptions during thrown during runtime.
-     */
+    * Show the legal documents, readme file, the changelog file and the credits file
+    *
+    * @throws Exception : Handle general exceptions during thrown during runtime.
+    */
     private final void showPrerequisites()throws Exception
     {
         //Read the License file
@@ -164,18 +164,18 @@ public class Setup
         }
         //Exit if the user does not accept the terms of the license.
         else
-            System.exit(2);
+        System.exit(2);
 
         //Set the status of the prerequisites section as true, ie complete.
         _legal = true;
     }
 
     /**
-     * Checks if Mosaic is installed in the same directory already.
-     *
-     * @return boolean : returns true if found, else false.
-     * @throws Exception
-     */
+    * Checks if Mosaic is installed in the same directory already.
+    *
+    * @return boolean : returns true if found, else false.
+    * @throws Exception
+    */
     private final boolean checkMosaic()throws Exception
     {
         //Display the setup program status.
@@ -189,18 +189,18 @@ public class Setup
 
             //Start syncing the files with Mosaic files if the user permits to do so.
             if(console.readLine("[ Y | N ]\n> ").equalsIgnoreCase("Y"))
-                _mosaicSetup = mosaicSyncLogic();
+            _mosaicSetup = mosaicSyncLogic();
         }
         //else return false to signify that the user will need a fresh start
         return _mosaicSetup;
     }
 
     /**
-     * Program to import the pre-existing Mosaic Database and User directories to Truncheon.
-     *
-     * It skips the entire setup process and directly jumps to creating the policy files
-     * @return boolean : Returns the status of importing Mosaic information if found.
-     */
+    * Program to import the pre-existing Mosaic Database and User directories to Truncheon.
+    *
+    * It skips the entire setup process and directly jumps to creating the policy files
+    * @return boolean : Returns the status of importing Mosaic information if found.
+    */
     private final boolean mosaicSyncLogic()
     {
         try
@@ -225,12 +225,12 @@ public class Setup
     }
 
     /**
-     * The helper program which helps in synchronizing Mosaic files with Truncheon
-     *
-     * @param src : The source directory/file to be copied
-     * @param dest : The destination directory to the copied to
-     * @throws Exception
-     */
+    * The helper program which helps in synchronizing Mosaic files with Truncheon
+    *
+    * @param src : The source directory/file to be copied
+    * @param dest : The destination directory to the copied to
+    * @throws Exception
+    */
     private final void syncHelper(File src, File dest ) throws Exception
     {
         try
@@ -259,7 +259,7 @@ public class Setup
                 byte[] buf = new byte[1024];
                 int len;
                 while ((len = in.read(buf)) > 0)
-                    out.write(buf, 0, len);
+                out.write(buf, 0, len);
                 in.close();
                 out.close();
             }
@@ -272,8 +272,8 @@ public class Setup
     }
 
     /**
-     * Helps in creating the directories essential for Truncheon to work.
-     */
+    * Helps in creating the directories essential for Truncheon to work.
+    */
     private final void createDirs()
     {
         try
@@ -295,10 +295,10 @@ public class Setup
 
                 //Create the directory if it does not already exist
                 if(! makeDir.exists())
-                    makeDir.mkdirs();
+                makeDir.mkdirs();
                 //else notify the user that the directory already exists, and wont attempt to create the directory.
                 else
-                    System.out.println("Folder " + directoryList[i]+ " Exists.");
+                System.out.println("Folder " + directoryList[i]+ " Exists.");
             }
 
             System.gc();
@@ -313,8 +313,8 @@ public class Setup
     }
 
     /**
-     * Helps in Initializing the Multi User Database to store the credentials
-     */
+    * Helps in Initializing the Multi User Database to store the credentials
+    */
     private final void initializeDatabase()
     {
         try
@@ -334,22 +334,22 @@ public class Setup
 
             //Create the table using the SQL statements and store it in a String.
             String sql = "CREATE TABLE IF NOT EXISTS FCAD (\n" +
-                "    UserID integer PRIMARY KEY,\n" +
-				"    Name text NOT NULL,\n" +
-                "    Username text UNIQUE,\n" +
-                "    Password text NOT NULL,\n" +
-                "    SecurityKey text NOT NULL,\n" +
-				"    PIN text NOT NULL,\n" +
-				"    Administrator text NOT NULL);";
+            "    UserID integer PRIMARY KEY,\n" +
+            "    Name text NOT NULL,\n" +
+            "    Username text UNIQUE,\n" +
+            "    Password text NOT NULL,\n" +
+            "    SecurityKey text NOT NULL,\n" +
+            "    PIN text NOT NULL,\n" +
+            "    Administrator text NOT NULL);";
 
             //Pass the sql statement String to the PreparedStatement
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+            Statement stmt = conn.createStatement();
 
             //Execute the statement, passing the data to the SQL system to execute it
-            pstmt.execute(sql);
+            stmt.execute(sql);
 
             //Close the connections after using the database
-            pstmt.close();
+            stmt.close();
             conn.close();
             System.gc();
 
@@ -366,11 +366,11 @@ public class Setup
     }
 
     /**
-     * Helps in creating the Administrator account.
-     *
-     * This is the default account which cannot be deleted or demoted.
-     * @throws Exception
-     */
+    * Helps in creating the Administrator account.
+    *
+    * This is the default account which cannot be deleted or demoted.
+    * @throws Exception
+    */
     private final void createAdminUser()throws Exception
     {
         try
@@ -383,36 +383,39 @@ public class Setup
             _adminAccCreate = true;
         }
         catch(Exception E)
-{
-    //Handle any exceptions thrown during runtime
-    new Truncheon.API.ErrorHandler().handleException(E);
-}
+        {
+            //Handle any exceptions thrown during runtime
+            new Truncheon.API.ErrorHandler().handleException(E);
+        }
     }
 
     /**
-     * Initializes the policies, by setting the Policy Names.
-     *
-     * Used to set the System name too.
-     * Also sets the policy with the default value as 'on'
-     * @throws Exception
-     */
+    * Initializes the policies, by setting the Policy Names.
+    *
+    * Used to set the System name too.
+    * Also sets the policy with the default value as 'on'
+    * @throws Exception
+    */
     private void initializePolicy()throws Exception
     {
         try
         {
+            //Display the setup program status
+            displayStatus();
+
             //Initialize a string to hold the system name.
             String sysName;
 
             //Store the string by asking the user to enter the system name
-            sysName = console.readLine("Enter the name of this system\n\nThis will be used to identify your system in the prompt. The default name is SYSTEM.\n\n> ");
+            sysName = console.readLine("\nEnter the name of this system\n\nThis will be used to identify your system in the prompt.\nThe default name is SYSTEM.\n\n> ");
 
             //In case of invalid inputs, the system shall revert back to the default system name 'SYSTEM'
             if(sysName == null || sysName.equals("") || sysName.startsWith(" "))
-                sysName = "SYSTEM";
+            sysName = "SYSTEM";
 
             //Remove all the spaces in the string
             if(sysName.contains(" "))
-                sysName = sysName.replaceAll(" ", "");
+            sysName = sysName.replaceAll(" ", "");
 
             //Creates a new Properties file.
             props = new Properties();
@@ -423,7 +426,7 @@ public class Setup
             //Saves the essential variables to the BURN file, with the default value as 'on'
             String [] resetValues = { "update", "download", "script", "filemanager", "read", "write", "usermgmt"};
             for(int i = 0; i < resetValues.length; ++i)
-                initPolicyHelper(resetValues[i], "on");
+            initPolicyHelper(resetValues[i], "on");
         }
         catch (Exception E)
         {
@@ -432,13 +435,13 @@ public class Setup
     }
 
     /**
-     * Helps in saving the policy to the BURN file.
-     *
-     * This helps in iterative implementation of saving a policy and its value.
-     * @param policyName : The Name of the policy which is stored to the file
-     * @param policyValue : The value of the policy stored to the file.
-     * @throws Exception
-     */
+    * Helps in saving the policy to the BURN file.
+    *
+    * This helps in iterative implementation of saving a policy and its value.
+    * @param policyName : The Name of the policy which is stored to the file
+    * @param policyValue : The value of the policy stored to the file.
+    * @throws Exception
+    */
     private void initPolicyHelper(String policyName, String policyValue)throws Exception
     {
         try
@@ -466,11 +469,11 @@ public class Setup
     }
 
     /**
-     * Display the status of the Setup.
-     *
-     * Generally signifies which section of the program has finished setting up.
-     * @throws Exception
-     */
+    * Display the status of the Setup.
+    *
+    * Generally signifies which section of the program has finished setting up.
+    * @throws Exception
+    */
     private void displayStatus()throws Exception
     {
         //Clear the screen and display the Truncheon Build Information
@@ -480,18 +483,19 @@ public class Setup
         System.out.println("SETUP CHECKLIST");
         System.out.println("===============\n");
         if(_legal)
-            System.out.println("1. Legal and Important Information    : COMPLETE");
+        System.out.println("1. Legal and Important Information    : COMPLETE");
         if(_dirs)
-            System.out.println("2. Initialize Truncheon Dependencies  : COMPLETE");
+        System.out.println("2. Initialize Truncheon Dependencies  : COMPLETE");
         if(_dbInit)
-            System.out.println("3. Initialize Database Files          : COMPLETE");
-        if(_policyInit)
-            System.out.println("4. Initialize Policies and BURN Files : COMPLETE");
+        System.out.println("3. Initialize Database Files          : COMPLETE");
         if(_adminAccCreate)
-            System.out.println("5. Administrator account creation     : COMPLETE");
+        System.out.println("4. Administrator account creation     : COMPLETE");
+        if(_policyInit)
+        System.out.println("5. Initialize Policies and BURN Files : COMPLETE");
+        System.out.println("\n===============");
 
         //Notify the user that Mosaic files have already been found
         if(_mosaicSetup)
-            System.out.println("!Mosaic Installation Detected!");
+        System.out.println("!Mosaic Installation Detected!");
     }
 }

@@ -1,20 +1,31 @@
 package Truncheon.API.Dragon;
 
+//Import the required Java SQL classes
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public final class LoginAPI 
+/**
+*
+*/
+public final class LoginAPI
 {
     //a universal string to read the file
-    
+
     private String _User;
     private String _Pass;
     private String _SecKey;
 
     private String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
 
+    /**
+    *
+    * @param Us
+    * @param Pa
+    * @param SK
+    * @throws Exception
+    */
     public LoginAPI(String Us, String Pa, String SK)throws Exception
     {
         _User = Us;
@@ -25,6 +36,11 @@ public final class LoginAPI
 
     }
 
+    /**
+    *
+    * @return
+    * @throws Exception
+    */
     public final boolean status()throws Exception
     {
         try
@@ -38,27 +54,32 @@ public final class LoginAPI
         }
     }
 
+    /**
+    *
+    * @return
+    * @throws Exception
+    */
     private final boolean checkDetails()throws Exception
     {
         Connection conn = null;
         boolean loginStatus = false;
-        try 
+        try
         {
             conn = DriverManager.getConnection(url);
             String sql = "SELECT Username, Password, SecurityKey FROM FCAD WHERE Username = ? AND Password = ? AND SecurityKey = ?;";
-            
+
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, _User);
             pstmt.setString(2, _Pass);
             pstmt.setString(3, _SecKey);
 
             ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) 
-                if (rs.getString("Username").equals(_User) & rs.getString("Password").equals(_Pass) & rs.getString("SecurityKey").equals(_SecKey))
-                    loginStatus = true;
+            while (rs.next())
+            if (rs.getString("Username").equals(_User) & rs.getString("Password").equals(_Pass) & rs.getString("SecurityKey").equals(_SecKey))
+            loginStatus = true;
 
             if(! loginStatus)
-                System.out.println("Incorrect Credentials, Please try again.");
+            System.out.println("Incorrect Credentials, Please try again.");
 
             rs.close();
             conn.close();
@@ -66,8 +87,8 @@ public final class LoginAPI
             System.gc();
 
             return loginStatus;
-        } 
-        catch (Exception E) 
+        }
+        catch (Exception E)
         {
             E.printStackTrace();
             System.out.println("[ ATTENTION ] : Incorrect Credentials. Please check details and try again.");

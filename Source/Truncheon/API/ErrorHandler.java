@@ -1,5 +1,6 @@
 package Truncheon.API;
 
+//Import the required Java IO classes
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.io.Console;

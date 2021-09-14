@@ -29,7 +29,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 
 /**
- * 
+ *
  */
 public class DeleteUser
 {
@@ -39,7 +39,7 @@ public class DeleteUser
     private Console console = System.console();
 
     /**
-     * 
+     *
      * @param User
      * @param Name
      * @throws Exception
@@ -51,7 +51,7 @@ public class DeleteUser
     }
 
     /**
-     * 
+     *
      * @throws Exception
      */
     public void deleteUserLogic()throws Exception
@@ -72,7 +72,7 @@ public class DeleteUser
     }
 
     /**
-     * 
+     *
      * @return
      * @throws Exception
      */
@@ -87,7 +87,7 @@ public class DeleteUser
     }
 
     /**
-     * 
+     *
      * @throws Exception
      */
     private final void deleteLogic()throws Exception
@@ -113,7 +113,7 @@ public class DeleteUser
     }
 
     /**
-     * 
+     *
      * @throws Exception
      */
     private final void cleanUp()throws Exception
@@ -136,7 +136,7 @@ public class DeleteUser
     }
 
     /**
-     * 
+     *
      * @param delfile
      * @throws Exception
      */
