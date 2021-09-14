@@ -57,7 +57,7 @@ public final class WriteFile
     *
     * @param fn
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private boolean checkFileValidity(String fn)throws Exception
     {

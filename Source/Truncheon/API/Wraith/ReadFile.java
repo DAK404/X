@@ -6,10 +6,18 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 
+/**
+*
+*/
 public final class ReadFile
 {
     File file = null;
 
+    /**
+    *
+    * @param helpFile
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     public final void showHelp(String helpFile)throws Exception
     {
         try
@@ -26,6 +34,12 @@ public final class ReadFile
         }
     }
 
+    /**
+    *
+    * @param fn
+    * @return
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private boolean checkFileValidity(String fn)throws Exception
     {
         if(fn == null || fn.equals("") || fn.startsWith(" "))
@@ -36,6 +50,12 @@ public final class ReadFile
         return true;
     }
 
+    /**
+    *
+    * @param fileName
+    * @param dir
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     public final void readUserFile(String fileName, String dir)throws Exception
     {
         try
@@ -54,6 +74,11 @@ public final class ReadFile
         }
     }
 
+    /**
+    *
+    * @param helpMode
+    * @throws Exception : Handle exceptions thrown during program runtime.
+    */
     private final void readFile(boolean helpMode) throws Exception
     {
         //A link to show the build info to the user's terminal

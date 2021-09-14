@@ -27,7 +27,7 @@ public class PolicyEditor
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void policyEditorLogic()throws Exception
     {
@@ -72,7 +72,7 @@ public class PolicyEditor
     *
     * @param u
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean checkAdminStatus(String u)throws Exception
     {
@@ -95,7 +95,7 @@ public class PolicyEditor
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void policyEditor()throws Exception
     {
@@ -150,7 +150,7 @@ public class PolicyEditor
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void editPolicy()throws Exception
     {
@@ -170,7 +170,7 @@ public class PolicyEditor
     *
     * @param policyName
     * @param policyValue
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void savePolicy(String policyName, String policyValue)throws Exception
     {
@@ -184,7 +184,7 @@ public class PolicyEditor
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void resetPolicyFile()throws Exception
     {

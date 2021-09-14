@@ -28,7 +28,7 @@ public final class HAlgos
     *
     * @param input : The string that is to be encoded
     * @return String : Returns the MD5 hash
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final String stringToMD5(String input)throws Exception
     {
@@ -40,7 +40,7 @@ public final class HAlgos
     *
     * @param input : The String that is to be encoded
     * @return String : Returns the SHA3-256 hash
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final String stringToSHA3_256(String input) throws Exception
     {
@@ -52,7 +52,7 @@ public final class HAlgos
     *
     * @param fileName : The name of the file to be hashed
     * @return String : Returns the MD5 hash
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final String fileToMD5(String fileName) throws Exception
     {
@@ -64,7 +64,7 @@ public final class HAlgos
     *
     * @param fileName : The name of the file to be hashed
     * @return String : Returns the SHA3-256 hash
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final String fileToSHA3_256(String fileName) throws Exception
     {
@@ -95,7 +95,7 @@ public final class HAlgos
     * @param file : The input file object
     * @param algorithm : The algorithm to be used to hash the file
     * @return String : The hashed string
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final String hashFile(File file, String algorithm)throws Exception
     {
@@ -132,7 +132,7 @@ public final class HAlgos
     * @param message : The string to be hashed
     * @param algorithm : The algorithm to be used to hash the string
     * @return String : The hashed string
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final String hashString(String message, String algorithm)throws Exception
     {

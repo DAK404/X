@@ -101,7 +101,7 @@ public final class ModifyAccount
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void modifyAccountLogic()throws Exception
     {
@@ -118,7 +118,7 @@ public final class ModifyAccount
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean authenticateUser()throws Exception
     {
@@ -132,7 +132,7 @@ public final class ModifyAccount
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void checkPrivileges()throws Exception
     {
@@ -163,7 +163,7 @@ public final class ModifyAccount
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean modifyAccountMenu()throws Exception
     {
@@ -226,7 +226,7 @@ public final class ModifyAccount
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void displayDetails()throws Exception
     {
@@ -253,7 +253,7 @@ public final class ModifyAccount
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean getPassword()throws Exception
     {
@@ -277,7 +277,7 @@ public final class ModifyAccount
     /**
     * Method to receive the account Security _key.
     *
-    * @throws Exception :  Throws any exception caught during runtime/execution
+    * @throws Exception : Handle exceptions thrown during program runtime. :  Throws any exception caught during runtime/execution
     */
     private final boolean getKey()throws Exception
     {
@@ -300,7 +300,7 @@ public final class ModifyAccount
     /**
     * Method to receive the account Unlock PIN.
     *
-    * @throws Exception :  Throws any exception caught during runtime/execution
+    * @throws Exception : Handle exceptions thrown during program runtime. :  Throws any exception caught during runtime/execution
     */
     private final boolean getPIN()throws Exception
     {
@@ -324,7 +324,7 @@ public final class ModifyAccount
     /**
     *
     * @param status
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private void userStatusChange(String status)throws Exception
     {
@@ -366,7 +366,7 @@ public final class ModifyAccount
     * @param credential
     * @param value
     * @param targetUser
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private void updateValues(String credential, String value, String targetUser)throws Exception
     {

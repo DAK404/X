@@ -23,7 +23,7 @@ public class Download
     * @param URL
     * @param fileName
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final boolean downloadFile(String URL, String fileName)throws Exception
     {
@@ -51,7 +51,7 @@ public class Download
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final boolean downloadUpdate()throws Exception
     {
@@ -73,7 +73,7 @@ public class Download
     * @param urlStr
     * @param file
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean downloadUsingNIO(String urlStr, String file) throws Exception {
         try

@@ -89,7 +89,7 @@ public final class MainMenu
     /**
     * Method which handles the login, information retrieval and the menu shell of the program
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void mainMenuLogic()throws Exception
     {
@@ -130,7 +130,7 @@ public final class MainMenu
     * The method will help in validate the credentials and provide a frontend for the login information to MainMenu program
     *
     * @return boolean : Returns the status of the login inputs.
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean login()throws Exception
     {
@@ -170,7 +170,7 @@ public final class MainMenu
     * A reusable method which can be used for various login challenges.
     *
     * @return boolean : Returns the LoginAPI return value for the provided username, password and the security key
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean challenge()throws Exception
     {
@@ -189,7 +189,7 @@ public final class MainMenu
     *
     * Will lock the inputs if the attempts are wrong for a specified number of times.
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void counterLogic()throws Exception
     {
@@ -213,7 +213,7 @@ public final class MainMenu
     *
     * This is executed right after login to retrieve the details.
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void getUserDetails()throws Exception
     {
@@ -243,7 +243,7 @@ public final class MainMenu
     * @param command : The statement that needs to be executed to retrieve information from the database.
     * @param info : Specified the parameter that needs to be queried against the database such as Name, PIN, etc.
     * @return String : Returns the string containing the data fetched from the database.
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final String retrieveInfo(String command, String info)throws Exception
     {
@@ -292,7 +292,7 @@ public final class MainMenu
     * Administrator Account:
     * Administrator@SYSTEM!> _
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void menuShell()throws Exception
     {
@@ -320,7 +320,7 @@ public final class MainMenu
     * It is now made to be compatible with the ScriptEngine implementation.
     *
     * @param input : Accept the input from the menuShell() or the ScriptEngine.
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void commandProcessor(String input)throws Exception
     {
@@ -676,7 +676,7 @@ public final class MainMenu
     * The logic to handle the script files.
     *
     * @param fileName : The script file name to be processed by the interpreter.
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void scriptEngine(String fileName)throws Exception
     {
@@ -748,7 +748,7 @@ public final class MainMenu
     *
     * Separate method implemented to keep the code readable and modular.
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void lockConsole()throws Exception
     {
@@ -771,7 +771,7 @@ public final class MainMenu
     /**
     * The implementation for Pseudo functionality.
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void pseudo()throws Exception
     {
@@ -816,7 +816,7 @@ public final class MainMenu
     *
     * View the version of program with a set of extra strings
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void mainMenuVerView()throws Exception
     {

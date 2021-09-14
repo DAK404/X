@@ -24,7 +24,7 @@ public final class LoginAPI
     * @param Us
     * @param Pa
     * @param SK
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public LoginAPI(String Us, String Pa, String SK)throws Exception
     {
@@ -39,7 +39,7 @@ public final class LoginAPI
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final boolean status()throws Exception
     {
@@ -57,7 +57,7 @@ public final class LoginAPI
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean checkDetails()throws Exception
     {

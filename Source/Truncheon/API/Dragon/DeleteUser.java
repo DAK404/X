@@ -42,7 +42,7 @@ public class DeleteUser
      *
      * @param User
      * @param Name
-     * @throws Exception
+     * @throws Exception : Handle exceptions thrown during program runtime.
      */
     public DeleteUser(String User, String Name)throws Exception
     {
@@ -52,7 +52,7 @@ public class DeleteUser
 
     /**
      *
-     * @throws Exception
+     * @throws Exception : Handle exceptions thrown during program runtime.
      */
     public void deleteUserLogic()throws Exception
     {
@@ -74,7 +74,7 @@ public class DeleteUser
     /**
      *
      * @return
-     * @throws Exception
+     * @throws Exception : Handle exceptions thrown during program runtime.
      */
     private final boolean authenticateUser()throws Exception
     {
@@ -88,7 +88,7 @@ public class DeleteUser
 
     /**
      *
-     * @throws Exception
+     * @throws Exception : Handle exceptions thrown during program runtime.
      */
     private final void deleteLogic()throws Exception
     {
@@ -114,7 +114,7 @@ public class DeleteUser
 
     /**
      *
-     * @throws Exception
+     * @throws Exception : Handle exceptions thrown during program runtime.
      */
     private final void cleanUp()throws Exception
     {
@@ -138,7 +138,7 @@ public class DeleteUser
     /**
      *
      * @param delfile
-     * @throws Exception
+     * @throws Exception : Handle exceptions thrown during program runtime.
      */
     private final void delHelper(File delfile)throws Exception
     {

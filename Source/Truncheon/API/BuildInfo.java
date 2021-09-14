@@ -73,7 +73,7 @@ public final class BuildInfo
     * Displays detailed information about the program.
     *
     * useful for extra information
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void about()throws Exception
     {

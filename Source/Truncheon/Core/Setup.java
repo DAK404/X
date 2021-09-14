@@ -64,7 +64,7 @@ public class Setup
     *
     * Directories and files are created if they are not found
     * or can be imported from a pre existsing installation from Mosaic.
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void setupLogic()throws Exception
     {
@@ -110,7 +110,7 @@ public class Setup
     * Display the details of the setup program.
     *
     * The user will then know the steps of the setup program.
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void showSetupDetails()throws Exception
     {
@@ -149,7 +149,7 @@ public class Setup
     /**
     * Show the legal documents, readme file, the changelog file and the credits file
     *
-    * @throws Exception : Handle general exceptions during thrown during runtime.
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void showPrerequisites()throws Exception
     {
@@ -174,7 +174,7 @@ public class Setup
     * Checks if Mosaic is installed in the same directory already.
     *
     * @return boolean : returns true if found, else false.
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean checkMosaic()throws Exception
     {
@@ -229,7 +229,7 @@ public class Setup
     *
     * @param src : The source directory/file to be copied
     * @param dest : The destination directory to the copied to
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void syncHelper(File src, File dest ) throws Exception
     {
@@ -369,7 +369,7 @@ public class Setup
     * Helps in creating the Administrator account.
     *
     * This is the default account which cannot be deleted or demoted.
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void createAdminUser()throws Exception
     {
@@ -394,7 +394,7 @@ public class Setup
     *
     * Used to set the System name too.
     * Also sets the policy with the default value as 'on'
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private void initializePolicy()throws Exception
     {
@@ -440,7 +440,7 @@ public class Setup
     * This helps in iterative implementation of saving a policy and its value.
     * @param policyName : The Name of the policy which is stored to the file
     * @param policyValue : The value of the policy stored to the file.
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private void initPolicyHelper(String policyName, String policyValue)throws Exception
     {
@@ -472,7 +472,7 @@ public class Setup
     * Display the status of the Setup.
     *
     * Generally signifies which section of the program has finished setting up.
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private void displayStatus()throws Exception
     {

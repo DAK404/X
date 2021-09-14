@@ -7,7 +7,7 @@ public final class UpdateFrontEnd
 {
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void updateLogic() throws Exception
     {
@@ -57,7 +57,7 @@ public final class UpdateFrontEnd
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean download() throws Exception
     {
@@ -74,7 +74,7 @@ public final class UpdateFrontEnd
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean install() throws Exception {
         try

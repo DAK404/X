@@ -25,7 +25,7 @@ class ProgramLauncher
     /**
      *
      * @param Args
-     * @throws Exception
+     * @throws Exception : Handle exceptions thrown during program runtime.
      */
     public static void main(String[] Args)throws Exception
     {

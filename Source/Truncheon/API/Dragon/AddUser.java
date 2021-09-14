@@ -84,7 +84,7 @@ public final class AddUser
     * Authenticates the user currently logged in
     *
     * @return boolean : Returns true if the credentials are correct, else false
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean authenticateUser()throws Exception
     {
@@ -126,7 +126,7 @@ public final class AddUser
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void addUserLogic() throws Exception
     {
@@ -159,7 +159,7 @@ public final class AddUser
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void userType()throws Exception
     {
@@ -196,7 +196,7 @@ public final class AddUser
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean getUserDetails() throws Exception
     {
@@ -222,7 +222,7 @@ public final class AddUser
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public final void setupAdminUser()throws Exception
     {
@@ -239,7 +239,7 @@ public final class AddUser
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean getName()throws Exception
     {
@@ -262,7 +262,7 @@ public final class AddUser
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean getUsername()throws Exception
     {
@@ -283,7 +283,7 @@ public final class AddUser
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean getPassword()throws Exception
     {
@@ -307,7 +307,7 @@ public final class AddUser
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean getKey()throws Exception
     {
@@ -330,7 +330,7 @@ public final class AddUser
     /**
     * Method to receive the account Unlock PIN.
     *
-    * @throws Exception :  Throws any exception caught during runtime/execution
+    * @throws Exception : Handle exceptions thrown during program runtime. :  Throws any exception caught during runtime/execution
     */
     private final boolean getPIN()throws Exception
     {
@@ -353,7 +353,7 @@ public final class AddUser
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void displayDetails()throws Exception
     {
@@ -380,7 +380,7 @@ public final class AddUser
     /**
     *
     * @return
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final boolean add() throws Exception
     {
@@ -416,7 +416,7 @@ public final class AddUser
 
     /**
     *
-    * @throws Exception
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     private final void createDir()throws Exception
     {
