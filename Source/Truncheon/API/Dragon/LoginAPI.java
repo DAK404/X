@@ -70,11 +70,6 @@ public final class LoginAPI
         _Pass = Pa;
         _SecKey = SK;
 
-        //Clear all traces of the credential to avert any potential misuse caused by using a debugger
-        Us = null;
-        Pa = null;
-        SK = null;
-
         //Initialize the database
         Class.forName("org.sqlite.JDBC");
     }
