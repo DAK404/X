@@ -139,11 +139,6 @@ public final class LoginAPI
             pstmt.close();
             conn.close();
 
-            //Clear all stored credentials to prevent malicious access to the credentials
-            _User = null;
-            _Pass = null;
-            _SecKey = null;
-
             System.gc();
         }
         catch (Exception E)

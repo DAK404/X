@@ -67,26 +67,6 @@ public final class AddUser
     private Console console = System.console();
 
     /**
-    * Default constructor to create user while setting the program up
-    */
-    public AddUser()
-    {
-    }
-
-
-    // /**
-    // * Parametrized constructor to create a user when setting up Truncheon
-    // *
-    // * @param u : The Username of the currently logged in user
-    // * @param n : The name of the user, currently logged in
-    // */
-    // public AddUser(String u, String n)
-    // {
-    //     _curName = n;
-    //     _curUser = u;
-    // }
-
-    /**
     * Authenticates the user currently logged in
     *
     * @return boolean : Returns true if the credentials are correct, else false
