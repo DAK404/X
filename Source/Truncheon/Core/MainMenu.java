@@ -1,4 +1,12 @@
 /*
+*    ███    ██ ██  ██████  ███    ██        ████████ ██████  ██    ██ ███    ██  ██████ ██   ██ ███████  ██████  ███    ██
+*    ████   ██ ██ ██    ██ ████   ██ ██        ██    ██   ██ ██    ██ ████   ██ ██      ██   ██ ██      ██    ██ ████   ██
+*    ██ ██  ██ ██ ██    ██ ██ ██  ██           ██    ██████  ██    ██ ██ ██  ██ ██      ███████ █████   ██    ██ ██ ██  ██
+*    ██  ██ ██ ██ ██    ██ ██  ██ ██ ██        ██    ██   ██ ██    ██ ██  ██ ██ ██      ██   ██ ██      ██    ██ ██  ██ ██
+*    ██   ████ ██  ██████  ██   ████           ██    ██   ██  ██████  ██   ████  ██████ ██   ██ ███████  ██████  ██   ████
+*/
+
+/*
 * ---------------!DISCLAIMER!--------------- *
 *                                            *
 *         THIS CODE IS RELEASE READY         *
@@ -97,7 +105,7 @@ public final class MainMenu
         {
             //By default, check the _count value and provide the user a chance to login to the program
             while(! login() && _count <= 5 && _count > 0);
-            
+
             /*
             * Retrieve the important information that the program requires.
             * See the method getUserDetails() for more information
@@ -105,7 +113,7 @@ public final class MainMenu
             getUserDetails();
 
             //set the system name using the PolicyEnforcement API
-            _sysName = new Truncheon.API.Minotaur.PolicyEnforcement().retrivePolicyValue("sysname");
+            _sysName = new Truncheon.API.Minotaur.PolicyEnforcement().retrievePolicyValue("sysname");
             System.gc();
 
             //pass control over to the menu shell
@@ -140,7 +148,7 @@ public final class MainMenu
         try
         {
             //Display the Program Information.
-            new Truncheon.API.BuildInfo().clearScreen();
+            new Truncheon.API.BuildInfo().versionViewer();
 
             //Display the number of login attempts remaining.
             System.out.println("Login Attempts Remaining: " + _count + "\n===========================\n");
@@ -248,28 +256,37 @@ public final class MainMenu
     */
     private final String retrieveInfo(String command, String info)throws Exception
     {
-        //Initialize the database connection
-        String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
-        Connection conn = DriverManager.getConnection(url);
+        String temp = "";
+        try
+        {
+            //Initialize the database connection
+            String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
+            Connection conn = DriverManager.getConnection(url);
 
-        //Execute the statement to retrieve the criteria specified by command (the SQL command) and info (the name of the column)
-        PreparedStatement pstmt = conn.prepareStatement(command);
-        pstmt.setString(1, _username);
+            //Execute the statement to retrieve the criteria specified by command (the SQL command) and info (the name of the column)
+            PreparedStatement pstmt = conn.prepareStatement(command);
+            pstmt.setString(1, _username);
 
-        //Store the result of the query in the resultset
-        ResultSet rs = pstmt.executeQuery();
+            //Store the result of the query in the resultset
+            ResultSet rs = pstmt.executeQuery();
 
-        //Store the value of the result after retrieving the value of the query
-        String temp = rs.getString(info);
+            //Store the value of the result after retrieving the value of the query
+            temp = rs.getString(info);
 
-        //close connections and cleanup memory space
-        rs.close();
-        pstmt.close();
-        conn.close();
+            //close connections and cleanup memory space
+            rs.close();
+            pstmt.close();
+            conn.close();
 
-        System.gc();
+            System.gc();
 
-        //Return the result in the string format
+            //Return the result in the string format
+        }
+        catch(Exception E)
+        {
+            //Handle any exceptions thrown during runtime
+            new Truncheon.API.ErrorHandler().handleException(E);
+        }
         return temp;
     }
 
@@ -630,7 +647,7 @@ public final class MainMenu
                 {
                     case "add":
                     //add user functionality
-                    new Truncheon.API.Dragon.AddUser(_username, _name).addUserLogic();
+                    new Truncheon.API.Dragon.AddUser().addUserLogic();
                     break;
 
                     case "delete":
@@ -638,7 +655,10 @@ public final class MainMenu
                     break;
 
                     case "modify":
-                    new Truncheon.API.Dragon.ModifyAccount(_username, _name, _PIN, _admin).modifyAccountLogic();
+                    new Truncheon.API.Dragon.ModifyAccount(_username, _name).modifyAccountLogic();
+
+                    //Reinitialize the PIN value after login to store the new value from the database
+                    _PIN  = retrieveInfo("SELECT PIN FROM FCAD WHERE Username = ? ;", "PIN");
                     break;
 
                     default:
@@ -663,7 +683,6 @@ public final class MainMenu
             new Truncheon.API.ErrorHandler().handleException(E);
         }
     }
-
 
     // ************************************************************************************ //
     //                                  MAINMENU LOGIC END                                  //

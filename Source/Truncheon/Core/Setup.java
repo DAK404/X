@@ -1,4 +1,12 @@
 /*
+*    ███    ██ ██  ██████  ███    ██        ████████ ██████  ██    ██ ███    ██  ██████ ██   ██ ███████  ██████  ███    ██
+*    ████   ██ ██ ██    ██ ████   ██ ██        ██    ██   ██ ██    ██ ████   ██ ██      ██   ██ ██      ██    ██ ████   ██
+*    ██ ██  ██ ██ ██    ██ ██ ██  ██           ██    ██████  ██    ██ ██ ██  ██ ██      ███████ █████   ██    ██ ██ ██  ██
+*    ██  ██ ██ ██ ██    ██ ██  ██ ██ ██        ██    ██   ██ ██    ██ ██  ██ ██ ██      ██   ██ ██      ██    ██ ██  ██ ██
+*    ██   ████ ██  ██████  ██   ████           ██    ██   ██  ██████  ██   ████  ██████ ██   ██ ███████  ██████  ██   ████
+*/
+
+/*
 * ---------------!DISCLAIMER!--------------- *
 *                                            *
 *         THIS CODE IS RELEASE READY         *
@@ -184,7 +192,7 @@ public class Setup
         //Check if the Mosaic database already exists.
         if(new File("./System/Private/Fractal.db").exists())
         {
-            //If true, a choice is provided to the user to either import the files or to havea  fresh start.
+            //If true, a choice is provided to the user to either import the files or to have a fresh start.
             System.out.println("[ ATTENTION ] : Mosaic Files have been found. Do you want to copy over existing data?");
 
             //Start syncing the files with Mosaic files if the user permits to do so.

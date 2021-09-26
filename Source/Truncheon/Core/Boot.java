@@ -1,4 +1,12 @@
 /*
+*    ███    ██ ██  ██████  ███    ██        ████████ ██████  ██    ██ ███    ██  ██████ ██   ██ ███████  ██████  ███    ██
+*    ████   ██ ██ ██    ██ ████   ██ ██        ██    ██   ██ ██    ██ ████   ██ ██      ██   ██ ██      ██    ██ ████   ██
+*    ██ ██  ██ ██ ██    ██ ██ ██  ██           ██    ██████  ██    ██ ██ ██  ██ ██      ███████ █████   ██    ██ ██ ██  ██
+*    ██  ██ ██ ██ ██    ██ ██  ██ ██ ██        ██    ██   ██ ██    ██ ██  ██ ██ ██      ██   ██ ██      ██    ██ ██  ██ ██
+*    ██   ████ ██  ██████  ██   ████           ██    ██   ██  ██████  ██   ████  ██████ ██   ██ ███████  ██████  ██   ████
+*/
+
+/*
 * ---------------!DISCLAIMER!--------------- *
 *                                            *
 *         THIS CODE IS RELEASE READY         *
@@ -39,11 +47,13 @@ public final class Boot
     private String _sysName;
 
     /**
-    * Sole constructor. (For invocation by subclass constructors, typically implicit.)
+    * Constructor to initialize the system name to be used by the shell
+    *
+    * @throws Exception : Handle exceptions thrown during program runtime.
     */
     public Boot()throws Exception
     {
-        _sysName = new Truncheon.API.Minotaur.PolicyEnforcement().retrivePolicyValue("sysname");
+        _sysName = new Truncheon.API.Minotaur.PolicyEnforcement().retrievePolicyValue("sysname");
     }
 
     /**
@@ -162,6 +172,7 @@ public final class Boot
                     //Do nothing if the input is blank
                     case "":
                     break;
+
                     //Print 'invalid input' if the command is not recognized.
                     default:
                     System.out.println("Invalid input.");

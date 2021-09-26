@@ -11,7 +11,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
+* Program which provides the file manager functionality
 *
+* @version 0.4.8
+* @since 0.2.9
+* @author DAK404
 */
 public class FileManager
 {
@@ -26,10 +30,11 @@ public class FileManager
     private Console console = System.console();
 
     /**
+    * Constructor to initialize the user details
     *
-    * @param usn
-    * @param nm
-    * @param admin
+    * @param usn : The username of the account currently logged into the main menu
+    * @param nm : The name of the account currently logged into the main menu
+    * @param admin : The privileges of the account, determining if the user has admin rights
     */
     public FileManager(String usn, String nm, boolean admin)
     {
@@ -38,7 +43,12 @@ public class FileManager
         _admin = admin;
     }
 
+    // ------------------------------------------------------------------------------------ //
+    //                                    PUBLIC METHODS                                    //
+    // ------------------------------------------------------------------------------------ //
+
     /**
+    * The logic of the file manager
     *
     * @throws Exception : Handle exceptions thrown during program runtime.
     */
@@ -56,7 +66,7 @@ public class FileManager
                 return;
             }
 
-            _curDir="./Users/Truncheon/"+_user+'/';
+            resetToHomeDir();
             new Truncheon.API.BuildInfo().versionViewer();
             System.out.println("Grinch File Manager 1.10.0");
             while(fileManagerShell(console.readLine(_name+"@"+_curDir.replace(_user, _name)+">: ")));
@@ -98,12 +108,11 @@ public class FileManager
 
             if(! authenticationLogic())
             {
-                System.out.println("Authentication failed. Returning to main menu.");
-                Thread.sleep(1000);
+                System.out.println("Authentication failed. Please try again with valid credentials.");
                 return;
             }
 
-            _curDir="./Users/Truncheon/"+_user+'/';
+            resetToHomeDir();
             _scriptName = "./Users/Truncheon/"+_user+"/"+sName+".fmx";
 
             //else begin executing the script.
@@ -116,7 +125,51 @@ public class FileManager
         }
     }
 
+    // ------------------------------------------------------------------------------------ //
+    //                                   PRIVATE METHODS                                    //
+    // ------------------------------------------------------------------------------------ //
+
+    // ************************************************************************************ //
+    //                                 LOGIN PROCEDURE START                                //
+    // ************************************************************************************ //
+
     /**
+    * Logic to authenticate the user into the file manager module.
+    *
+    * @return boolean : Returns the status of the credential authentication 
+    * @throws Exception : Handle exceptions thrown during program runtime
+    */
+    private final boolean authenticationLogic()throws Exception
+    {
+        try
+        {
+            new Truncheon.API.BuildInfo().versionViewer();
+            System.out.println("[ ATTENTION ] : This module requires the user to authenticate to continue. Please enter the user credentials.");
+
+            System.out.println("Username: " + _name);
+            String password=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
+            String securityKey=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Security Key: ")));
+
+            return new Truncheon.API.Dragon.LoginAPI(_user, password, securityKey).status();
+        }
+        catch(Exception E)
+        {
+            //Handle any exceptions thrown during runtime
+            new Truncheon.API.ErrorHandler().handleException(E);
+        }
+        return false;
+    }
+
+    // ************************************************************************************ //
+    //                                  LOGIN PROCEDURE END                                 //
+    // ************************************************************************************ //
+
+    // ************************************************************************************ //
+    //                                 SCRIPT HANDLING START                                //
+    // ************************************************************************************ //
+
+    /**
+    * Runs the script file when there is a script file as an argument
     *
     * @throws Exception : Handle exceptions thrown during program runtime.
     */
@@ -160,31 +213,13 @@ public class FileManager
         }
     }
 
-    /**
-    *
-    * @return
-    * @throws Exception : Handle exceptions thrown during program runtime.
-    */
-    private final boolean authenticationLogic()throws Exception
-    {
-        try
-        {
-            new Truncheon.API.BuildInfo().versionViewer();
-            System.out.println("[ ATTENTION ] : This module requires the user to authenticate to continue. Please enter the user credentials.");
+    // ************************************************************************************ //
+    //                                  SCRIPT HANDLING END                                 //
+    // ************************************************************************************ //
 
-            System.out.println("Username: " + _name);
-            String password=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
-            String securityKey=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Security Key: ")));
-
-            return new Truncheon.API.Dragon.LoginAPI(_user, password, securityKey).status();
-        }
-        catch(Exception E)
-        {
-            //Handle any exceptions thrown during runtime
-            new Truncheon.API.ErrorHandler().handleException(E);
-        }
-        return false;
-    }
+    // ************************************************************************************ //
+    //                                FILE MANAGER LOGIC START                              //
+    // ************************************************************************************ //
 
     /**
     *
@@ -202,6 +237,10 @@ public class FileManager
 
             switch(cmd[0].toLowerCase())
             {
+                case "home":
+                resetToHomeDir();
+                break;
+
                 case "script":
                 //Check for the correct script syntax.
                 if(cmd.length <= 1)
@@ -262,7 +301,7 @@ public class FileManager
                 break;
 
                 case "ls":
-                listFiles();
+                ls();
                 break;
 
                 case "tree":
@@ -357,6 +396,14 @@ public class FileManager
         return false;
     }
 
+    // ************************************************************************************ //
+    //                                 FILE MANAGER LOGIC END                               //
+    // ************************************************************************************ //
+
+    // ************************************************************************************ //
+    //                             COMMAND PROCESSOR LOGIC START                            //
+    // ************************************************************************************ //
+
     /**
     *
     * @param tPath
@@ -391,7 +438,7 @@ public class FileManager
         if(_curDir.equals("./Users/Truncheon/"))
         {
             System.out.println("[ WARNING ] : Permission Denied.");
-            _curDir="./Users/Truncheon/"+_user+"/";
+            resetToHomeDir();
         }
         System.gc();
     }
@@ -454,19 +501,21 @@ public class FileManager
     *
     * @throws Exception : Handle exceptions thrown during program runtime.
     */
-    private final void listFiles()throws Exception
+    private final void ls()throws Exception
     {
         //String format = "%1$-60s|%2$-50s|%3$-20s\n";
-        String format = "%1$-50s|%2$-20s\n";
+        String format = "%1$-32s| %2$-24s| %3$-10s\n";
+        String c = "-";
         if(checkFile(_curDir))
         {
             File dPath=new File(_curDir);
             System.out.println("\n");
-            System.out.format(String.format(format, "File Name", "File Size [In KB]\n"));
+            String disp = (String.format(format, "Directory/File Name", "File Size [In KB]","Type"));
+            System.out.println(disp + c.repeat(disp.length()) + "\n");
             for(File file : dPath.listFiles())
             {
                 //System.out.format(String.format(format, file.getPath().replace(User,Name), file.getName().replace(User,Name), file.length()/1024+" KB"));
-                System.out.format(String.format(format, file.getName().replace(_user, _name), file.length()/1024+" KB"));
+                System.out.format(String.format(format, file.getName().replace(_user, _name), file.length()/1024+" KB", file.isDirectory()?"Directory":"File"));
             }
             System.out.println();
         }
@@ -633,11 +682,20 @@ public class FileManager
                 in.close();
                 out.close();
             }
-            System.gc();
         }
         catch(Exception E)
         {
             E.printStackTrace();
         }
+        System.gc();
     }
+
+    private final void resetToHomeDir()
+    {
+        _curDir="./Users/Truncheon/"+_user+'/';
+    }
+
+    // ************************************************************************************ //
+    //                              COMMAND PROCESSOR LOGIC END                             //
+    // ************************************************************************************ //
 }

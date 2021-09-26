@@ -24,7 +24,7 @@ public final class ReadFile
         {
             if(checkFileValidity(helpFile))
             {
-                file=new File("./Information/Truncheon/"+helpFile);
+                file = new File("./Information/Truncheon/" + helpFile);
                 readFile(true);
             }
         }
@@ -60,7 +60,7 @@ public final class ReadFile
     {
         try
         {
-            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("read"))
+            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("read") )
             return;
             if(checkFileValidity(fileName))
             {
@@ -84,7 +84,7 @@ public final class ReadFile
         //A link to show the build info to the user's terminal
         new Truncheon.API.BuildInfo().versionViewer();
 
-        Console console=System.console();
+        Console console = System.console();
 
         //A condition to check if the given file is found or not. This prevents exception, which may or may not disrupt the program.
 

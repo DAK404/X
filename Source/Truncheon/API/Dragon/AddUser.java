@@ -1,21 +1,29 @@
 /*
- * ---------------!DISCLAIMER!--------------- *
- *                                            *
- *         THIS CODE IS RELEASE READY         *
- *                                            *
- *  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
- *   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
- *    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
- *     GITHUB IF YOU FIND ANY PROBLEMS OR     *
- *              ERRORS IN THE CODE.           *
- *                                            *
- *   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
- *    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
- *        DISTRIBUTING THE SOURCE CODE.       *
- *   (SEE LICENSE FILE FOR MORE INFORMATION)  *
- *                                            *
- * ------------------------------------------ *
- */
+*    ███    ██ ██  ██████  ███    ██        ████████ ██████  ██    ██ ███    ██  ██████ ██   ██ ███████  ██████  ███    ██
+*    ████   ██ ██ ██    ██ ████   ██ ██        ██    ██   ██ ██    ██ ████   ██ ██      ██   ██ ██      ██    ██ ████   ██
+*    ██ ██  ██ ██ ██    ██ ██ ██  ██           ██    ██████  ██    ██ ██ ██  ██ ██      ███████ █████   ██    ██ ██ ██  ██
+*    ██  ██ ██ ██ ██    ██ ██  ██ ██ ██        ██    ██   ██ ██    ██ ██  ██ ██ ██      ██   ██ ██      ██    ██ ██  ██ ██
+*    ██   ████ ██  ██████  ██   ████           ██    ██   ██  ██████  ██   ████  ██████ ██   ██ ███████  ██████  ██   ████
+*/
+
+/*
+* ---------------!DISCLAIMER!--------------- *
+*                                            *
+*         THIS CODE IS RELEASE READY         *
+*                                            *
+*  THIS CODE HAS BEEN CHECKED, REVIEWED AND  *
+*   TESTED. THIS CODE HAS NO KNOWN ISSUES.   *
+*    PLEASE REPORT OR OPEN A NEW ISSUE ON    *
+*     GITHUB IF YOU FIND ANY PROBLEMS OR     *
+*              ERRORS IN THE CODE.           *
+*                                            *
+*   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
+*    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
+*        DISTRIBUTING THE SOURCE CODE.       *
+*   (SEE LICENSE FILE FOR MORE INFORMATION)  *
+*                                            *
+* ------------------------------------------ *
+*/
 
 package Truncheon.API.Dragon;
 
@@ -38,9 +46,6 @@ import java.sql.ResultSet;
 */
 public final class AddUser
 {
-    //Stores the current name of the logged in user
-    private String _curName = "";
-    //Stores the current username of the logged in user (in the hashed format)
     private String _curUser = "";
 
     //The new account name
@@ -58,7 +63,7 @@ public final class AddUser
     //The current account Administrator status
     private boolean _admin = false;
 
-    //
+    //Initialize the console class to accept inputs
     private Console console = System.console();
 
     /**
@@ -69,17 +74,17 @@ public final class AddUser
     }
 
 
-    /**
-    * Parametrized constructor to create a user when setting up Truncheon
-    *
-    * @param u : The Username of the currently logged in user
-    * @param n : The name of the user, currently logged in
-    */
-    public AddUser(String u, String n)
-    {
-        _curName = n;
-        _curUser = u;
-    }
+    // /**
+    // * Parametrized constructor to create a user when setting up Truncheon
+    // *
+    // * @param u : The Username of the currently logged in user
+    // * @param n : The name of the user, currently logged in
+    // */
+    // public AddUser(String u, String n)
+    // {
+    //     _curName = n;
+    //     _curUser = u;
+    // }
 
     /**
     * Authenticates the user currently logged in
@@ -93,23 +98,35 @@ public final class AddUser
         new Truncheon.API.BuildInfo().versionViewer();
 
         System.out.println("[ ATTENTION ] : Please authenticate credentials before creating a new account.");
-        System.out.println("Username: "+_curName);
-        String CurrentPassword=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
-        String CurrentKey=new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Security Key: ")));
+        _curUser = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(console.readLine("Username: "));
+        String CurrentPassword = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
+        String CurrentKey = new Truncheon.API.Minotaur.HAlgos().stringToSHA3_256(String.valueOf(console.readPassword("Security Key: ")));
         return new Truncheon.API.Dragon.LoginAPI(_curUser, CurrentPassword, CurrentKey).status();
     }
 
+    /**
+     * Check the current user privileges which will allow the option for the new user to be an Administrator
+     * 
+     * @throws Exception
+     */
     private final void checkPrivileges()throws Exception
     {
         try
         {
             System.gc();
+
+            //Open a new connection to the database
             String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
             Connection conn = DriverManager.getConnection(url);
+
+            //Create a prepared statement to query the administrator status of the currently logged in user
             PreparedStatement pstmt = conn.prepareStatement("SELECT Administrator FROM FCAD WHERE Username = ? ;");
             pstmt.setString(1, _curUser);
+
+            //Store the result of the executed query
             ResultSet rs = pstmt.executeQuery();
 
+            //set the Administrator status value as true in _admin if the result is Yes
             _admin = rs.getString("Administrator").equals("Yes");
 
             rs.close();
@@ -126,6 +143,7 @@ public final class AddUser
     }
 
     /**
+    * The logic to add a user to the database
     *
     * @throws Exception : Handle exceptions thrown during program runtime.
     */
@@ -133,15 +151,15 @@ public final class AddUser
     {
         try
         {
-            if(! new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("usermgmt"))
-            return;
+            //Check if the user credentials are correct
             if(! authenticateUser())
             {
                 console.readLine();
                 return;
-            }
+            }            
             checkPrivileges();
-            if(_admin)
+            if(! _admin && ! (new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("usermgmt")))
+            return;
             userType();
             while (! getUserDetails());
 
@@ -409,6 +427,7 @@ public final class AddUser
         }
         catch (Exception E)
         {
+            //E.printSTackTrace();
             System.out.println("Failed to create user. Please try again.");
             System.in.read();
         }
