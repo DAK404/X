@@ -504,7 +504,7 @@ public final class MainMenu
                 * Clears the screen and prints the basic kernel information.
                 */
                 case "clear":
-                mainMenuVerView();
+                new Truncheon.API.BuildInfo().clearScreen();
                 break;
 
                 /**
@@ -709,17 +709,18 @@ public final class MainMenu
 
             System.gc();
 
+            //Check if the name of the script file is a valid string
+            if(fileName == null || fileName.equalsIgnoreCase("") || fileName.startsWith(" "))
+            {
+                System.out.println("[ ERROR ] : The name of the script file cannot be be blank.");
+                return;
+            }
+
             //Check if the script file specified exists.
             if(! new File(fileName).exists())
             {
                 //Return an error and pass the control back in case the file is not found.
                 System.out.println("[ ATTENTION ] : Script file "+fileName.replace(_username, _name)+" has not been found.\nPlease check the directory of the script file and try again.");
-                return;
-            }
-            //Check if the name of the script file is a valid string
-            if(fileName == null || fileName.equalsIgnoreCase("") || fileName.startsWith(" "))
-            {
-                System.out.println("[ ERROR ] : The name of the script file cannot be be blank.");
                 return;
             }
 

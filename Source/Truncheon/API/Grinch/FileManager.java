@@ -56,17 +56,8 @@ public class FileManager
     {
         try
         {
-            if( !_admin  && ! (new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("filemanager")) )
-            return;
-
-            if(! authenticationLogic())
-            {
-                System.out.println("Authentication failed. Returning to main menu.");
-                Thread.sleep(5000);
-                return;
-            }
-
-            resetToHomeDir();
+            prerequisites();
+            
             new Truncheon.API.BuildInfo().versionViewer();
             System.out.println("Grinch File Manager 1.10.0");
             while(fileManagerShell(console.readLine(_name+"@"+_curDir.replace(_user, _name)+">: ")));
@@ -132,6 +123,28 @@ public class FileManager
     // ************************************************************************************ //
     //                                 LOGIN PROCEDURE START                                //
     // ************************************************************************************ //
+
+    private void prerequisites()throws Exception
+    {
+        try
+        {
+            if( !_admin  && ! (new Truncheon.API.Minotaur.PolicyEnforcement().checkPolicy("filemanager")) )
+            return;
+
+            if(! authenticationLogic())
+            {
+                System.out.println("Authentication failed. Cannot access Grinch.");
+                return;
+            }
+
+            resetToHomeDir();
+        }
+        catch(Exception E)
+        {
+
+        }
+    }
+
 
     /**
     * Logic to authenticate the user into the file manager module.
@@ -288,7 +301,7 @@ public class FileManager
                 break;
 
                 case "clear":
-                new Truncheon.API.BuildInfo().versionViewer();
+                new Truncheon.API.BuildInfo().clearScreen();
                 break;
 
                 case "cd":
@@ -557,8 +570,8 @@ public class FileManager
     {
         try
         {
-            delFile=_curDir+delFile;
-            if(! checkFile(delFile))
+            delFile = _curDir+delFile;
+            if(checkFile(delFile))
             {
                 File f=new File(delFile);
                 if(f.isDirectory())
@@ -604,6 +617,7 @@ public class FileManager
         {
             oldFileName = _curDir + oldFileName;
             newFileName = _curDir + newFileName;
+            
             if(checkFile(oldFileName))
             new File(oldFileName).renameTo(new File(newFileName));
             else
@@ -690,6 +704,9 @@ public class FileManager
         System.gc();
     }
 
+    /**
+     * 
+     */
     private final void resetToHomeDir()
     {
         _curDir="./Users/Truncheon/"+_user+'/';

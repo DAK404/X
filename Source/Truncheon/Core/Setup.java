@@ -432,7 +432,7 @@ public class Setup
             initPolicyHelper("sysname", sysName);
 
             //Saves the essential variables to the BURN file, with the default value as 'on'
-            String [] resetValues = { "update", "download", "script", "filemanager", "read", "write", "usermgmt"};
+            String [] resetValues = new Truncheon.API.Minotaur.PolicyEditor().resetValues;
             for(int i = 0; i < resetValues.length; ++i)
             initPolicyHelper(resetValues[i], "on");
         }

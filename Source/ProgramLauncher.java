@@ -37,7 +37,6 @@ class ProgramLauncher
                 System.exit(-1);
             }
 
-
             while(true)
             {
                 //Clean up before execution

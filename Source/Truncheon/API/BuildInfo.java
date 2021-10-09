@@ -50,20 +50,24 @@ public final class BuildInfo
     /**The String Constant which holds the date compiled of the build*/
     public final String _buildDate = "11-August-2021";
 
+    /**The String which will store the MOTD value */
     public final static String _MOTD = motdGenerator();
+
+    /**The boolean which will store if the MOTD is allowed or not */
+    public boolean _motdPolicy;
+
+    public BuildInfo()throws Exception
+    {
+        _motdPolicy = ( new Truncheon.API.Minotaur.PolicyEnforcement().retrievePolicyValue("motd") == null ||  new Truncheon.API.Minotaur.PolicyEnforcement().retrievePolicyValue("motd").equalsIgnoreCase("error") || new Truncheon.API.Minotaur.PolicyEnforcement().retrievePolicyValue("motd").equalsIgnoreCase("on"));
+    }
 
     /**
     * Displays the basic program information on the screen
     */
-    public final void versionViewer()
+    public final void versionViewer()throws Exception
     {
         clearScreen();
-        // System.out.println("///////////////////////\n");
-        // System.out.println("    Nion: Truncheon    ");
-        // System.out.println("     Version " + _version +"     \n");
-        // System.out.println("///////////////////////");
-        // System.out.println(" - RELEASE CANDIDATE - \n");
-
+        
         System.out.println("  _   _  _____  ____   _   _ ");
         System.out.println(" | \\ | ||_   _|/ __ \\ | \\ | |");
         System.out.println(" |  \\| |  | | | |  | ||  \\| |");
@@ -73,8 +77,9 @@ public final class BuildInfo
 
         //System.out.println("                          ");
         System.out.println("______________________________\n");
-        System.out.println("      Truncheon v" + _version + "\n      ----------------\n");
-        System.out.println("Message Of The Day:\n" + _MOTD);
+        System.out.println("      Truncheon v" + _version + "\n      ----------------");
+        if(_motdPolicy)
+            System.out.println("\nMessage Of The Day:\n" + _MOTD);
         System.out.println("______________________________\n\n");
         //debugMemoryInformation();
     }
