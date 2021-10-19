@@ -101,6 +101,7 @@ class ProgramLauncher
 
                     case 101:
                     //Invalid boot mode
+                    System.out.println("Invalid Boot Mode Detected! Exiting Program...");
                     System.exit(101);
 
                     default:

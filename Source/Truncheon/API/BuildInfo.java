@@ -39,16 +39,16 @@ import java.util.Random;
 public final class BuildInfo
 {
     /**The String Constant which holds the version number of the program*/
-    public final String _version = "1.0.0";
+    public final String _version = "1.0.1";
 
     /**The String Constant which holds the name of the kernel used*/
     public final String _kernel = "Synergy";
 
     /**The String Constant which holds the Build ID of the program*/
-    public final String _buildID = _version + "_11.08.2021_1944_TRNCHN";
+    public final String _buildID = _version + "_19.10.2021_1934_TRNCHN";
 
     /**The String Constant which holds the date compiled of the build*/
-    public final String _buildDate = "11-August-2021";
+    public final String _buildDate = "19-October-2021";
 
     /**The String which will store the MOTD value */
     public final static String _MOTD = motdGenerator();
@@ -113,8 +113,8 @@ public final class BuildInfo
         }
         catch(Exception E)
         {
-            //Handle any exceptions thrown during runtime
-            new Truncheon.API.ErrorHandler().handleException(E);
+            System.err.println("\n\nERROR WHILE CLEARING SCREEN");
+            System.err.println("ERROR: " + E + "\n\n");
         }
     }
 

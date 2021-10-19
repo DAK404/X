@@ -196,12 +196,14 @@ public class PolicyEditor
     }
 
     /**
+    * Saves a policy to the file, with the key and value structure
     *
+    * The policies are stored in an XML structured file
     * @param policyName
     * @param policyValue
     * @throws Exception : Handle exceptions thrown during program runtime.
     */
-    private final void savePolicy(String policyName, String policyValue)throws Exception
+    public final void savePolicy(String policyName, String policyValue)throws Exception
     {
         props.setProperty(policyName, policyValue);
         FileOutputStream output = new FileOutputStream(fileName);
@@ -212,14 +214,15 @@ public class PolicyEditor
     }
 
     /**
+    * Resets all the policies to its default values.
     *
     * @throws Exception : Handle exceptions thrown during program runtime.
     */
-    private final void resetPolicyFile()throws Exception
+    public final void resetPolicyFile()throws Exception
     {
         System.out.println(new File("./System/Private/Truncheon/Policy.BURN").delete());
         Thread.sleep(3000);
-        savePolicy("sysname", "SYSTEM");        
+        savePolicy("sysname", "SYSTEM");
         for(int i = 0; i < resetValues.length; ++i)
         savePolicy(resetValues[i], "on");
     }

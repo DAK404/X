@@ -159,9 +159,10 @@ public final class MainMenu
             //If the login status is false, pass it on to decrement the login counter.
             if(! loginStatus)
             counterLogic();
+
             //Reset the count value to 5
             else
-            _count = 5;
+            this._count = 5;
         }
         catch(Exception E)
         {
@@ -212,7 +213,7 @@ public final class MainMenu
             Thread.sleep(600000);
 
             //Rearm the count and provide a single attempt to the user to try again.
-            _count = 1;
+            this._count = 1;
             console.readLine("Attempt has been rearmed. Please try again.");
         }
     }

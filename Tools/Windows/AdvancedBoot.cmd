@@ -113,7 +113,7 @@ ECHO 3. RUN MAINTENANCE TASKS
 ECHO This will boot Truncheon in maintenance mode.
 ECHO. 
 ECHO 4. HELP
-ECHO This will display this help section
+ECHO This will display this help section.
 ECHO. 
 ECHO 5. EXIT
 ECHO The tool will quit and exit to Windows.

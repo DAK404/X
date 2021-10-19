@@ -30,13 +30,6 @@ package Truncheon.Core;
 //Import the required Java IO classes
 import java.io.Console;
 import java.io.File;
-import java.io.OutputStream;
-import java.io.InputStream;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-
-//Import the required Java Util classes
-import java.util.Properties;
 
 //Import the required Java SQL classes
 import java.sql.Connection;
@@ -54,18 +47,15 @@ import java.sql.DriverManager;
 public class Setup
 {
     //The boolean data required to indicate if the setup for a section has been completed or not.
-    private boolean _legal = false;
-    private boolean _dirs = false;
-    private boolean _dbInit = false;
-    private boolean _policyInit = false;
-    private boolean _adminAccCreate = false;
+    private String _legal = "INCOMPLETE";
+    private String _dirs = "INCOMPLETE";
+    private String _dbInit = "INCOMPLETE";
+    private String _policyInit = "INCOMPLETE";
+    private String _adminAccCreate = "INCOMPLETE";
     private boolean _mosaicSetup = false;
 
     //Initialize the Console class for IO via the STDIN
     private Console console = System.console();
-
-    //Initialize the Properties class to create the policy file and set the default policy values
-    Properties props = null;
 
     /**
     * Logic which will help in setting up the program before first use.
@@ -85,6 +75,7 @@ public class Setup
         showPrerequisites();
 
         createDirs();
+
         /*
         * Check and import the pre-existing databases and contents
         * from Mosaic if it exists
@@ -122,36 +113,52 @@ public class Setup
     */
     private final void showSetupDetails()throws Exception
     {
-        //clear the screen and display the build information.
+        String setupStrings = """
+        Nion: Truncheon v""" + new Truncheon.API.BuildInfo()._version + """
+        \nWelcome to Truncheon!
+        \nThe shell needs to be initialized before it can be used.
+        \nIf you are not the system administrator, please press the CTRL + C keys to quit.
+        \nThe setup program is meant for administrators to initialize the program environment.\n\n""";
+
+        displaySetupInformation(setupStrings);
+        
+        setupStrings = """
+        The following section shall describe the setup procedure\nalong with the changes made to the system.
+        --------------------------------------
+                  - SETUP PROCEDURE -         
+        --------------------------------------
+         A. LEGAL AND IMPORTANT INFORMATION
+        \t1. EULA [END USER LICENSE AGREEMENT]
+        \t2. Readme
+        \t3. What's New!
+         B. CHECK FOR MOSAIC FILES 
+        \t1. Import the database
+        \t2. Copy Data from\n\t   Mosaic to Truncheon
+        \t3. END SETUP
+         C. Create Truncheon Dependencies
+        \t1. Create Truncheon Directories
+        \t2. Create Multi User Database
+        \t3. Create Administrator Account
+         D. INITIALIZE THE SYSTEM NAME
+         E. INITIALIZE PROGRAM POLICIES
+         F. CHECK FOR UPDATES
+         G. END SETUP
+        \n--------------------------------------
+        If you wish not to continue with the setup, please press the CTRL + C keys to exit.
+        To Continue with the setup, press the ENTER key.
+        """;
+
+        displaySetupInformation(setupStrings);
+    }
+
+    /**
+     * 
+     */
+    private final void displaySetupInformation(String info)throws Exception
+    {
         new Truncheon.API.BuildInfo().versionViewer();
-
-        //Print the setup procedure and details.
-        System.out.println("Nion: Truncheon");
-        System.out.println("\nWelcome to Truncheon!");
-        System.out.println("The Truncheon Shell needs to be initialized before it can be used.\nThe program cannot be used until the setup is complete.");
-        System.out.println("[ ATTENTION ] : DO NOT TURN OFF THE DEVICE, TERMINATE THE APPLICATION, DISCONNECT ANY DEVICES, DRIVES OR NETWORK ADAPTERS!\n");
-        System.out.println("--------------------------------------");
-        System.out.println("          - SETUP PROCEDURE -         ");
-        System.out.println("--------------------------------------");
-        System.out.println("A. Legal and Important Information");
-        System.out.println("\t1. EULA [ END USER LICENSE AGREEMENT ]");
-        System.out.println("\t2. Readme");
-        System.out.println("\t3. What's New!");
-        System.out.println("\t4. Contributors");
-        System.out.println("B. Check for Mosaic's Files");
-        System.out.println("\t1. Copy Database Files");
-        System.out.println("\t2. Copy User Files");
-        System.out.println("C. Create Truncheon Dependencies");
-        System.out.println("\t1. Create Truncheon Directories");
-        System.out.println("\t2. Create Multi User Database");
-        System.out.println("\t3. Initialize Administrator Account");
-        System.out.println("D. Initialize the System Name");
-        System.out.println("E. Initialize the Policy Files");
-        System.out.println("--------------------------------------");
-        System.out.println("\n\nPress Enter to continue, or press CTRL + C keys to exit the program.");
-
-        //Provide a choice to the user to begin the setup or exit.
-        console.readLine("Available Options [ Press ENTER key | Press CTRL + C keys ]");
+        System.out.println(info);
+        console.readLine("Available Options [ Press ENTER key | Press CTRL + C keys ]\n> ");
     }
 
     /**
@@ -163,9 +170,13 @@ public class Setup
     {
         //Read the License file
         new Truncheon.API.Wraith.ReadFile().showHelp("License.eula");
+
+        //Display the status of the setup
+        displayStatus();
+
         //The user must accept the terms of the license to proceed.
-        System.out.println("\nDo you accept the Product License? [Y/N]");
-        if(console.readLine().equalsIgnoreCase("y"))
+        System.out.println("\nPress 'Y' if you accept the license, or press 'N' if you want to quit.\nDo you accept the Product License? [Y/N]");
+        if(console.readLine("> ").equalsIgnoreCase("y"))
         {
             new Truncheon.API.Wraith.ReadFile().showHelp("Readme.txt");
             new Truncheon.API.Wraith.ReadFile().showHelp("Credits.txt");
@@ -175,7 +186,7 @@ public class Setup
         System.exit(2);
 
         //Set the status of the prerequisites section as true, ie complete.
-        _legal = true;
+        _legal = "COMPLETE";
     }
 
     /**
@@ -213,11 +224,13 @@ public class Setup
     {
         try
         {
+            Truncheon.API.Grinch.FileManager sync = new Truncheon.API.Grinch.FileManager();
+            
             //Copy over the database and rename it from Fractal.db to mud.db
-            syncHelper(new File("./System/Private/Fractal.db"), new File("./System/Private/Truncheon/mud.db"));
+            sync.copyMoveHelper(new File("./System/Private/Fractal.db"), new File("./System/Private/Truncheon/mud.db"));
 
             //Copy over the Mosaic user directories to the Truncheon user directories
-            syncHelper(new File("./Users/Mosaic"), new File("./Users/Truncheon"));
+            sync.copyMoveHelper(new File("./Users/Mosaic"), new File("./Users/Truncheon"));
 
             System.gc();
 
@@ -230,53 +243,6 @@ public class Setup
         }
         //Else, return false to checkMosaic() that the synchronization failed
         return false;
-    }
-
-    /**
-    * The helper program which helps in synchronizing Mosaic files with Truncheon
-    *
-    * @param src : The source directory/file to be copied
-    * @param dest : The destination directory to the copied to
-    * @throws Exception : Handle exceptions thrown during program runtime.
-    */
-    private final void syncHelper(File src, File dest ) throws Exception
-    {
-        try
-        {
-            //Checks if the source is a directory
-            if( src.isDirectory() )
-            {
-                //If true, create the directory(ies)
-                dest.mkdirs();
-
-                //Copy over the child directories and files to the destination, recursively
-                for( File sourceChild : src.listFiles() )
-                {
-                    File destChild = new File( dest, sourceChild.getName() );
-
-                    //Recurse through the entire directory
-                    syncHelper( sourceChild, destChild );
-                }
-            }
-            //If the source is a file
-            else
-            {
-                //Copy the file using a byte stream
-                InputStream in = new FileInputStream(src);
-                OutputStream out = new FileOutputStream(dest);
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = in.read(buf)) > 0)
-                out.write(buf, 0, len);
-                in.close();
-                out.close();
-            }
-            System.gc();
-        }
-        catch(Exception E)
-        {
-            E.printStackTrace();
-        }
     }
 
     /**
@@ -312,7 +278,7 @@ public class Setup
             System.gc();
 
             //Set the directory creation status, signifying that the directories have been created
-            _dirs = true;
+            _dirs = "COMPLETE";
         }
         catch(Exception E)
         {
@@ -329,6 +295,15 @@ public class Setup
         {
             //Display the setup program status
             displayStatus();
+
+            //check if the Master User Database exists
+            if(new File("./System/Private/Truncheon/mud.db").exists())
+            {
+                //Do not continue if the database file exists
+                System.out.println("[ ERROR ] : Master User Database already exists! Aborting...");
+                _dbInit = "ERROR";
+                return;
+            }
 
             //Set the URL to save the database to
             String url = "jdbc:sqlite:./System/Private/Truncheon/mud.db";
@@ -363,9 +338,11 @@ public class Setup
 
             //Notify the user that the database has been initialized successfully, which can accommodate user data now.
             System.out.println("Master User Database File has been initialized successfully!");
+            
+            console.readLine("Press Enter to Continue.");
 
             //Set the database creation and table initialization as successful.
-            _dbInit = true;
+            _dbInit = "COMPLETE";
         }
         catch (Exception E)
         {
@@ -385,10 +362,15 @@ public class Setup
         {
             //Display the setup program status
             displayStatus();
+
+            System.out.println("[ ATTENTION ] : AN ADMINISTRATOR ACCOUNT NEEDS TO BE SETUP IN ORDER TO HAVE A DEFAULT ACCOUNT IN THE SYSTEM DATABASE.");
+            System.out.println("The following steps will require information which will be used to create an Administrator account.");
+            console.readLine("Press ENTER to continue.");
+
             new Truncheon.API.Dragon.AddUser().setupAdminUser();
 
             //set the administrator account creation status as true
-            _adminAccCreate = true;
+            _adminAccCreate = "COMPLETE";
         }
         catch(Exception E)
         {
@@ -425,52 +407,13 @@ public class Setup
             if(sysName.contains(" "))
             sysName = sysName.replaceAll(" ", "");
 
-            //Creates a new Properties file.
-            props = new Properties();
+            Truncheon.API.Minotaur.PolicyEditor pInit = new Truncheon.API.Minotaur.PolicyEditor();
+            pInit.resetPolicyFile();
+            pInit.savePolicy("sysname", sysName);
 
-            //Sets the system name under the variable sysName
-            initPolicyHelper("sysname", sysName);
-
-            //Saves the essential variables to the BURN file, with the default value as 'on'
-            String [] resetValues = new Truncheon.API.Minotaur.PolicyEditor().resetValues;
-            for(int i = 0; i < resetValues.length; ++i)
-            initPolicyHelper(resetValues[i], "on");
+            _policyInit = "COMPLETE";
         }
         catch (Exception E)
-        {
-            E.printStackTrace();
-        }
-    }
-
-    /**
-    * Helps in saving the policy to the BURN file.
-    *
-    * This helps in iterative implementation of saving a policy and its value.
-    * @param policyName : The Name of the policy which is stored to the file
-    * @param policyValue : The value of the policy stored to the file.
-    * @throws Exception : Handle exceptions thrown during program runtime.
-    */
-    private void initPolicyHelper(String policyName, String policyValue)throws Exception
-    {
-        try
-        {
-            //Stores the property variable and value
-            props.setProperty(policyName, policyValue);
-
-            //Open the file output stream to the BURN file
-            FileOutputStream output = new FileOutputStream("./System/Private/Truncheon/Policy.burn");
-
-            //Store them all under the description TruncheonSettings
-            props.storeToXML(output, "TruncheonSettings");
-
-            //Close the output stream
-            output.close();
-            System.gc();
-
-            //set the policy initialization as true
-            _policyInit = true;
-        }
-        catch(Exception E)
         {
             E.printStackTrace();
         }
@@ -490,16 +433,11 @@ public class Setup
         //Display the setup status and information.
         System.out.println("SETUP CHECKLIST");
         System.out.println("===============\n");
-        if(_legal)
-        System.out.println("1. Legal and Important Information    : COMPLETE");
-        if(_dirs)
-        System.out.println("2. Initialize Truncheon Dependencies  : COMPLETE");
-        if(_dbInit)
-        System.out.println("3. Initialize Database Files          : COMPLETE");
-        if(_adminAccCreate)
-        System.out.println("4. Administrator account creation     : COMPLETE");
-        if(_policyInit)
-        System.out.println("5. Initialize Policies and BURN Files : COMPLETE");
+        System.out.println("1. Legal and Important Information    : " + _legal);
+        System.out.println("2. Initialize Truncheon Dependencies  : " + _dirs);
+        System.out.println("3. Initialize Database Files          : " + _dbInit);
+        System.out.println("4. Administrator account creation     : " + _adminAccCreate);
+        System.out.println("5. Initialize Policies and BURN Files : " + _policyInit);
         System.out.println("\n===============");
 
         //Notify the user that Mosaic files have already been found

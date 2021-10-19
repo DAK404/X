@@ -30,6 +30,14 @@ public class FileManager
     private Console console = System.console();
 
     /**
+     * Constructor which will help in using the functionalities of the file manager
+     */
+    public FileManager()
+    {
+
+    }
+
+    /**
     * Constructor to initialize the user details
     *
     * @param usn : The username of the account currently logged into the main menu
@@ -670,7 +678,7 @@ public class FileManager
     * @param dest
     * @throws Exception : Handle exceptions thrown during program runtime.
     */
-    private final void copyMoveHelper( File src, File dest ) throws Exception
+    public final void copyMoveHelper( File src, File dest ) throws Exception
     {
         try
         {

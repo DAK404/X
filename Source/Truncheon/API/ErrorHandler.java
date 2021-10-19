@@ -80,10 +80,14 @@ public final class ErrorHandler
 			PrintWriter pw = new PrintWriter(sw);
 			E.printStackTrace(pw);
 
-            new Truncheon.API.Wraith.WriteFile().logToFile("--- ERROR REPORT ---\n", "Logs/ErrorLog");
-            new Truncheon.API.Wraith.WriteFile().logToFile("Program Stack Trace\n", "Logs/ErrorLog");
-            new Truncheon.API.Wraith.WriteFile().logToFile(sw.toString(), "Logs/ErrorLog");
-            new Truncheon.API.Wraith.WriteFile().logToFile("End Of Stack Trace\n", "Logs/ErrorLog");
+            String temporary = """
+            --- ERROR REPORT ---
+            Program Stack Trace\n"""
+            + sw.toString() + """
+            End Of Stack Trace
+            """;
+
+            new Truncheon.API.Wraith.WriteFile().logToFile(temporary, "Logs/ErrorLog");
             Console console=System.console();
 
             //Request for any user comments which can provide context for every exceptions caught
