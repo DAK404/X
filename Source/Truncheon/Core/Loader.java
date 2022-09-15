@@ -131,12 +131,31 @@ public class Loader
             }
 
             System.out.println("DEFAULT");
+            
+            String tempInput = "";
             do
             {
                 BuildInfo.viewBuildInfo();
                 debug();
+                tempInput = console.readLine("~X> ");
+                
+                switch(tempInput)
+                {
+                    case "usermgmt add":
+                        new Truncheon.API.Dragon.AccountCreate().AccountCreateLogic("Administrator");
+                        break;
+
+                    case "clear":
+                        BuildInfo.viewBuildInfo();
+                        break;
+
+                    case "login":
+                        System.out.println(new Truncheon.API.Dragon.LoginAuth(new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(console.readLine("Username: "))).authenticationLogic(new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(console.readLine("Password: ")), new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(console.readLine("Key: "))));
+                        console.readLine();
+                        break;
+                }
             }
-            while(! console.readLine("X> ").equalsIgnoreCase("exit"));
+            while(! tempInput.equalsIgnoreCase("exit"));
         }
         catch(Exception e)
         {

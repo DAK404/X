@@ -29,11 +29,11 @@ public class AccountCreate
     private String _currentUsername = "DEFAULT";
     private boolean _currentAccountAdmin = false;
 
-    private String _newAccountName = null;
-    private String _newAccountUsername = null;
-    private String _newAccountPassword = null;
-    private String _newAccountSecurityKey = null;
-    private String _newAccountPIN = null;
+    private String _newAccountName = "";
+    private String _newAccountUsername = "";
+    private String _newAccountPassword = "";
+    private String _newAccountSecurityKey = "";
+    private String _newAccountPIN = "";
     private boolean _newAccountAdmin = false;
 
     private Console console = System.console();
@@ -46,7 +46,7 @@ public class AccountCreate
 
     public void AccountCreateLogic(String username)throws Exception
     {
-        _currentUsername = username;
+        _currentUsername = new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(username);
 
         if(! authenticateCurrentUser())
             IOStreams.println("Failed to authenticate user. Exiting...");
@@ -67,7 +67,7 @@ public class AccountCreate
             while(!setAccountSecurityKey());
             while(!setAccountPIN());
         }
-        
+        console.readLine();
         System.gc();
     }
 
@@ -80,8 +80,8 @@ public class AccountCreate
         try
         {
             IOStreams.println("Username: " + _currentUsername);
-            String password = String.valueOf(console.readPassword("Password: "));
-            String securityKey = String.valueOf(console.readPassword("SecurityKey"));
+            String password = new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
+            String securityKey = new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(String.valueOf(console.readPassword("SecurityKey: ")));
 
             authenticationStatus = new Truncheon.API.Dragon.LoginAuth(_currentUsername).authenticationLogic(password, securityKey);
             _currentAccountAdmin = new Truncheon.API.Dragon.LoginAuth(_currentUsername).checkPrivilegeLogic();
@@ -111,11 +111,11 @@ public class AccountCreate
     {
         BuildInfo.viewBuildInfo();
 
-        IOStreams.println("Account Name  : " + (_newAccountName == null || _newAccountName.equalsIgnoreCase("")?"NOT SET":_newAccountName));
-        IOStreams.println("Username      : " + (_newAccountUsername == null || _newAccountUsername.equalsIgnoreCase("")?"NOT SET":_newAccountUsername));
-        IOStreams.println("Password      : " + (_newAccountPassword == null || _newAccountPassword.equalsIgnoreCase("")?"NOT SET":"********"));
-        IOStreams.println("SecurityKey   : " + (_newAccountSecurityKey == null || _newAccountSecurityKey.equalsIgnoreCase("")?"NOT SET":"********"));
-        IOStreams.println("PIN           : " + (_newAccountPIN == null || _newAccountPIN.equalsIgnoreCase("")?"NOT SET":"****"));
+        IOStreams.println("Account Name  : " + (_newAccountName.equalsIgnoreCase("")?"NOT SET":_newAccountName));
+        IOStreams.println("Username      : " + (_newAccountUsername.equalsIgnoreCase("")?"NOT SET":_newAccountUsername));
+        IOStreams.println("Password      : " + (_newAccountPassword.equalsIgnoreCase("")?"NOT SET":"********"));
+        IOStreams.println("SecurityKey   : " + (_newAccountSecurityKey.equalsIgnoreCase("")?"NOT SET":"********"));
+        IOStreams.println("PIN           : " + (_newAccountPIN.equalsIgnoreCase("")?"NOT SET":"****"));
 
         IOStreams.printAttention("Account Privileges: " + (_newAccountAdmin?"Administrator":"Standard"));
     }
