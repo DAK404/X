@@ -9,8 +9,6 @@ import java.io.FileInputStream;
 //Import the required Java Util classes
 import java.util.Properties;
 
-import java.lang.Math;
-
 //Import the Truncheon classes
 import Truncheon.API.BuildInfo;
 import Truncheon.API.IOStreams;

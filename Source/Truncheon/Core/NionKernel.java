@@ -2,7 +2,6 @@ package Truncheon.Core;
 
 import java.io.Console;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -78,6 +77,10 @@ public class NionKernel extends ClassLoader
 
                     case "exit":
                         System.exit(0);
+                    break;
+
+                    case "lock":
+                        System.out.println(_PIN);
                     break;
 
                     case "load":
@@ -206,7 +209,7 @@ public class NionKernel extends ClassLoader
 
     private void debug()
     {
-        int mb = 1024 * 1024;
+        //int mb = 1024 * 1024;
         // get Runtime instance
         Runtime instance = Runtime.getRuntime();
         System.out.println("\n*********************************************");
