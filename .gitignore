@@ -1,8 +1,0 @@
-Source/*.bat
-Source/*.cmd
-Source/*.log
-Source/Truncheon/Core/DebugMainMenu.java
-
-Binaries/*
-
-Tools/SQLite Driver

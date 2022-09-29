@@ -16,9 +16,9 @@ public class BuildInfo
     public final static String _KernelName = "Truncheon";
     public final static String _Version = "1.1.0";
     public final static String _VersionCodeName = "Katana";
-    public final static String _BuildDate = "21-AUGUST-2022";
-    public final static String _BuildID = "NION_21_AUG_22_2219";
-    public final static String _BuildType = "Development";
+    public final static String _BuildDate = "25-SEPTEMBER-2022";
+    public final static String _BuildID = "NION_25_SEP_22_0136";
+    public final static String _BuildType = "DEV_TEST";
 
     public static void viewBuildInfo()
     {
@@ -29,7 +29,31 @@ public class BuildInfo
             System.out.println(" Version    : " + _Version);
             System.out.println(" Build Date : " + _BuildDate);
             System.out.println(" Build ID   : " + _BuildID);
-            System.out.println(" CAUTION! " + _BuildType + " build!\n Expect changes and crashes.");
+            System.out.println("\n CAUTION! " + _BuildType + " build!\n Expect changes and crashes.");
+            System.out.println("---------------------------------------------\n");
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static void aboutProgram()
+    {
+        try
+        {
+            clearScreen();
+            System.out.println(_Branding);
+            System.out.println("Nion: Truncheon");
+
+            System.out.println("\nAn easy to use, cross-platform shell written in Java\nfor the ease of use and convenience for all users!");
+            
+            System.out.println("\nBuild Version    : " + _Version);
+            System.out.println("Version Codename : " + _VersionCodeName);
+            System.out.println("Build Date       : " + _BuildDate);
+            System.out.println("Build Identifier : " + _BuildID);
+            System.out.println("Build Type/Branch: " + _BuildType);
+            System.out.println("Kernel Name      : " + _KernelName);
             System.out.println("---------------------------------------------\n");
         }
         catch(Exception e)

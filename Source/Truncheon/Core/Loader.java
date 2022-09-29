@@ -59,27 +59,15 @@ import Truncheon.API.ExceptionHandler;
 */
 public class Loader
 {
-
+    
     private Console console = System.console();
-
+    
     private static List<String> filePath = new  ArrayList<String>();
-
-    public Loader()
-    {
-        try
-        {
-            System.out.println("Nion: Truncheon");
-            System.out.println("Booting Program. Please wait...");
-        }
-        catch(Exception e)
-        {
-            System.err.println("FATAL ERROR: " + e);
-            System.exit(4);
-        }
-    }
-
+    
     public static void main(String[] args)throws Exception
     {
+        BuildInfo.viewBuildInfo();
+        
         switch(args[0].toLowerCase())
         {
             case "normal":
@@ -97,7 +85,6 @@ public class Loader
         }
 
         System.gc();
-        BuildInfo.viewBuildInfo();
         new Loader().loaderLogic();
     }
 
@@ -129,31 +116,26 @@ public class Loader
                 new Setup().setupLogic();
                 break;
             }
-
-            System.out.println("DEFAULT");
             
+            System.out.println();
+
+            //Start a limited shell here.
             String tempInput = "";
             do
             {
-                BuildInfo.viewBuildInfo();
-                debug();
-                tempInput = console.readLine("~X> ");
+                tempInput = console.readLine("~lounge> ");
                 
-                switch(tempInput)
+                switch(tempInput.toLowerCase())
                 {
-                    case "usermgmt add":
-                        new Truncheon.API.Dragon.AccountCreate().AccountCreateLogic("Administrator");
-                        break;
-
-                    case "clear":
-                        BuildInfo.viewBuildInfo();
-                        break;
-
                     case "login":
-                        System.out.println(new Truncheon.API.Dragon.LoginAuth(new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(console.readLine("Username: "))).authenticationLogic(new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(console.readLine("Password: ")), new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(console.readLine("Key: "))));
-                        console.readLine();
-                        break;
+                        new Truncheon.Core.NionKernel().startNionKernel();
+                    break;
+
+                    case "mem":
+                        debug();
+                    break;
                 }
+                System.gc();
             }
             while(! tempInput.equalsIgnoreCase("exit"));
         }
@@ -244,14 +226,14 @@ public class Loader
             //Set the return value to be 2, denoting that the Manifest File is missing
             abraxisResult = 2;
         }
-
+        System.gc();
         return abraxisResult;
     }
 
     private boolean manifestFileExists()
     {
         //Check if the manifest file exists
-        return new File("./.Manifest/Truncheon/Manifest.m1").exists();
+        return new File("./.Manifest/Truncheon/Truncheon_Manifest.m1").exists();
     }
 
     private boolean populateFiles(File checkDir)
@@ -293,7 +275,7 @@ public class Loader
         try
         {
             Properties props = new Properties();
-            FileInputStream manifestEntries = new FileInputStream("./.Manifest/Truncheon/Manifest.m1");
+            FileInputStream manifestEntries = new FileInputStream("./.Manifest/Truncheon/Truncheon_Manifest.m1");
             props.loadFromXML(manifestEntries);
             manifestEntries.close();
 
@@ -334,7 +316,8 @@ public class Loader
             IOStreams.printError("Manifest File Population Failure.");
             kernelIntegrity = false;
         }
-
+        filePath.clear();
+        System.gc();
         return kernelIntegrity;
     }
 
@@ -357,6 +340,7 @@ public class Loader
                 break;
             }
         }
+        System.gc();
         return status;
     }
 
@@ -421,6 +405,8 @@ public class Loader
         new Truncheon.API.Dragon.AccountModify();
         new Truncheon.API.Wraith.WraithRead();
         new Truncheon.API.Wraith.WraithEdit();
+        new Truncheon.Core.NionKernel();
+        new Truncheon.API.Anvil();
     }
 
     /*

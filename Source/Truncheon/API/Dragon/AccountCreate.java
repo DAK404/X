@@ -46,7 +46,7 @@ public class AccountCreate
 
     public void AccountCreateLogic(String username)throws Exception
     {
-        _currentUsername = new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(username);
+        _currentUsername = username;
 
         if(! authenticateCurrentUser())
             IOStreams.println("Failed to authenticate user. Exiting...");
@@ -66,8 +66,8 @@ public class AccountCreate
             while(!setAccountPassword());
             while(!setAccountSecurityKey());
             while(!setAccountPIN());
+            addAccountToDatabase();
         }
-        console.readLine();
         System.gc();
     }
 
@@ -79,11 +79,9 @@ public class AccountCreate
 
         try
         {
-            IOStreams.println("Username: " + _currentUsername);
-            String password = new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(String.valueOf(console.readPassword("Password: ")));
-            String securityKey = new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(String.valueOf(console.readPassword("SecurityKey: ")));
-
-            authenticationStatus = new Truncheon.API.Dragon.LoginAuth(_currentUsername).authenticationLogic(password, securityKey);
+            IOStreams.println("Username: " + new Truncheon.API.Dragon.LoginAuth(_currentUsername).getNameLogic());
+            
+            authenticationStatus = new Truncheon.API.Dragon.LoginAuth(_currentUsername).authenticationLogic(new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(String.valueOf(console.readPassword("Password: "))), new Truncheon.API.Minotaur.Cryptography().stringToSHA3_256(String.valueOf(console.readPassword("SecurityKey: "))));
             _currentAccountAdmin = new Truncheon.API.Dragon.LoginAuth(_currentUsername).checkPrivilegeLogic();
         }
         catch(Exception e)

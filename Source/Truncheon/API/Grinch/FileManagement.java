@@ -2,8 +2,13 @@ package Truncheon.API.Grinch;
 
 class FileManagement
 {
-    private void test()
+    private void FileManagementLogic()
     {
 
+    }
+    
+    private void grinchInterface()
+    {
+        
     }
 }
