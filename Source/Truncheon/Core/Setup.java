@@ -30,7 +30,11 @@ public class Setup
     /**
      * Initialize a set of strings to show various statuses of the setup stages
      */
-    private String prereqInfoStatus = "PENDING", initDB = "PENDING", initDirs = "PENDING", initPolicies = "PENDING", initAdminAccount = "PENDING";
+    private String prereqInfoStatus = "PENDING";
+    private String initDB = "PENDING";
+    private String initDirs = "PENDING";
+    private String initPolicies = "PENDING";
+    private String initAdminAccount = "PENDING";
     
     /**
      * The main logic of the setup program
