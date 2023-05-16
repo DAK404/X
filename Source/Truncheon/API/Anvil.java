@@ -48,7 +48,7 @@ public class Anvil
                 }
                 catch(NumberFormatException e)
                 {
-                    System.err.println("error! Please provide a numeric input for the wait timer!");
+                    IOStreams.printError("Please provide a numeric input for the wait timer!");
                 }
                 catch(Exception e)
                 {
@@ -70,6 +70,12 @@ public class Anvil
 
     public static String[] splitStringToArray(String command)
     {
-        return command.split(" (?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+        String[] arr= command.split(" (?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+        
+        for(int i = 0; i < arr.length; i++)
+            if(arr[i].startsWith("\"") && arr[i].endsWith("\""))
+                arr[i] = arr[i].substring(1, arr[i].length()-1);
+
+        return arr;
     }
 }

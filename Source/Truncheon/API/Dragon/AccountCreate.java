@@ -56,8 +56,8 @@ public class AccountCreate
             {
                 IOStreams.printAttention("The currently logged in user is an administrator.\n\nYou have the privileges to create other administrator accounts or standard user accounts.");
                 IOStreams.printWarning("Administrative rights have additional privileges over standard users! Beware on who the administrative privileges are granted to!");
-                IOStreams.println("Would you like to grant administrative privileges to the new user account?");
-                if(console.readLine().equalsIgnoreCase("Y"))
+                IOStreams.println("Would you like to grant administrative privileges to the new user account? [ Y | N ]");
+                if(console.readLine("Grant Administrator Privileges?> ").equalsIgnoreCase("Y"))
                     _newAccountAdmin = true;
             }
 
@@ -113,9 +113,9 @@ public class AccountCreate
         IOStreams.println("Username      : " + (_newAccountUsername.equalsIgnoreCase("")?"NOT SET":_newAccountUsername));
         IOStreams.println("Password      : " + (_newAccountPassword.equalsIgnoreCase("")?"NOT SET":"********"));
         IOStreams.println("SecurityKey   : " + (_newAccountSecurityKey.equalsIgnoreCase("")?"NOT SET":"********"));
-        IOStreams.println("PIN           : " + (_newAccountPIN.equalsIgnoreCase("")?"NOT SET":"****"));
-
-        IOStreams.printAttention("Account Privileges: " + (_newAccountAdmin?"Administrator":"Standard"));
+        IOStreams.println("PIN           : " + (_newAccountPIN.equalsIgnoreCase("")?"NOT SET":"****") + "\n");
+        IOStreams.printAttention("Account Privileges: " + (_newAccountAdmin?"Administrator":"Standard") + "\n");
+        IOStreams.println("========================================");
     }
 
     private boolean setAccountName()throws Exception
@@ -160,7 +160,14 @@ public class AccountCreate
 
         _newAccountUsername = (console.readLine(message + " "));
 
-        if(_newAccountUsername == null | _newAccountUsername.equals("") | _newAccountUsername.equalsIgnoreCase("Administrator"))
+        if(new Truncheon.API.Dragon.LoginAuth(_newAccountUsername).checkUserExistence())
+        {
+            IOStreams.printError("Username has already been enrolled! Please try again with another username.");
+            _status = false;
+            _newAccountUsername = "";
+            console.readLine();
+        }
+        else if(_newAccountUsername == null | _newAccountUsername.equals("") | _newAccountUsername.equalsIgnoreCase("Administrator"))
         {
             _newAccountUsername = "";
             _status = false;
@@ -293,7 +300,7 @@ public class AccountCreate
     {
         try
         {
-            String databasePath = "jdbc:sqlite:./System/Truncheon/Private/mud.dbx";
+            String databasePath = "jdbc:sqlite:./System/Truncheon/Private/Mud.dbx";
             String sqlCommand = "INSERT INTO MUD(Username, Name, Password, SecurityKey, PIN, Privileges) VALUES(?,?,?,?,?,?)";
 
             Class.forName("org.sqlite.JDBC");
@@ -317,11 +324,11 @@ public class AccountCreate
             System.gc();
 
             credentialDashboard();
-            console.readLine("Account Creation Successful.\nPress ENTER to continue.");
+            IOStreams.printInfo("Account Creation Successful!");
         }
         catch(Exception e)
         {
-            new Truncheon.API.ExceptionHandler().handleException(e);
+            IOStreams.printInfo("Account Creation Failed.");
         }
     }
 
@@ -357,6 +364,8 @@ public class AccountCreate
         while(!setAccountPIN());
 
         addAccountToDatabase();
+        
+        Truncheon.API.IOStreams.confirmReturnToContinue();
     }
 
     /*

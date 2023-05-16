@@ -20,7 +20,7 @@ public class WraithEdit
 {
     //private Console console = System.console();
 
-    public final void logger(String printToFile, String fileName)
+    public static final void logger(String printToFile, String fileName)
     {
         try
         {
@@ -34,7 +34,7 @@ public class WraithEdit
 
                 File logFile = new File(logfilePath);
                 if(! logFile.exists())
-                    logFile.mkdir();
+                    logFile.mkdirs();
 
                 BufferedWriter obj = new BufferedWriter(new FileWriter(logfilePath + fileName + ".log", true));
                 PrintWriter pr = new PrintWriter(obj);
@@ -55,7 +55,7 @@ public class WraithEdit
         System.gc();
     }
 
-    private boolean checkFileValidity(String fileName)throws Exception
+    private static final boolean checkFileValidity(String fileName)throws Exception
     {
         return !(fileName == null || fileName.equals("") || fileName.startsWith(" "));
     }

@@ -29,25 +29,21 @@ package Truncheon.Core;
 import java.io.File;
 import java.io.Console;
 import java.io.FileInputStream;
-//import java.io.FileOutputStream;
-
-//Import the required Java NIO classes
-// import java.nio.channels.Channels;
-// import java.nio.channels.ReadableByteChannel;
 
 //Import the required Java Util classes
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Properties;
-// import java.util.zip.ZipEntry;
-// import java.util.zip.ZipInputStream;
 
-//Import the required Java Net package for URL parsing
-//import java.net.URL;
-
+//Import the required Truncheon classes
 import Truncheon.API.IOStreams;
 import Truncheon.API.BuildInfo;
 import Truncheon.API.ExceptionHandler;
+
+//Import the required Java SQL classes
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 
 /**
 * Loader class to load the Kernel up
@@ -59,31 +55,30 @@ import Truncheon.API.ExceptionHandler;
 */
 public class Loader
 {
-    
+
     private Console console = System.console();
-    
+
     private static List<String> filePath = new  ArrayList<String>();
-    
+
     public static void main(String[] args)throws Exception
     {
         BuildInfo.viewBuildInfo();
-        
+
         switch(args[0].toLowerCase())
         {
             case "normal":
             break;
 
-            // case "safemode":
-
-            // break;
-
             case "debug_ex_ha":
             new Loader().debugExceptionHandler();
+
+            case "iostreams":
+            new Loader().printTest();
+            break;
 
             default:
             System.exit(3);
         }
-
         System.gc();
         new Loader().loaderLogic();
     }
@@ -98,25 +93,26 @@ public class Loader
                 break;
 
                 case 1:
+                case 2:
                 IOStreams.printError("File Integrity Check Failure. Cannot Boot Program.");
                 System.exit(4);
                 break;
 
-                case 2:
+                case 3:
                 IOStreams.printError("Manifest File Missing! Aborting startup...");
                 System.exit(4);
                 break;
 
-                case 3:
+                case 4:
                 IOStreams.printError("Failed to populate the files. Cannot Boot Program.");
                 System.exit(4);
                 break;
 
-                case 4:
+                case 5:
                 new Setup().setupLogic();
                 break;
             }
-            
+
             System.out.println();
 
             //Start a limited shell here.
@@ -124,18 +120,22 @@ public class Loader
             do
             {
                 tempInput = console.readLine("~lounge> ");
-                
+
                 switch(tempInput.toLowerCase())
                 {
                     case "login":
-                        new Truncheon.Core.NionKernel().startNionKernel();
+                    new Truncheon.Core.NionKernel().startNionKernel();
+                    System.gc();
+                    break;
+
+                    case "clear":
+                    BuildInfo.viewBuildInfo();
                     break;
 
                     case "mem":
-                        debug();
+                    debug();
                     break;
                 }
-                System.gc();
             }
             while(! tempInput.equalsIgnoreCase("exit"));
         }
@@ -161,79 +161,88 @@ public class Loader
         /*
         Return value table:
 
-        RETURN VALUE	MEANING
-        0           File integrity OK
-        1           File integrity FAILED
-        2           Manifest File Corrupt or Missing
-        3           Kernel File Population Failed
-        4           Program Setup Required
-
+        ----------------------------------------------------
+        | RETURN VALUE |    	MEANING                    |
+        ----------------------------------------------------
+        |       0      |  File integrity OK                |
+        |       1      |  Kernel integrity FAILED          |
+        |       2      |  File checking FAILED             |
+        |       3      |  Kernel File Population Failed    |
+        |       4      |  Manifest File Corrupt or Missing |
+        |       5      |  Program Setup Required           |
+        ----------------------------------------------------
         */
 
-        //Check if the manifest File is found
+        //check if Manifest File exists
         if(manifestFileExists())
         {
-            IOStreams.printInfo("Manifest file found.");
+            IOStreams.printInfo("Manifest file found. Populating files and directories...");
+
+            //begin the population of files in directory
 
             //Begin the population of the files in the installed directory of Truncheon
             if(populateFiles(new File("./")))
             {
-                IOStreams.printInfo("Kernel Files Population Complete.");
+                IOStreams.printInfo("Files and Directories populated! Running Integrity Checks...");
+                //check core files first
 
-                //Begin checking the file hashes to enforce integrity
-                if(checkFileHash())
+                IOStreams.printInfo("Checking Core Files...");
+                if(checkCoreFiles())
                 {
-                    IOStreams.printInfo("File Hash Check Complete.");
+                    IOStreams.printInfo("Checking Kernel Integrity...");
+                    if(checkFileHash())
+                    {
+                        abraxisResult = 0;
 
-                    //Set the return value result to 0, denoting that the File Integrity is okay
-                    abraxisResult = 0;
+                        IOStreams.printInfo("Checking Program Setup status...");
 
-                    //Check if the program requires the first time setup
-                    if(checkDirectoryStructure())
-                    IOStreams.printInfo("Setup Not Required. Booting Program...");
+                        if(checkDirectoryStructure())
+                        IOStreams.printInfo("Setup Completed! Booting Program...");
+                        else
+                        {
+                            IOStreams.printAttention("Setup Incomplete.");
 
+                            //Set the return value to be 4, denoting that the program requires setup
+                            abraxisResult = 5;
+                        }
+                    }
                     else
                     {
-                        IOStreams.printAttention("Setup Incomplete.");
+                        IOStreams.printError("Kernel Integrity Failed! Aborting.");
 
-                        //Set the return value to be 4, denoting that the program requires setup
-                        abraxisResult = 4;
+                        abraxisResult = 1;
                     }
                 }
-
                 else
                 {
-                    IOStreams.printError("File Integrity Checks failed!");
+                    IOStreams.printError("Kernel File Checking Failed! Aborting.");
 
-                    //Set the return value to be 1, denoting that the File Integrity has failed
-                    abraxisResult = 1;
+                    abraxisResult = 2;
                 }
             }
-
             else
             {
-                IOStreams.printError("Kernel Files Population failed!");
+                IOStreams.printError("Kernel File Population Failed! Aborting.");
 
-                //Set the return value to be 3, denoting that the Kernel File Population has failed
                 abraxisResult = 3;
             }
         }
-
         else
         {
-            IOStreams.printError("Manifest file not found! Aborting...");
+            IOStreams.printError("Manifest File Error! Aborting.");
 
-            //Set the return value to be 2, denoting that the Manifest File is missing
-            abraxisResult = 2;
+            abraxisResult = 4;
         }
+
         System.gc();
         return abraxisResult;
     }
 
+
     private boolean manifestFileExists()
     {
         //Check if the manifest file exists
-        return new File("./.Manifest/Truncheon/Truncheon_Manifest.m1").exists();
+        return new File("./.Manifest/Truncheon/KernelFilesHashes.m1").exists();
     }
 
     private boolean populateFiles(File checkDir)
@@ -268,6 +277,49 @@ public class Loader
         return filePopulationStatus;
     }
 
+    //read the files that are supposed to be in a Manifest .m2 file and check if the contents are the same as the directory structure before file hash checks
+    private boolean checkCoreFiles()throws Exception
+    {
+        int fileCount = 0;
+        boolean returnValue = true;
+
+        try
+        {
+            Properties props = new Properties();
+            FileInputStream manifestEntries = new FileInputStream("./.Manifest/Truncheon/KernelFiles.m2");
+            props.loadFromXML(manifestEntries);
+            manifestEntries.close();
+
+            // DEBUG CODE //
+            //props.list(System.out);
+            // DEBUG CODE //
+
+            for(String fp : filePath)
+            {
+                if(fp.endsWith(".class"))
+                {
+                    if((System.getProperty("os.name").contains("Windows")?fp:convertSlashFormat(fp)) == (props.get(fp)))
+                    {
+                        System.out.println(props.get(fp).getClass());
+                        System.out.println(fp);
+                        returnValue = false;
+                        break;
+                    }
+                    fileCount++;
+                }
+            }
+
+            if(props.size() > fileCount)
+            returnValue = false;
+        }
+        catch(Exception e)
+        {
+
+        }
+
+        return returnValue;
+    }
+
     private boolean checkFileHash()throws Exception
     {
         boolean kernelIntegrity = true;
@@ -275,7 +327,7 @@ public class Loader
         try
         {
             Properties props = new Properties();
-            FileInputStream manifestEntries = new FileInputStream("./.Manifest/Truncheon/Truncheon_Manifest.m1");
+            FileInputStream manifestEntries = new FileInputStream("./.Manifest/Truncheon/KernelFilesHashes.m1");
             props.loadFromXML(manifestEntries);
             manifestEntries.close();
 
@@ -293,20 +345,19 @@ public class Loader
 
                 try
                 {
-                    String manifestHash = (System.getProperty("os.name").contains("Windows")?props.get(fileName):props.get(fileName.replaceAll(File.separator, "\\\\"))).toString();
+                    String manifestHash = (System.getProperty("os.name").contains("Windows")?props.get(fileName):props.get(convertSlashFormat(fileName))).toString();
 
                     if(!manifestHash.equals(fileHash))
                     {
                         kernelIntegrity = false;
-                        IOStreams.printError("Integrity Failure: " + fileName);
-                        IOStreams.printError("File Hash        : " + fileHash);
+                        IOStreams.printError("Integrity Failure: " + fileHash + "\t" + fileName);
+                        //IOStreams.printError("File Hash        : " + fileHash);
                         System.out.println();
                     }
                 }
                 catch(NullPointerException unknownFileFound)
                 {
-                    IOStreams.printAttention("Unrecognized File Found : " + fileName);
-                    IOStreams.printAttention("Unrecognized File Hash  : " + fileHash);
+                    IOStreams.printAttention("Unrecognized File Found : " + fileHash + "\t" + fileName);
                     System.out.println();
                 }
             }
@@ -321,6 +372,10 @@ public class Loader
         return kernelIntegrity;
     }
 
+    private String convertSlashFormat(String path)
+    {
+        return path.replaceAll(File.separator, "\\\\");
+    }
 
     private boolean checkDirectoryStructure()
     {
@@ -376,6 +431,18 @@ public class Loader
 
     }
 
+    private void printTest()throws Exception
+    {
+        IOStreams.printInfo("Test");
+        IOStreams.printAttention("Test");
+        IOStreams.printError("Test");
+        IOStreams.printWarning("Test");
+
+        IOStreams.println(0, 7, "Hello World!");
+        IOStreams.println(3, 8, "Hello World!");
+        IOStreams.println(8, 1, "Hello World!");
+    }
+
     private void debug()
     {
         //int mb = 1024 * 1024;
@@ -384,7 +451,7 @@ public class Loader
         System.out.println("\n*********************************************");
         System.out.println("        ---   DEBUG INFORMATION   ---        ");
         System.out.println("*********************************************");
-        System.out.println("\n   - Heap utilization statistics [MB] -  \n");
+        System.out.println("\n   - Heap utilization statistics [Bytes] -  \n");
         System.out.println("      [*]  Process ID   : "+ProcessHandle.current().pid());
         // available memory
         System.out.println("      [*]  Total Memory : " + instance.totalMemory() + " Bytes");
@@ -407,6 +474,7 @@ public class Loader
         new Truncheon.API.Wraith.WraithEdit();
         new Truncheon.Core.NionKernel();
         new Truncheon.API.Anvil();
+        new Truncheon.API.Grinch.FileManagement("");
     }
 
     /*
@@ -414,4 +482,178 @@ public class Loader
     END OF DEBUG LOGIC
     ----------------------------------------------------------------------------------
     */
+}
+
+/**
+* Program to make Truncheon ready for normal use
+*
+* @author: DAK404 (https://github.com/DAK404)
+* @version: 7.3.6
+* @since: 2018
+*/
+class Setup
+{
+    /**
+    * Instantiate the Console class to accept input operations through the console
+    */
+    Console console = System.console();
+
+    /**
+    * Initialize a set of strings to show various statuses of the setup stages
+    */
+    private String prereqInfoStatus = "PENDING";
+    private String initDB = "PENDING";
+    private String initDirs = "PENDING";
+    private String initPolicies = "PENDING";
+    private String initAdminAccount = "PENDING";
+
+    /**
+    * The main logic of the setup program
+    *
+    * @throws Exception
+    */
+    public void setupLogic()throws Exception
+    {
+        displayPrerequisiteInformation();
+        initializeDatabase();
+        initializeDirectories();
+        initializeDefaultPolicies();
+        initializeAdministratorAccount();
+
+        displaySetupProgress();
+        IOStreams.printAttention("Setup Complete!\nYou may now use Truncheon Shell!\nThe program needs to reboot to apply the changes.\n\nDo you want to check for new updates? [ Y | N ]");
+        console.readLine();
+        System.exit(101);
+    }
+
+    /**
+    * Shows a set of prerequisite information to the user before the setup starts.
+    */
+    private void displayPrerequisiteInformation()
+    {
+        displaySetupProgress();
+        String displaySetupMessage = """
+        Welcome to Truncheon!
+
+        This program needs to be setup before it can be used normally.
+        If you are a System Administrator, please continue the setup. If not, please contact the System Administrator for more information.
+
+        The setup cannot be interrupted, and if done so, the program will need to be reset and setup to make the shell usable by the end user.
+        The setup is a one time process and will need to be done only once.
+
+        Press ENTER to continue, or press the CTRL + C keys to exit.
+        """;
+
+        IOStreams.println(displaySetupMessage);
+        console.readLine("Setup> ");
+
+        displaySetupProgress();
+        IOStreams.printAttention("THE PROGRAM LICENSE SHALL BE DISPLAYED TO YOU. IF YOU ACCEPT IT, PRESS Y. ELSE, PRESS N.\nBY PROCEEDING TO SETTING UP AND USE THE PROGRAM, YOU HEREBY AGREE THAT YOU ACCEPT THE PROGRAM LICENSE CLAUSES.\nIF YOU DO NOT WANT TO AGREE TO THE LICENSE CLAUSES IN THE FUTURE, PLEASE UNINSTALL THE PROGRAM IMMEDIATELY.");
+        console.readLine("Press RETURN to continue, or press CTRL + C to quit.");
+
+        //Read the EULA file
+        IOStreams.printAttention("Do you agree to the clauses specified in the license?");
+        if(console.readLine("Accept EULA?> ").equalsIgnoreCase("N"))
+        {
+            System.exit(0);
+        }
+        else
+        {
+            //display the readme, changelog and the other files
+        }
+        prereqInfoStatus = "COMPLETE";
+    }
+
+    /**
+    * Initialize a set of directories required by Truncheon
+    */
+    private void initializeDirectories()
+    {
+        displaySetupProgress();
+        String [] directoryNames = {"./System/Truncheon/Public/Logs", "./Users/Truncheon"};
+        for (String dirs: directoryNames)
+        new File(dirs).mkdirs();
+        initDirs = "COMPLETE";
+    }
+
+    /**
+    * Initialize the database file and its table for user credential operations
+    */
+    private void initializeDatabase()
+    {
+        displaySetupProgress();
+        boolean initializeDatabaseStatus = false;
+        try
+        {
+            new File("./System/Truncheon/Private/Backups").mkdirs();
+            String databasePath = "jdbc:sqlite:./System/Truncheon/Private/Mud.dbx";
+            IOStreams.printInfo("Checking for existing Master User Database...");
+
+            if(new File(databasePath).exists())
+            IOStreams.printError("Master User Database already exists! Aborting...");
+            else
+            {
+                String createMUDTable = "CREATE TABLE IF NOT EXISTS MUD (" +
+                "Username TEXT," +
+                "Name TEXT NOT NULL," +
+                "Password TEXT NOT NULL," +
+                "SecurityKey TEXT NOT NULL," +
+                "PIN TEXT NOT NULL," +
+                "Privileges TEXT NOT NULL," +
+                "PRIMARY KEY(Username));";
+
+                Class.forName("org.sqlite.JDBC");
+                Connection dbConnection = DriverManager.getConnection(databasePath);
+                Statement statement = dbConnection.createStatement();
+
+                statement.execute(createMUDTable);
+
+                statement.close();
+                dbConnection.close();
+
+                System.gc();
+
+                initializeDatabaseStatus = true;
+            }
+        }
+        catch(Exception e)
+        {
+            new Truncheon.API.ExceptionHandler().handleException(e);
+        }
+        initDB = (initializeDatabaseStatus?"COMPLETE":"FAILED");
+    }
+
+    /**
+    * Initialize the first administrator account
+    */
+    private void initializeAdministratorAccount()throws Exception
+    {
+        new Truncheon.API.Dragon.AccountCreate().createDefaultAdministratorAccount();
+        initAdminAccount = "COMPLETE";
+    }
+
+    /**
+    * Initialize all the default policies along with a system name appended by a set of random numbers
+    */
+    private void initializeDefaultPolicies()
+    {
+        displaySetupProgress();
+        new Truncheon.API.Minotaur.PolicyEdit();
+        initPolicies = "COMPLETE";
+    }
+
+    /**
+    * Display the progress of the setup program to the user
+    */
+    private void displaySetupProgress()
+    {
+        BuildInfo.viewBuildInfo();
+        IOStreams.println("[ -- Program Setup Checklist -- ]");
+        IOStreams.println("[*] Show Program Prerequisites   : " + prereqInfoStatus);
+        IOStreams.println("[*] Initialize Directories       : " + initDirs);
+        IOStreams.println("[*] Initialize Database System   : " + initDB);
+        IOStreams.println("[*] Initialize Program Policies  : " + initPolicies);
+        IOStreams.println("[*] Create Administrator Account : " + initAdminAccount);
+        IOStreams.println("[ ----------------------------- ]");
+    }
 }
