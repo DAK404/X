@@ -16,9 +16,9 @@ public class BuildInfo
     public final static String _KernelName = "Truncheon";
     public final static String _Version = "1.1.0";
     public final static String _VersionCodeName = "Katana";
-    public final static String _BuildDate = "26-APR-2023";
-    public final static String _BuildID = "NION_26_APR_23_0318";
-    public final static String _BuildType = "DEV_TEST_WIP";
+    public final static String _BuildDate = "20-MAY-2023";
+    public final static String _BuildID = "20230520-1647_NION";
+    public final static String _BuildType = "DEBUG_&_TEST_0";
 
     public static void viewBuildInfo()
     {
@@ -26,17 +26,16 @@ public class BuildInfo
         {
             clearScreen();
             System.out.println(_Branding);
-            System.out.println(" Version    : " + _Version);
-            System.out.println(" Build Date : " + _BuildDate);
-            System.out.println(" Build ID   : " + _BuildID);
-            System.out.println();
-            System.out.println("\n CAUTION! " + _BuildType + " build!\n Expect changes and crashes.");
-            System.out.println("---------------------------------------------\n");
+            System.out.println("Nion: " + _KernelName);
+            System.out.println("Version: " + _Version + " [" + _BuildID + "]\n");
+            System.out.println("[ CAUTION ] - " + _BuildType + " Build! Expect Errors and Crashes!\n");
+            System.out.println("-----------------------------------------------------------------------------\n");
         }
         catch(Exception e)
         {
             e.printStackTrace();
         }
+        System.gc();
     }
 
     public static void aboutProgram()
@@ -61,6 +60,7 @@ public class BuildInfo
         {
             e.printStackTrace();
         }
+        System.gc();
     }
 
     public static void clearScreen()

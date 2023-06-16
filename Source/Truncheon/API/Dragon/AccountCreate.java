@@ -24,6 +24,49 @@ public class AccountCreate
     ----------------------------------------------------------------------------------
     */
 
+    protected String _accountNamePolicy = """
+        Account Name Policy Information
+        -------------------------------
+        * Name cannot be \'Administrator\'
+        * Name must contain English Alphabet, can have numbers
+        * Name must have atleast 2 characters or more
+        * Name cannot contain spaces
+        -------------------------------
+    """;
+
+    protected String _accountUsernamePolicy = """
+        Account Username Policy Information
+        -----------------------------------
+        * Username cannot contain the word \'Administrator\'
+        * Username can contain numbers, special characters and symbols.
+        -----------------------------------
+    """;
+
+    protected String _accountPasswordPolicy = """
+        Account Password Policy Information
+        -----------------------------------
+        * Password must contain atleast 8 characters
+        * Password is recommended to have special characters and numbers
+        -----------------------------------
+    """;
+    
+    protected String _accountSecurityKeyPolicy = """
+        Account Security Key Policy Information
+        -----------------------------------
+        * Security Key must contain atleast 8 characters
+        * Security Key is recommended to have special characters and numbers
+        -----------------------------------
+    """;
+
+    protected String _accountPINPolicy = """
+        Account PIN Policy Information
+        -------------------------------
+        * PIN must contain atleast 4 characters
+        * PIN is recommended to have special characters and numbers
+        -------------------------------
+    """;
+
+
     private boolean _status = false;
 
     private String _currentUsername = "DEFAULT";
@@ -52,10 +95,11 @@ public class AccountCreate
             IOStreams.println("Failed to authenticate user. Exiting...");
         else
         {
+            BuildInfo.viewBuildInfo();
             if(_currentAccountAdmin)
             {
-                IOStreams.printAttention("The currently logged in user is an administrator.\n\nYou have the privileges to create other administrator accounts or standard user accounts.");
-                IOStreams.printWarning("Administrative rights have additional privileges over standard users! Beware on who the administrative privileges are granted to!");
+                IOStreams.printAttention("The currently logged in user is an administrator.\nYou have the privileges to create other administrator accounts or standard user accounts.\n");
+                IOStreams.printWarning("Administrative rights have additional privileges over standard users! Beware on who the administrative privileges are granted to!\n");
                 IOStreams.println("Would you like to grant administrative privileges to the new user account? [ Y | N ]");
                 if(console.readLine("Grant Administrator Privileges?> ").equalsIgnoreCase("Y"))
                     _newAccountAdmin = true;
@@ -67,6 +111,7 @@ public class AccountCreate
             while(!setAccountSecurityKey());
             while(!setAccountPIN());
             addAccountToDatabase();
+            IOStreams.confirmReturnToContinue();
         }
         System.gc();
     }
@@ -121,18 +166,8 @@ public class AccountCreate
     private boolean setAccountName()throws Exception
     {
         credentialDashboard();
-        String message = """
-        Account Name Policy Information
-        -------------------------------
-        * Name cannot be \'Administrator\'
-        * Name must contain English Alphabet, can have numbers
-        * Name must have atleast 2 characters or more
-        * Name cannot contain spaces
-        -------------------------------
 
-        Account Name> """;
-
-        _newAccountName = console.readLine(message + " ");
+        _newAccountName = console.readLine(_accountNamePolicy + "Account Name> ");
 
         if(_newAccountName == null | _newAccountName.contains(" ") | _newAccountName.equals("") | !(_newAccountName.matches("^[a-zA-Z0-9]*$")) | _newAccountName.equalsIgnoreCase("Administrator") | _newAccountName.length() < 2)
         {
@@ -149,16 +184,8 @@ public class AccountCreate
     private boolean setAccountUsername()throws Exception
     {
         credentialDashboard();
-        String message = """
-        Account Username Policy Information
-        -----------------------------------
-        * Username cannot contain the word \'Administrator\'
-        * Username can contain numbers, special characters and symbols.
-        -----------------------------------
 
-        Account Username> """;
-
-        _newAccountUsername = (console.readLine(message + " "));
+        _newAccountUsername = (console.readLine(_accountUsernamePolicy + "Account Username> "));
 
         if(new Truncheon.API.Dragon.LoginAuth(_newAccountUsername).checkUserExistence())
         {
@@ -185,16 +212,8 @@ public class AccountCreate
     private boolean setAccountPassword()throws Exception
     {
         credentialDashboard();
-        String message = """
-        Account Password Policy Information
-        -----------------------------------
-        * Password must contain atleast 8 characters
-        * Password is recommended to have special characters and numbers
-        -----------------------------------
-
-        Account Password>""";
         
-        _newAccountPassword = String.valueOf(console.readPassword(message + " "));
+        _newAccountPassword = String.valueOf(console.readPassword(_accountPasswordPolicy + "Account Password> "));
         String confirmPassword = String.valueOf(console.readPassword("Confirm Password> "));
 
         if(_newAccountPassword == null | _newAccountPassword.equals("") | _newAccountPassword.length() < 8 | !(_newAccountPassword.equals(confirmPassword)))
@@ -216,16 +235,8 @@ public class AccountCreate
     private boolean setAccountSecurityKey()throws Exception
     {
         credentialDashboard();
-        String message = """
-        Account Security Key Policy Information
-        -----------------------------------
-        * Security Key must contain atleast 8 characters
-        * Security Key is recommended to have special characters and numbers
-        -----------------------------------
 
-        Account Security Key> """;
-
-        _newAccountSecurityKey = String.valueOf(console.readPassword(message + " "));
+        _newAccountSecurityKey = String.valueOf(console.readPassword(_accountSecurityKeyPolicy + "Account Security Key> "));
         String confirmKey = String.valueOf(console.readPassword("Confirm Security Key> "));
 
         if(_newAccountSecurityKey == null | !(_newAccountSecurityKey.equals(confirmKey)))
@@ -247,16 +258,8 @@ public class AccountCreate
     private boolean setAccountPIN()throws Exception
     {
         credentialDashboard();
-        String message = """
-        Account PIN Policy Information
-        -------------------------------
-        * PIN must contain atleast 4 characters
-        * PIN is recommended to have special characters and numbers
-        -------------------------------
 
-        Account PIN> """;
-
-        _newAccountPIN = String.valueOf(console.readPassword(message + " "));
+        _newAccountPIN = String.valueOf(console.readPassword(_accountPINPolicy + "Account Key> "));
         String confirmPIN = String.valueOf(console.readPassword("Confirm PIN> "));
 
         if(_newAccountPIN == null | !(_newAccountPIN.equals(confirmPIN)))

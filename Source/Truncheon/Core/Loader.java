@@ -18,6 +18,7 @@
 *   THIS CODE FALLS UNDER THE LGPL LICENSE.  *
 *    YOU MUST INCLUDE THIS DISCLAIMER WHEN   *
 *        DISTRIBUTING THE SOURCE CODE.       *
+*                                            *
 *   (SEE LICENSE FILE FOR MORE INFORMATION)  *
 *                                            *
 * ------------------------------------------ *
@@ -55,15 +56,13 @@ import java.sql.Statement;
 */
 public class Loader
 {
-
     private Console console = System.console();
 
     private static List<String> filePath = new  ArrayList<String>();
 
     public static void main(String[] args)throws Exception
     {
-        BuildInfo.viewBuildInfo();
-
+        
         switch(args[0].toLowerCase())
         {
             case "normal":
@@ -74,7 +73,7 @@ public class Loader
 
             case "iostreams":
             new Loader().printTest();
-            break;
+            return;
 
             default:
             System.exit(3);
@@ -93,8 +92,11 @@ public class Loader
                 break;
 
                 case 1:
-                case 2:
                 IOStreams.printError("File Integrity Check Failure. Cannot Boot Program.");
+                break;
+
+                case 2:
+                IOStreams.printError("Kernel File Integrity Violation! Aborting Program Boot.");
                 System.exit(4);
                 break;
 
@@ -115,6 +117,7 @@ public class Loader
 
             System.out.println();
 
+            BuildInfo.viewBuildInfo();
             //Start a limited shell here.
             String tempInput = "";
             do
@@ -134,6 +137,10 @@ public class Loader
 
                     case "mem":
                     debug();
+                    break;
+
+                    case "restart":
+                    System.exit(211);
                     break;
                 }
             }
@@ -173,18 +180,13 @@ public class Loader
         ----------------------------------------------------
         */
 
-        //check if Manifest File exists
         if(manifestFileExists())
         {
             IOStreams.printInfo("Manifest file found. Populating files and directories...");
 
-            //begin the population of files in directory
-
-            //Begin the population of the files in the installed directory of Truncheon
             if(populateFiles(new File("./")))
             {
                 IOStreams.printInfo("Files and Directories populated! Running Integrity Checks...");
-                //check core files first
 
                 IOStreams.printInfo("Checking Core Files...");
                 if(checkCoreFiles())
@@ -197,25 +199,25 @@ public class Loader
                         IOStreams.printInfo("Checking Program Setup status...");
 
                         if(checkDirectoryStructure())
-                        IOStreams.printInfo("Setup Completed! Booting Program...");
+                            IOStreams.printInfo("Booting Program...");
+                        
                         else
                         {
                             IOStreams.printAttention("Setup Incomplete.");
 
-                            //Set the return value to be 4, denoting that the program requires setup
                             abraxisResult = 5;
                         }
                     }
                     else
                     {
-                        IOStreams.printError("Kernel Integrity Failed! Aborting.");
+                        IOStreams.printError("Kernel File Checking Failed! Aborting.");
 
                         abraxisResult = 1;
                     }
                 }
                 else
                 {
-                    IOStreams.printError("Kernel File Checking Failed! Aborting.");
+                    IOStreams.printError("Kernel Integrity Failed! Aborting.");
 
                     abraxisResult = 2;
                 }
@@ -464,19 +466,6 @@ public class Loader
         System.out.println("\n*********************************************\n\n");
     }
 
-    //logic to handle the compilation of non-linked/under development modules
-
-    private void compileDeez()throws Exception
-    {
-        new Truncheon.API.Dragon.AccountDelete("test");
-        new Truncheon.API.Dragon.AccountModify();
-        new Truncheon.API.Wraith.WraithRead();
-        new Truncheon.API.Wraith.WraithEdit();
-        new Truncheon.Core.NionKernel();
-        new Truncheon.API.Anvil();
-        new Truncheon.API.Grinch.FileManagement("");
-    }
-
     /*
     ----------------------------------------------------------------------------------
     END OF DEBUG LOGIC
@@ -654,6 +643,6 @@ class Setup
         IOStreams.println("[*] Initialize Database System   : " + initDB);
         IOStreams.println("[*] Initialize Program Policies  : " + initPolicies);
         IOStreams.println("[*] Create Administrator Account : " + initAdminAccount);
-        IOStreams.println("[ ----------------------------- ]");
+        IOStreams.println("[ ----------------------------- ]\n");
     }
 }
