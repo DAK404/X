@@ -33,7 +33,8 @@ public class IOStreams
     }
 
     /**
-     *  +~~~~~~~+~~~~~~+~~~~~~+~~~~~~~~~~~+
+     *  <pre>
+        +~~~~~~~+~~~~~~+~~~~~~+~~~~~~~~~~~+
         | Index |  fg  |  bg  |  color    |
         +~~~~~~~+~~~~~~+~~~~~~+~~~~~~~~~~~+
         |   0   |  30  |  40  |  black    |
@@ -46,10 +47,11 @@ public class IOStreams
         |   7   |  37  |  47  |  white    |
         |   8   |  39  |  49  |  default  |
         +~~~~~~~+~~~~~~+~~~~~~+~~~~~~~~~~~+
+        </pre>
      * 
-     * @param foregroundIndex
-     * @param backgroundIndex
-     * @param message
+     * @param foregroundIndex: Index value for the foreground color
+     * @param backgroundIndex: Index value for the background color
+     * @param message: The intended message that needs to be printed on the screen
      */
     public static void println(int foregroundIndex, int backgroundIndex, String message)
     {
