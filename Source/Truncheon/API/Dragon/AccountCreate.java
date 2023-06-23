@@ -87,7 +87,7 @@ public final class AccountCreate
     ----------------------------------------------------------------------------------
     */
 
-    public final void AccountCreateLogic(String username)throws Exception
+    public final void accountCreateLogic(String username)throws Exception
     {
         _currentUsername = username;
 
