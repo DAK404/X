@@ -154,6 +154,10 @@ public final class AccountCreate
     {
         BuildInfo.viewBuildInfo();
 
+        IOStreams.println("-------------------------------------------------");
+        IOStreams.println("| User Management Console: Account Creation     |");
+        IOStreams.println("-------------------------------------------------\n");
+
         IOStreams.println("Account Name  : " + (_newAccountName.equalsIgnoreCase("")?"NOT SET":_newAccountName));
         IOStreams.println("Username      : " + (_newAccountUsername.equalsIgnoreCase("")?"NOT SET":_newAccountUsername));
         IOStreams.println("Password      : " + (_newAccountPassword.equalsIgnoreCase("")?"NOT SET":"********"));

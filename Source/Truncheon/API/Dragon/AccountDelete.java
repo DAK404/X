@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 
+//Import Truncheon APIs
 import Truncheon.API.BuildInfo;
 import Truncheon.API.IOStreams;
 
@@ -34,6 +35,10 @@ public class AccountDelete
                 Truncheon.API.IOStreams.printError("Invalid Login Credentials. Please Try Again.");
             else
             {
+                IOStreams.println("-------------------------------------------------");
+                IOStreams.println("|   User Management Console: Account Deletion   |");
+                IOStreams.println("-------------------------------------------------\n");
+                
                 if(console.readLine("Are you sure you wish to delete your user account? [ YES | NO ]\n> ").equalsIgnoreCase("yes"))
                 {
                     deleteFromDatabase();

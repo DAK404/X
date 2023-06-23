@@ -194,7 +194,6 @@ public class NionKernel extends ClassLoader
                 break;
 
                 case "lock":
-                //System.out.println(_PIN);
                 break;
 
                 case "module":
@@ -242,10 +241,10 @@ public class NionKernel extends ClassLoader
 
                 case "sys":
                 if(! _admin)
-                System.out.println("Cannot execute sys command as a standard user.");
+                IOStreams.printError("Cannot execute sys command as a standard user.");
                 else if(commandArray.length < 2)
                 {
-                    System.out.println("Syntax:\n\nsys \"<host_OS_command>\"");
+                    IOStreams.printInfo("Syntax:\n\nsys \"<host_OS_command>\"");
                     break;
                 }
                 else
