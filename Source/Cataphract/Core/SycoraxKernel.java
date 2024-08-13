@@ -33,6 +33,7 @@ import Cataphract.API.Dragon.Login;
 
 import Cataphract.API.Minotaur.Cryptography;
 import Cataphract.API.Minotaur.PolicyCheck;
+import Cataphract.API.Minotaur.PolicyManager;
 
 public class SycoraxKernel
 {
@@ -103,7 +104,7 @@ public class SycoraxKernel
             break;
 
             case "policymgmt":
-            new Cataphract.API.Minotaur.PolicyManager().policyEditorLogic();
+            new PolicyManager().policyEditorLogic();
             break;
 
             case "grinch":
