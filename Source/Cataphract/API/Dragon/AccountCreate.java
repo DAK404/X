@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import Cataphract.API.Build;
 import Cataphract.API.IOStreams;
 import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Minotaur.PolicyCheck;
 
 /**
 * A class to create new user accounts on the system. Can be restricted by policy "account_create"
@@ -137,7 +138,7 @@ public final class AccountCreate
     public final void accountCreateLogic()throws Exception
     {
         // Check the policy if account creation is allowed in the policy file, can be bypassed by the accounts with administrator privileges
-        if(new Cataphract.API.Minotaur.PolicyCheck().retrievePolicyValue("account_create").equals("on") || _isCurrentUserAdmin)
+        if(new PolicyCheck().retrievePolicyValue("account_create").equals("on") || _isCurrentUserAdmin)
         {
             //If the authentication check fails, exit from the module
             if(! authenticateCurrentUser())
@@ -206,7 +207,7 @@ public final class AccountCreate
             //Display the name of the user currently logged in
             IOStreams.println("Username: " + new Login(_currentUsername).getNameLogic());
 
-            new Cataphract.API.Minotaur.Cryptography();
+            new Cryptography();
             //challenge the database for the provided credentials, and store the status
             authenticationStatus = new Login(_currentUsername).authenticationLogic(Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("Password: "))), Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("SecurityKey: "))));
         }
@@ -293,7 +294,7 @@ public final class AccountCreate
         }
         else
         {
-            _newAccountUsername = Cataphract.API.Minotaur.Cryptography.stringToSHA3_256(_newAccountUsername);   
+            _newAccountUsername = Cryptography.stringToSHA3_256(_newAccountUsername);   
 
             // check if the entered username exists in the database already
             if(new Login(_newAccountUsername).checkUserExistence())

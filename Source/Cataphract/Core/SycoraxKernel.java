@@ -237,7 +237,7 @@ public class SycoraxKernel
         IOStreams.printError("The name of the script file cannot be be blank.");
         else
         {
-            if(new Cataphract.API.Minotaur.PolicyCheck().retrievePolicyValue("script").equals("on") && _isUserAdmin)
+            if(new PolicyCheck().retrievePolicyValue("script").equals("on") && _isUserAdmin)
             {
                 scriptFileName = "./Users/Cataphract/" + _username + "/" + scriptFileName;
                 //Check if the script file specified exists.
