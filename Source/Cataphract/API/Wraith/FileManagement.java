@@ -28,6 +28,8 @@ import Cataphract.API.IOStreams;
 import Cataphract.API.Dragon.Login;
 import Cataphract.API.Minotaur.Cryptography;
 import Cataphract.API.Minotaur.PolicyCheck;
+import Cataphract.API.Wraith.Archive.FileZip;
+import Cataphract.API.Wraith.Archive.FileUnzip;
 
 /**
 * A utility class for file management.
@@ -44,6 +46,8 @@ public class FileManagement
     private String _name = "";
     /** Store the present working directory during file management */
     private String _presentWorkingDirectory = "";
+    /** Store the default user home directory */
+    private String _userHomeDirectory = "";
 
     /** Instantiate Console to get user inputs. */
     private Console console = System.console();
@@ -61,7 +65,8 @@ public class FileManagement
         // Set the name of the user to the global variable
         _name = new Login(username).getNameLogic();
         // Initialize the present working directory
-        _presentWorkingDirectory = "./Users/Cataphract/" + _username + "/";
+        _userHomeDirectory = ".|Users|Cataphract|" + _username + "|";
+        _presentWorkingDirectory = _userHomeDirectory;
     }
 
     /*****************************************
@@ -93,7 +98,7 @@ public class FileManagement
      */
     private boolean checkEntityExistence(String fileName)throws Exception
     {
-        return new File(fileName).exists();
+        return new File(IOStreams.convertFileSeparator(fileName)).exists();
     }
 
     /**
@@ -106,7 +111,7 @@ public class FileManagement
     {
         try
         {
-            fileName = _presentWorkingDirectory+fileName;
+            fileName = IOStreams.convertFileSeparator(_presentWorkingDirectory+fileName);
             if(checkEntityExistence(fileName))
             {
                 File f=new File(fileName);
@@ -150,7 +155,7 @@ public class FileManagement
     private void viewDirectoryTree()throws Exception
     {
         // Create a File object for the present working directory
-        File treeView = new File(_presentWorkingDirectory);
+        File treeView = new File(IOStreams.convertFileSeparator(_presentWorkingDirectory));
 
         // Print the header for the tree view
         IOStreams.println("\n--- [ TREE VIEW ] ---\n");
@@ -202,10 +207,11 @@ public class FileManagement
 
         // Replace the last directory in the path with a single slash
         _presentWorkingDirectory = _presentWorkingDirectory.replace(
-            _presentWorkingDirectory.substring(_presentWorkingDirectory.lastIndexOf('/'), _presentWorkingDirectory.length()),"/");
+            _presentWorkingDirectory.substring(_presentWorkingDirectory.lastIndexOf('|'), _presentWorkingDirectory.length()),"|");
 
         // Check if the present working directory is the restricted user home directory
-        if (_presentWorkingDirectory.equals("./Users/Cataphract/")) {
+        if (_presentWorkingDirectory.equals(IOStreams.convertFileSeparator(".|Users|Cataphract|")))
+        {
             // Print an error message if access is denied
             IOStreams.printError("Permission Denied.");
 
@@ -219,7 +225,7 @@ public class FileManagement
      */
     private final void resetToHomeDirectory()
     {
-        _presentWorkingDirectory = "./Users/Cataphract/" + _username + '/'  ;
+        _presentWorkingDirectory = _userHomeDirectory;
     }
 
     /**
@@ -230,7 +236,7 @@ public class FileManagement
      */
     private final void makeDirectory(String fileName) throws Exception
     {
-        new File(_presentWorkingDirectory + fileName).mkdirs();
+        new File(IOStreams.convertFileSeparator(_presentWorkingDirectory) + fileName).mkdirs();
     }
 
     /**
@@ -265,6 +271,10 @@ public class FileManagement
      */
     private final void copyMoveEntity(String fileName, String destination, boolean move)throws Exception
     {
+        // Convert paths from Nion paths to OS specific paths
+        fileName = IOStreams.convertFileSeparator(fileName);
+        destination = IOStreams.convertFileSeparator(destination);
+
         // Check if the specified file or directory is valid
         if(!checkEntityExistence(fileName) && !checkEntityExistence(destination))
             IOStreams.printError("Invalid file name or destination.");
@@ -284,7 +294,8 @@ public class FileManagement
     private final void copyMoveHelper(File source, File destination, boolean move)throws Exception
     {
         // Check if the source is a directory
-        if (source.isDirectory()) {
+        if (source.isDirectory())
+        {
             // Create the destination directory
             destination.mkdirs();
 
@@ -313,32 +324,29 @@ public class FileManagement
      *
      * @throws Exception Throws any exceptions encountered during runtime.
      */
-    private final void listEntities()throws Exception
+    private final void listEntities() throws Exception
     {
         // Define the format for displaying the directory/file information
-        String format = "%1$-32s| %2$-24s| %3$-10s\n";
+        String format = "%1$-32s| %2$-24s| %3$-10s| %4$-32s\n";
         String c = "-";
-
+        String ls = IOStreams.convertFileSeparator(_presentWorkingDirectory);
         // Check if the present working directory exists
-        if (checkEntityExistence(_presentWorkingDirectory))
+        if (checkEntityExistence(ls))
         {
             // Create a File object for the present working directory
-            File dPath = new File(_presentWorkingDirectory);
-
+            File dPath = new File(ls);
             // Print a newline for better formatting
             System.out.println("\n");
-
             // Format and print the header for the directory listing
-            String disp = String.format(format, "Directory/File Name", "File Size [In KB]", "Type");
+            String disp = String.format(format, "Directory/File Name", "File Size [In KB]", "Type", "MD5 Hash");
             System.out.println(disp + c.repeat(disp.length()) + "\n");
 
             // Iterate through each file in the directory
             for (File file : dPath.listFiles())
             {
                 // Format and print the file or directory information
-                System.out.format(String.format(format, file.getName().replace(_username, _name), file.length() / 1024 + " KB", file.isDirectory() ? "Directory" : "File"));
+                System.out.format(format, file.getName().replace(_username, _name), file.length() / 1024 + " KB", file.isDirectory() ? "Directory" : "File", file.isDirectory() ? "" : Cryptography.fileToMD5(file));
             }
-
             // Print a newline for better formatting
             System.out.println();
         }
@@ -349,6 +357,7 @@ public class FileManagement
         }
     }
 
+
     /**
      * Logic to change the present working directory to a given directory
      *
@@ -358,7 +367,8 @@ public class FileManagement
     private final void changeDirectory(String destination)throws Exception
     {
         // Check if the destination is the parent directory
-        if (destination.equals("..")) {
+        if (destination.equals(".."))
+        {
             // Navigate to the previous directory
             navPreviousDirectory();
 
@@ -369,7 +379,7 @@ public class FileManagement
             if (checkEntityExistence(_presentWorkingDirectory + destination))
             {
                 // Update the present working directory to the new destination
-                _presentWorkingDirectory = _presentWorkingDirectory + destination + "/";
+                _presentWorkingDirectory = _presentWorkingDirectory + destination + "|";
             }
             else
             {
@@ -392,22 +402,22 @@ public class FileManagement
     {
         // Check if file management policy is enabled or if the user has the necessary privileges
         if (new PolicyCheck().retrievePolicyValue("filemgmt").equals("on") || new Login(_username).checkPrivilegeLogic())
-        {            
+        {
             // Check if the user is logged in
             if (login())
             {
                 String inputValue = "";
                 // Loop to continuously read and execute commands until 'exit' is entered
-                do 
+                do
                 {
                     // Read a line of input from the console
-                    inputValue = console.readLine(_name + "@" + _presentWorkingDirectory.replace(_username, _name) + "> ");
-                    
+                    inputValue = console.readLine(_name + "@" + IOStreams.convertFileSeparator(_presentWorkingDirectory).replace(_username, _name) + "> ");
+
                     // Interpret and execute the command
                     grinchInterpreter(inputValue);
-                } 
+                }
                 while (!inputValue.equalsIgnoreCase("exit"));
-            } 
+            }
             else
                 IOStreams.printError("Invalid Credentials.");
         }
@@ -427,12 +437,13 @@ public class FileManagement
         if ((new PolicyCheck().retrievePolicyValue("filemgmt").equals("on") && new PolicyCheck().retrievePolicyValue("script").equals("on")) || new Login(_username).checkPrivilegeLogic())
         {
             // Validate the script file name
-            if (scriptFileName == null || scriptFileName.equalsIgnoreCase("") || scriptFileName.startsWith(" ") || new File(scriptFileName).isDirectory() || !(new File("./Users/Truncheon/" + _username + "/" + scriptFileName + ".fmx").exists()))
+            if (scriptFileName == null || scriptFileName.equalsIgnoreCase("") || scriptFileName.startsWith(" ") || new File(scriptFileName).isDirectory() || !(new File(IOStreams.convertFileSeparator(".|Users|Cataphract|" + _username + "|" + scriptFileName + ".fmx")).exists()))
                 IOStreams.printError("Invalid Script File!");
             else
             {
                 // Check if the user is logged in
-                if (login()) {
+                if (login())
+                {
                     // Initialize a stream to read the given file
                     BufferedReader br = new BufferedReader(new FileReader(scriptFileName));
 
@@ -440,7 +451,7 @@ public class FileManagement
                     String scriptLine;
 
                     // Read the script file, line by line
-                    while (!(scriptLine = br.readLine()).equalsIgnoreCase("<EndGrinch>"))
+                    while (!(scriptLine = br.readLine()).equalsIgnoreCase("End Grinch"))
                     {
                         // Check if the line is a comment or is blank in the script file and skip the line
                         if (scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
@@ -475,9 +486,9 @@ public class FileManagement
     {
         // Split the command string into an array of command arguments
         String[] commandArray = Anvil.splitStringToArray(command);
-        
+
         // Switch statement to handle different commands
-        switch (commandArray[0].toLowerCase()) 
+        switch (commandArray[0].toLowerCase())
         {
             case "cut":
             case "move":
@@ -489,7 +500,7 @@ public class FileManagement
                 else
                     // Call the method to move the entity
                     copyMoveEntity(commandArray[1], commandArray[2], true);
-                break;
+            break;
 
             case "copy":
             case "cp":
@@ -499,7 +510,7 @@ public class FileManagement
                 else
                     // Call the method to copy the entity
                     copyMoveEntity(commandArray[1], commandArray[2], false);
-                break;
+            break;
 
             case "delete":
             case "del":
@@ -510,7 +521,7 @@ public class FileManagement
                 else
                     // Call the method to delete the entity
                     deleteEntity(commandArray[1]);
-                break;
+            break;
 
             case "rename":
                 // Check if the command has the correct number of arguments
@@ -519,7 +530,7 @@ public class FileManagement
                 else
                     // Call the method to rename the entity
                     renameEntity(commandArray[1], commandArray[2]);
-                break;
+            break;
 
             case "mkdir":
                 // Check if the command has the correct number of arguments
@@ -528,7 +539,7 @@ public class FileManagement
                 else
                     // Call the method to create a directory
                     makeDirectory(commandArray[1]);
-                break;
+            break;
 
             case "edit":
                 // Check if the command has the correct number of arguments
@@ -537,7 +548,7 @@ public class FileManagement
                 else
                     // Call the method to edit a file
                     new FileWrite(_username).editFile(commandArray[1], _presentWorkingDirectory);
-                break;
+            break;
 
             case "read":
                 // Check if the command has the correct number of arguments
@@ -546,12 +557,12 @@ public class FileManagement
                 else
                     // Call the method to read a file
                     new FileRead(_username).readUserFile(_presentWorkingDirectory + commandArray[1]);
-                break;
+            break;
 
             case "pwd":
                 // Print the present working directory
                 IOStreams.println((_presentWorkingDirectory).replace(_username, _name));
-                break;
+            break;
 
             case "cd":
                 // Check if the command has the correct number of arguments
@@ -560,23 +571,23 @@ public class FileManagement
                 else
                     // Call the method to change the directory
                     changeDirectory(commandArray[1]);
-                break;
+            break;
 
             case "cd..":
                 // Navigate to the previous directory
                 navPreviousDirectory();
-                break;
+            break;
 
             case "tree":
                 // Display the directory tree
                 viewDirectoryTree();
-                break;
+            break;
 
             case "dir":
             case "ls":
                 // List the entities in the current directory
                 listEntities();
-                break;
+            break;
 
             case "download":
                 // Check if the command has the correct number of arguments
@@ -585,17 +596,33 @@ public class FileManagement
                 else
                     // Call the method to download a file
                     new FileDownload(_username).downloadFile(commandArray[1], commandArray[2]);
-                break;
+            break;
 
             case "home":
                 // Reset to the home directory
                 resetToHomeDirectory();
-                break;
+            break;
 
             case "exit":
             case "":
                 // Exit the interpreter
-                break;
+            break;
+
+            case "zip":
+                // Check if the command has the correct number of arguments
+                if (commandArray.length < 3)
+                    IOStreams.printError("Invalid Syntax.");
+                else
+                    new FileZip(_username).zipFile(commandArray[1], _presentWorkingDirectory + commandArray[2]);
+            break;
+
+            case "unzip":
+                    // Check if the command has the correct number of arguments
+                    if (commandArray.length < 3)
+                    IOStreams.printError("Invalid Syntax.");
+                else
+                    new FileUnzip(_username).unzip(_presentWorkingDirectory + commandArray[1], _presentWorkingDirectory + commandArray[2]);
+            break;
 
             default:
                 // Pass the command to the Anvil interpreter for further processing
