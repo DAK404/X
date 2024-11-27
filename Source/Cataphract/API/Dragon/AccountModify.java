@@ -272,6 +272,9 @@ public class AccountModify
                             case "demote":
                             commitChangesToDatabase("Privileges", "No", targetUser);
                             break;
+
+                            default:
+                            break;
                         }
                         IOStreams.printInfo(action.toUpperCase() + "D " + new Login(targetUser).getNameLogic() + " successfully!");
                     }

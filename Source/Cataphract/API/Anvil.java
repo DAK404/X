@@ -73,9 +73,12 @@ public class Anvil
 
                     case 2:
                     month = Integer.parseInt(commandArray[1]);
+                    new Calendar().printCalendar(month, year);
+                    break;
+
+                    default:
                     break;
                 }
-                new Calendar().printCalendar(month, year);
             }
             catch(NumberFormatException e)
             {
