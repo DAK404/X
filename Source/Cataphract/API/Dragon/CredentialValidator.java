@@ -13,11 +13,6 @@ import Cataphract.API.Minotaur.Cryptography;
  */
 public final class CredentialValidator 
 {
-    /**
-     * Private constructor (To prevent invocation by subclass constructors)
-     */
-    private CredentialValidator() {}
-
     public static final String NAME_POLICY = """
         Account Name Policy Information
         -------------------------------
@@ -59,6 +54,11 @@ public final class CredentialValidator
         * PIN is recommended to have special characters and numbers
         -------------------------------
         """;
+
+    /**
+     * Private constructor (To prevent invocation by subclass constructors)
+     */
+    private CredentialValidator() {}
 
     /**
      * Validates an account name.
