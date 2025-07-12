@@ -1,19 +1,7 @@
 /*
- *                                                      |
- *                                                     ||
- *  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
- * |||            ||    |||          ||       || |||  |||       ||       || |||        |||
- * |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
- * |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
- *  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
- *                                               ||
- *                                               |
- *
  * A Cross Platform OS Shell
  * Powered By Truncheon Core
- */
-
-/*
+ *
  * This file is part of the Cataphract project.
  * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
  *
@@ -32,419 +20,408 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/**
- * SycoraxKernel is the core kernel that handles user authentication,
- * session management, and command processing including
- * command-line processing, and script execution.
- *
- * @author DAK404 (https://github.com/DAK404)
- * @version 1.0
- * @since 0.0.1 (Zen Quantum 1.0)
- */
 package Cataphract.Core;
 
 import java.io.BufferedReader;
-import java.io.Console;
 import java.io.File;
 import java.io.FileReader;
+import java.io.Console;
+import java.util.HashMap;
+import java.util.Map;
 
-import Cataphract.API.Anvil;
 import Cataphract.API.Build;
 import Cataphract.API.IOStreams;
-
 import Cataphract.API.Astaroth.Time;
-
+import Cataphract.API.Anvil;
+import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Minotaur.PolicyCheck;
+import Cataphract.API.Minotaur.PolicyManager;
+import Cataphract.API.Wraith.FileManagement;
+import Cataphract.API.Wyvern.NionUpdate;
 import Cataphract.API.Dragon.AccountCreate;
 import Cataphract.API.Dragon.AccountDelete;
 import Cataphract.API.Dragon.AccountModify;
 import Cataphract.API.Dragon.AuthInputHelper;
 import Cataphract.API.Dragon.Login;
 
-import Cataphract.API.Minotaur.Cryptography;
-import Cataphract.API.Minotaur.PolicyCheck;
-import Cataphract.API.Minotaur.PolicyManager;
-
 /**
  * Main class for the Sycorax operating system kernel.
+ * Coordinates authentication, session management, and command processing.
  */
-public class SycoraxKernel
-{
-    // Default account details and system settings
-    /** Store the account name */
-    private String _accountName = "DEFAULT_USER";
-    /** Store the username */
-    private String _username = "DEFAULT_USERNAME";
-    /** Store the user unlock PIN */
-    private String _userUnlockPIN = "";
-    /** Store the system name */
-    private String _systemName = "DEFAULT_SYSNAME";
+public class SycoraxKernel {
+    private final AuthenticationManager authManager;
+    private final SessionManager sessionManager;
+    private final CommandProcessor commandProcessor;
 
-    // Flags for user privileges and script mode
-    /** Store value if user is an admin */
-    private boolean _isUserAdmin = false;
-    /** Store the value if a script is currently running */
-    private boolean _scriptMode = false;
-
-    // Command prompt symbol based on user privilege
-    /** Store the value for the prompt */
-    private char _prompt = '?';
-
-    // Counter for login attempts before lock
-    /** Store the number of attempts remaining for authentication */
-    private int _loginAttemptsRemaining = 5;
-
-    // Console object for input/output
-    /** Instantiate Console to get user inputs. */
-    private Console console = System.console();
-
-    /**
-     * Sole constructor. (For invocation by subclass constructors, typically implicit.)
-     */
-    public SycoraxKernel()
-    {
+    public SycoraxKernel() {
+        this.authManager = new AuthenticationManager();
+        this.sessionManager = new SessionManager();
+        this.commandProcessor = new CommandProcessor(sessionManager);
     }
 
     /**
-     * Starts the Sycorax kernel, handles login and launches user shell.
-     *
-     * @throws Exception If there is an error in the login process or user shell.
+     * Starts the Sycorax kernel, handles login, and launches user shell.
      */
-    public void startSycoraxKernel() throws Exception
-    {
-        // Display system build information
+    public void startSycoraxKernel() throws Exception {
         Build.viewBuildInfo();
-
-        // Loop until the user successfully logs in
-        while(!login())
-        {
+        while (!authManager.login()) {
             IOStreams.printError("Incorrect Credentials! Please try again.");
-            // Handle login attempts
-            loginCounterLogic();
+            authManager.handleFailedLoginAttempt();
         }
-
-        // Successful login message
         IOStreams.printInfo("Login Successful. Loading Sycorax Kernel...");
-        // Reset login attempts
-        _loginAttemptsRemaining = 5;
-        // Fetch user details after login
-        fetchUserDetails();
-        // Start the user command shell
-        userShell();
+        sessionManager.fetchUserDetails(authManager.getUsername());
+        commandProcessor.runUserShell();
     }
+}
 
-    private void clearSessionState() 
-    {
-        _username = "DEFAULT_USERNAME";
-        _accountName = "DEFAULT_USER";
-        _userUnlockPIN = "";
-        _isUserAdmin = false;
-        _prompt = '?';
-    }
+/**
+ * Manages user authentication and login attempts.
+ */
+class AuthenticationManager {
+    private String username = "DEFAULT_USERNAME";
+    private int loginAttemptsRemaining = 5;
 
     /**
-     * User shell that continuously reads and processes user commands.
-     *
-     * @throws Exception If there is an error during command processing.
+     * Attempts to log in the user using credentials from AuthInputHelper.
+     * @return true if login is successful, false otherwise.
      */
-    private void userShell() throws Exception
-    {
-        String input = "";
-
-        do
-        {
-            // Build the command prompt string dynamically
-            StringBuilder promptBuilder = new StringBuilder();
-            promptBuilder.append(_accountName).append("@").append(_systemName).append(_prompt).append("> ");
-            // Read user input
-            input = console.readLine(promptBuilder.toString());
-            // Process the user command
-            commandProcessor(input);
-            // Exit loop on logout
-        } while(!input.equalsIgnoreCase("logout"));
-        clearSessionState();
-    }
-
-    /**
-     * Processes user commands entered in the shell.
-     *
-     * @param input The command entered by the user.
-     * @throws Exception If there is an error in executing the command.
-     */
-    private void commandProcessor(String input) throws Exception
-    {
-        // Split the input command into array
-        String[] commandArray = IOStreams.splitStringToArray(input);
-
-        // Process command based on first keyword
-        switch(commandArray[0].toLowerCase())
-        {
-            // Refresh user details
-            case "refresh":
-                fetchUserDetails();
-            break;
-
-            // Lock the console
-            case "lock":
-                lockConsole();
-            break;
-
-            // Policy management logic
-            case "policymgmt":
-                new PolicyManager().policyEditorLogic();
-            break;
-
-            // File management logic
-            case "grinch":
-            case "filemanagement":
-            case "files":
-                new Cataphract.API.Wraith.FileManagement(_username).fileManagementLogic();
-            break;
-
-            // Exit the system
-            case "exit":
-                System.exit(0);
-            break;
-
-            // Restart the system
-            case "restart":
-                System.exit(100);
-            break;
-
-            case "script":
-                if(commandArray.length < 2)
-                    // Check for correct syntax
-                    IOStreams.printError("Invalid Syntax");
-                else
-                    // Execute script
-                    anvilScriptEngine(commandArray[1]);
-            break;
-
-            // Do nothing for logout or empty command
-            case "logout":
-            case " ":
-            case "":
-            break;
-
-            // System update
-            case "update":
-                new Cataphract.API.Wyvern.NionUpdate(_username).updater();
-                // Delete update file after completion
-                new File("./Update.zip").delete();
-            break;
-
-            case "usermgmt":
-                if(commandArray.length < 2)
-                {
-                    IOStreams.printError("Module Usermgmt: Missing subcommand. Use: create, modify, or delete");
-                    break;
-                }
-                switch(commandArray[1].toLowerCase())
-                {
-                    // Create user account
-                    case "create":
-                        new AccountCreate(_username).execute();
-                    break;
-
-                    // Modify user account
-                    case "modify":
-                        new AccountModify(_username).execute();
-                    break;
-
-                    case "delete":
-                        new AccountDelete(_username).execute();
-                        IOStreams.printInfo("Account deleted. Logging out...");
-                        input = "logout"; // Force logout to return to login prompt
-                        break;
-
-                    default:
-                        IOStreams.printError("Module Usermgmt: " + commandArray[1] + " - Command Not Found");
-                    break;
-                }
-            break;
-
-            // Interpret other commands through Anvil API
-            default:
-                Anvil.anvilInterpreter(commandArray);
-            break;
-        }
-    }
-
-    /**
-     * Handles user login by verifying username, password, and security key.
-     *
-     * @return true if the login is successful, false otherwise.
-     * @throws Exception If there is an error during authentication.
-     */
-    private boolean login() throws Exception
-    {
-        Build.viewBuildInfo();  // Display system build info
-
-        // Show remaining authentication attempts
-        IOStreams.printInfo("Authentication Attempts Left: " + _loginAttemptsRemaining);
-
-        // Read and hash user input for credentials using AuthInputHelper
-        String[] credentials = AuthInputHelper.readCredentials(console);
+    public boolean login() throws Exception {
+        Build.viewBuildInfo();
+        IOStreams.printInfo("Authentication Attempts Left: " + loginAttemptsRemaining);
+        String[] credentials = AuthInputHelper.readCredentials(System.console());
         if (credentials == null) {
             IOStreams.printError("Username cannot be empty.");
             return false;
         }
-
-        // Extract credentials
-        _username = credentials[0];
+        username = credentials[0];
         String password = credentials[1];
         String securityKey = credentials[2];
-
-        // Authenticate using Login class logic
-        return new Login(_username).authenticationLogic(password, securityKey);
+        return new Login(username).authenticationLogic(password, securityKey);
     }
 
     /**
-     * Logic to handle failed login attempts. Locks the system after 5 failed attempts.
-     *
-     * @throws Exception If there is an error during sleep or authentication lock.
+     * Handles failed login attempts, locking the system after 5 failures.
      */
-    private void loginCounterLogic() throws Exception
-    {
-        // Decrease remaining attempts
-        _loginAttemptsRemaining--;
-        if(_loginAttemptsRemaining <= 0)
-        {
+    public void handleFailedLoginAttempt() throws Exception {
+        loginAttemptsRemaining--;
+        if (loginAttemptsRemaining <= 0) {
             IOStreams.printError("Authentication Attempts Exceeded! Further attempts are locked!");
-            // Lock the system for 36 seconds after 5 failed attempts
             Thread.sleep(36000);
+            loginAttemptsRemaining = 5;
         }
     }
 
     /**
-     * Fetches user account details such as name, admin status, PIN, and system name.
-     *
-     * @throws Exception If there is an error in fetching the details.
+     * Verifies the user's PIN for console unlocking.
+     * @param storedPIN The stored PIN to compare against.
+     * @return true if the entered PIN matches, false otherwise.
      */
-    private void fetchUserDetails() throws Exception
-    {
-        // Fetch account name
-        _accountName = new Login(_username).getNameLogic();
-        // Check if the user is an admin
-        _isUserAdmin = new Login(_username).checkPrivilegeLogic();
-        // Fetch the unlock PIN
-        _userUnlockPIN = new Login(_username).getPINLogic();
-        // Fetch system name from policy
-        _systemName = new PolicyCheck().retrievePolicyValue("sysname");
+    public boolean challengePIN(String storedPIN) throws Exception {
+        String enteredPIN = String.valueOf(System.console().readPassword("> PIN : "));
+        return Cryptography.stringToSHA3_256(enteredPIN).equals(storedPIN);
+    }
 
-        // Set prompt based on user privilege
-        _prompt = _isUserAdmin ? '!' : '*';
+    public String getUsername() {
+        return username;
+    }
+}
+
+/**
+ * Manages user session state and details.
+ */
+class SessionManager {
+    private String accountName = "DEFAULT_USER";
+    private String username = "DEFAULT_USERNAME";
+    private String userUnlockPIN = "";
+    private String systemName = "DEFAULT_SYSNAME";
+    private boolean isUserAdmin = false;
+    private char prompt = '?';
+
+    /**
+     * Fetches user details after successful login.
+     * @param username The authenticated username.
+     */
+    public void fetchUserDetails(String username) throws Exception {
+        this.username = username;
+        this.accountName = new Login(username).getNameLogic();
+        this.isUserAdmin = new Login(username).checkPrivilegeLogic();
+        this.userUnlockPIN = new Login(username).getPINLogic();
+        this.systemName = new PolicyCheck().retrievePolicyValue("sysname");
+        this.prompt = isUserAdmin ? '!' : '*';
     }
 
     /**
-     * Locks the console and prompts for the unlock PIN.
-     * @throws Exception If there is an error during the lock process.
+     * Clears session state on logout.
      */
-    private void lockConsole() throws Exception
-    {
-        Build.viewBuildInfo();  // Display build info
+    public void clearSessionState() {
+        username = "DEFAULT_USERNAME";
+        accountName = "DEFAULT_USER";
+        userUnlockPIN = "";
+        isUserAdmin = false;
+        prompt = '?';
+        System.gc();
+    }
 
-        String input = "";
+    public String getPrompt() {
+        return accountName + "@" + systemName + prompt + "> ";
+    }
 
-        // Prompt the user with a locked screen message until "unlock" command is entered
-        do
-        {
-            StringBuilder lockPromptBuilder = new StringBuilder();
-            lockPromptBuilder.append((char)27).append("[33;49m")
+    public boolean isUserAdmin() {
+        return isUserAdmin;
+    }
+
+    public String getUserUnlockPIN() {
+        return userUnlockPIN;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+}
+
+/**
+ * Processes user commands and scripts.
+ */
+class CommandProcessor {
+    private final SessionManager sessionManager;
+    private final Map<String, Command> commands;
+    private boolean scriptMode = false;
+
+    public CommandProcessor(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
+        this.commands = new HashMap<>();
+        initializeCommands();
+    }
+
+    private void initializeCommands() {
+        commands.put("refresh", new RefreshCommand(sessionManager));
+        commands.put("lock", new LockCommand(sessionManager));
+        commands.put("policymgmt", new PolicyManagementCommand());
+        commands.put("grinch", new FileManagementCommand(sessionManager.getUsername()));
+        commands.put("filemanagement", new FileManagementCommand(sessionManager.getUsername()));
+        commands.put("files", new FileManagementCommand(sessionManager.getUsername()));
+        commands.put("exit", new ExitCommand());
+        commands.put("restart", new RestartCommand());
+        commands.put("script", new ScriptCommand(this, sessionManager));
+        commands.put("update", new UpdateCommand(sessionManager.getUsername()));
+        commands.put("usermgmt", new UserManagementCommand(sessionManager.getUsername()));
+    }
+
+    /**
+     * Runs the user shell, reading and processing commands.
+     */
+    public void runUserShell() throws Exception {
+        Console console = System.console();
+        String input;
+        Build.viewBuildInfo();
+        do {
+            input = console.readLine(sessionManager.getPrompt());
+            processCommand(input);
+        } while (!input.equalsIgnoreCase("logout"));
+        sessionManager.clearSessionState();
+    }
+
+    /**
+     * Processes a single command or delegates to Anvil.
+     */
+    public void processCommand(String input) throws Exception {
+        if (input == null || input.trim().isEmpty()) return;
+        String[] commandArray = IOStreams.splitStringToArray(input);
+        Command command = commands.get(commandArray[0].toLowerCase());
+        if (command != null) {
+            command.execute(commandArray);
+        } else {
+            Anvil.anvilInterpreter(commandArray);
+        }
+    }
+
+    /**
+     * Executes a script file line by line.
+     */
+    public boolean executeScript(String scriptFileName) throws Exception {
+        if (scriptFileName == null || scriptFileName.trim().isEmpty() || scriptFileName.startsWith(" ")) {
+            IOStreams.printError("The name of the script file cannot be blank.");
+            return false;
+        }
+        if (!new PolicyCheck().retrievePolicyValue("script").equals("on") || !sessionManager.isUserAdmin()) {
+            IOStreams.printError("Insufficient Privileges to run scripts! Please contact the Administrator.");
+            return false;
+        }
+        String filePath = IOStreams.convertFileSeparator(".|Users|Cataphract|" + sessionManager.getUsername() + "|" + scriptFileName);
+        File scriptFile = new File(filePath);
+        if (!scriptFile.exists() || scriptFile.isDirectory()) {
+            IOStreams.printAttention("The specified script file is invalid or has not been found.\nPlease check the script file name and try again.");
+            return false;
+        }
+        if (scriptMode) {
+            IOStreams.printError("Cannot execute script within another script.");
+            return false;
+        }
+        scriptMode = true;
+        try (BufferedReader br = new BufferedReader(new FileReader(scriptFile))) {
+            String scriptLine;
+            while ((scriptLine = br.readLine()) != null) {
+                if (scriptLine.startsWith("#") || scriptLine.trim().isEmpty()) continue;
+                if (scriptLine.equalsIgnoreCase("End Script")) break;
+                processCommand(scriptLine);
+            }
+            return true;
+        } finally {
+            scriptMode = false;
+            System.gc();
+        }
+    }
+}
+
+/**
+ * Interface for commands to ensure extensibility.
+ */
+interface Command {
+    void execute(String[] args) throws Exception;
+}
+
+/**
+ * Command implementations.
+ */
+class RefreshCommand implements Command {
+    private final SessionManager sessionManager;
+
+    public RefreshCommand(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        sessionManager.fetchUserDetails(sessionManager.getUsername());
+        IOStreams.printInfo("User details refreshed.");
+    }
+}
+
+class LockCommand implements Command {
+    private final SessionManager sessionManager;
+
+    public LockCommand(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        AuthenticationManager authManager = new AuthenticationManager();
+        String input;
+        Build.clearScreen();
+        do {
+            StringBuilder lockPromptBuilder = new StringBuilder()
+                    .append((char)27).append("[33;49m")
                     .append(new Time().getDateTimeUsingSpecifiedFormat("yyyy-MMM-dd HH:mm:ss"))
                     .append("  LOCKED\n")
-                    .append(_accountName).append("@Cataphract").append(_prompt).append("> ")
+                    .append(sessionManager.getPrompt())
                     .append((char)27).append("[0m");
-            input = console.readLine(lockPromptBuilder.toString());
-        } while(!input.equalsIgnoreCase("unlock"));  // Continue until "unlock" command is entered
-
-        // Prompt the user to enter the unlock PIN
+            input = System.console().readLine(lockPromptBuilder.toString());
+        } while (!input.equalsIgnoreCase("unlock"));
         IOStreams.printAttention("Please Enter Unlock PIN To Continue.");
-
-        // Validate the PIN until correct PIN is entered
-        while(!challengePIN())
-        {
+        while (!authManager.challengePIN(sessionManager.getUserUnlockPIN())) {
             IOStreams.printError("Incorrect PIN.");
-            loginCounterLogic();  // Handle failed PIN attempts
+            authManager.handleFailedLoginAttempt();
         }
-        _loginAttemptsRemaining = 5;  // Reset login attempts on successful unlock
-        Build.viewBuildInfo();  // Display build info again after unlock
+        Build.viewBuildInfo();
+    }
+}
+
+class PolicyManagementCommand implements Command {
+    @Override
+    public void execute(String[] args) throws Exception {
+        new PolicyManager().policyEditorLogic();
+    }
+}
+
+class FileManagementCommand implements Command {
+    private final String username;
+
+    public FileManagementCommand(String username) {
+        this.username = username;
     }
 
-    /**
-     * Challenges the user to enter the correct PIN.
-     * @return true if the entered PIN matches the stored PIN, false otherwise.
-     * @throws Exception If an error during the PIN validation.
-     */
-    private boolean challengePIN() throws Exception
-    {
-        return Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("> PIN : "))).equals(_userUnlockPIN);
+    @Override
+    public void execute(String[] args) throws Exception {
+        new FileManagement(username).fileManagementLogic();
+    }
+}
+
+class ExitCommand implements Command {
+    @Override
+    public void execute(String[] args) {
+        System.exit(0);
+    }
+}
+
+class RestartCommand implements Command {
+    @Override
+    public void execute(String[] args) {
+        System.exit(100);
+    }
+}
+
+class ScriptCommand implements Command {
+    private final CommandProcessor commandProcessor;
+    private final SessionManager sessionManager;
+
+    public ScriptCommand(CommandProcessor commandProcessor, SessionManager sessionManager) {
+        this.commandProcessor = commandProcessor;
+        this.sessionManager = sessionManager;
     }
 
-    /**
-     * Executes a script file with AnvilScript engine.
-     * @param scriptFileName The name of the script file to execute.
-     * @return true if the script is executed successfully, false otherwise.
-     * @throws Exception If there is an error during script execution.
-     */
-    private boolean anvilScriptEngine(String scriptFileName) throws Exception
-    {
-        boolean status = false;
-
-        // Validate script file name
-        if(scriptFileName == null || scriptFileName.equalsIgnoreCase("") || scriptFileName.startsWith(" "))
-            IOStreams.printError("The name of the script file cannot be blank.");
-        else
-        {
-            // Check if script execution is enabled and the user is an admin
-            if(new PolicyCheck().retrievePolicyValue("script").equals("on") && _isUserAdmin)
-            {
-                scriptFileName = IOStreams.convertFileSeparator(".|Users|Cataphract|" + _username + "|" + scriptFileName);
-
-                // Check if the script file exists
-                if(!new File(scriptFileName).exists() || new File(scriptFileName).isDirectory())
-                {
-                    StringBuilder errorBuilder = new StringBuilder();
-                    errorBuilder.append("The specified script file is invalid or has not been found.\nPlease check the script file name and try again.");
-                    IOStreams.printAttention(errorBuilder.toString());
-                }
-                else
-                {
-                    if(_scriptMode)
-                    {
-                        IOStreams.printError("Cannot execute script within another script.");
-                    }
-                    else
-                    {
-                        // Activate script mode
-                        _scriptMode = true;
-
-                        // Initialize BufferedReader to read the script file
-                        try (BufferedReader br = new BufferedReader(new FileReader(scriptFileName)))
-                        {
-                            // Read script line by line and process commands
-                            String scriptLine;
-
-                            while ((scriptLine = br.readLine()) != null)
-                            {
-                                if(scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
-                                    // Skip comment or blank lines
-                                    continue;
-                                else if(scriptLine.equalsIgnoreCase("End Script"))
-                                    // Stop if "End Script" command is encountered
-                                    break;
-                                else
-                                    // Process script command
-                                    commandProcessor(scriptLine);
-                            }
-                        }
-                        // Deactivate script mode
-                        _scriptMode = false;
-                    }
-                }
-            }
-            else
-                IOStreams.printError("Insufficient Privileges to run scripts! Please contact the Administrator for more information.");
+    @Override
+    public void execute(String[] args) throws Exception {
+        if (args.length < 2) {
+            IOStreams.printError("Invalid Syntax: script <filename>");
+            return;
         }
-        return status;
+        commandProcessor.executeScript(args[1]);
+    }
+}
+
+class UpdateCommand implements Command {
+    private final String username;
+
+    public UpdateCommand(String username) {
+        this.username = username;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        new NionUpdate(username).updater();
+        new File(IOStreams.convertFileSeparator(".|Update.zip")).delete();
+    }
+}
+
+class UserManagementCommand implements Command {
+    private final String username;
+
+    public UserManagementCommand(String username) {
+        this.username = username;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        if (args.length < 2) {
+            IOStreams.printError("Module Usermgmt: Missing subcommand. Use: create, modify, or delete");
+            return;
+        }
+        switch (args[1].toLowerCase()) {
+            case "create":
+                new AccountCreate(username).execute();
+                break;
+            case "modify":
+                new AccountModify(username).execute();
+                break;
+            case "delete":
+                new AccountDelete(username).execute();
+                IOStreams.printInfo("Account deleted. Logging out...");
+                System.console().readLine("Press Enter to logout...");
+                break;
+            default:
+                IOStreams.printError("Module Usermgmt: " + args[1] + " - Command Not Found");
+                break;
+        }
     }
 }

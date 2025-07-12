@@ -14,23 +14,23 @@
 */
 
 /*
-* This file is part of the Cataphract project.
-* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software Foundation, Inc.,
-* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+ * This file is part of the Cataphract project.
+ * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 
 package Cataphract.API;
 
@@ -41,79 +41,144 @@ import java.io.StringWriter;
 import Cataphract.API.Wraith.FileWrite;
 
 /**
- * A class to handle exceptions and log error details.
- *
- * @author DAK404 (https://github.com/DAK404)
- * @version 5.6.6 (20-February-2024, Cataphract)
- * @since 0.0.1 (Mosaic 0.0.1)
+ * Handles exceptions by formatting stack traces, logging errors, and managing program termination.
  */
-public class ExceptionHandler
-{
-    /** Console instance for user input/output. */
-    Console console = System.console();
+public class ExceptionHandler {
+    private final StackTraceFormatter stackTraceFormatter;
+    private final ErrorLogger errorLogger;
+    private final UserInteractionHandler userInteractionHandler;
+    private final ExitHandler exitHandler;
 
-    /**
-    * Sole constructor. (For invocation by subclass constructors, typically implicit.)
-    */
-    public ExceptionHandler()
-    {
+    public ExceptionHandler() {
+        this.stackTraceFormatter = new StackTraceFormatter();
+        this.errorLogger = new FileErrorLogger();
+        this.userInteractionHandler = new ConsoleUserInteractionHandler();
+        this.exitHandler = new DefaultExitHandler();
     }
 
     /**
-     * Method to handle exceptions.
-     *
+     * Handles an exception by formatting its stack trace, logging it, collecting user input, and exiting.
      * @param e The exception to handle.
      */
-    public void handleException(Exception e)
-    {
-        // Define error log file name
-        String errorLogFileName = "ExceptionLog";
-        try
-        {
-            // Create a StringWriter to capture stack trace
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
+    public void handleException(Exception e) {
+        String stackTrace = stackTraceFormatter.formatStackTrace(e);
+        IOStreams.println(1, 8, "[ FATAL ERROR ] AN EXCEPTION OCCURRED DURING THE EXECUTION OF THE PROGRAM.");
+        IOStreams.println(1, 8, "\n[ --- TECHNICAL DETAILS --- ]\n");
+        IOStreams.println(1, 8, "Class: " + e.getClass().getName());
+        IOStreams.println(1, 8, "Trace Details: " + e.getStackTrace());
+        IOStreams.println(1, 8, stackTrace);
+        IOStreams.println(1, 8, "[ END OF TECHNICAL DETAILS ]\n");
 
-            // Retrieve stack trace as a string
-            String stackTrace = sw.toString();
+        IOStreams.println("This information will be written into a log file which can be used to debug the cause of the failure.");
+        IOStreams.println("Any additional information can be useful to find the root cause of the issue efficiently.");
 
-            // Format exception stack trace
-            String exceptionStackTrace = """
-            ***************************************
-            !         PROGRAM STACK TRACE         !
-            ***************************************
+        String userComment = userInteractionHandler.collectUserComment();
+        errorLogger.logError(e, stackTrace, userComment);
+        exitHandler.handleExit(userInteractionHandler.promptForRestart());
+    }
+}
 
-            """ + stackTrace + """
+/**
+ * Formats exception stack traces.
+ */
+class StackTraceFormatter {
+    /**
+     * Formats an exception's stack trace into a string.
+     * @param e The exception to format.
+     * @return The formatted stack trace.
+     */
+    public String formatStackTrace(Exception e) {
+        try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
+            e.printStackTrace(pw);
+            return """
+                \n***************************************
+                !         PROGRAM STACK TRACE         !
+                ***************************************
 
-            ***************************************
-            !           STACK TRACE END           !
-            ***************************************
-            """;
+                """ + sw.toString() + """
 
-            // Print technical details of the exception
-            System.err.println("\n[ FATAL ERROR ] AN EXCEPTION OCCURRED DURING THE EXECUTION OF THE PROGRAM.");
-            System.err.println("\n[ --- TECHNICAL DETAILS --- ]\n");
-            System.err.println("Class: " + e.getClass().getName());
-            System.err.println("Trace Details: " + e.getStackTrace());
-            System.err.println(exceptionStackTrace);
-            System.err.println("[ END OF TECHNICAL DETAILS ]\n");
-
-            // Prompt user for additional comments
-            System.err.println("This information will be written into a log file which can be used to debug the cause of the failure.\nAny additional information can be useful to find the root cause of the issue efficiently.");
-
-            // Write technical details and user comments into the log file
-            FileWrite.logger("[--- TECHNICAL DETAILS ---]", errorLogFileName);
-            FileWrite.logger(e.getClass().getName(), errorLogFileName);
-            FileWrite.logger(e.getStackTrace().toString(), errorLogFileName);
-            FileWrite.logger(exceptionStackTrace, errorLogFileName);
-            FileWrite.logger("User Comment> " + console.readLine("User Comment> ") + "\n\n", errorLogFileName);
+                ***************************************
+                !           STACK TRACE END           !
+                ***************************************
+                """;
+        } catch (Exception ex) {
+            return "Error formatting stack trace: " + ex.getMessage();
         }
-        catch(Exception ex)
-        {
-            // Print stack trace if an error occurs during exception handling
-            e.printStackTrace();
+    }
+}
+
+/**
+ * Interface for logging errors.
+ */
+interface ErrorLogger {
+    void logError(Exception e, String stackTrace, String userComment);
+}
+
+/**
+ * Logs errors to a file using FileWrite.
+ */
+class FileErrorLogger implements ErrorLogger {
+    private static final String LOG_FILE_NAME = "ExceptionLog";
+
+    @Override
+    public void logError(Exception e, String stackTrace, String userComment) {
+        try {
+            StringBuilder logContent = new StringBuilder()
+                .append("\n[--- TECHNICAL DETAILS ---]\n")
+                .append(e.getClass().getName()).append("\n")
+                .append(e.getStackTrace().toString()).append("\n")
+                .append(stackTrace).append("\n")
+                .append("User Comment> ").append(userComment).append("\n\n");
+            FileWrite.logger(logContent.toString(), LOG_FILE_NAME);
+        } catch (Exception ex) {
+            IOStreams.println(1, 8, "Error logging exception: " + ex.getMessage());
+            ex.printStackTrace();
         }
-        // Exit program with code 5 if user wants to restart, otherwise exit with code 4
-        System.exit((console.readLine("Do you want to restart the program? [ Y | N ]> ").equalsIgnoreCase("y") ? 5 : 4));
+    }
+}
+
+/**
+ * Interface for user interaction.
+ */
+interface UserInteractionHandler {
+    String collectUserComment();
+    boolean promptForRestart();
+}
+
+/**
+ * Handles user interaction via console.
+ */
+class ConsoleUserInteractionHandler implements UserInteractionHandler {
+    private final Console console = System.console();
+
+    @Override
+    public String collectUserComment() {
+        return console.readLine("User Comment> ");
+    }
+
+    @Override
+    public boolean promptForRestart() {
+        String response = console.readLine("Do you want to restart the program? [ Y | N ]> ");
+        return response != null && response.trim().equalsIgnoreCase("y");
+    }
+}
+
+/**
+ * Interface for handling program exit.
+ */
+interface ExitHandler {
+    void handleExit(boolean restart);
+}
+
+/**
+ * Default exit handler with configurable exit codes.
+ */
+class DefaultExitHandler implements ExitHandler {
+    private static final int EXIT_CODE_NORMAL = 4;
+    private static final int EXIT_CODE_RESTART = 5;
+
+    @Override
+    public void handleExit(boolean restart) {
+        System.exit(restart ? EXIT_CODE_RESTART : EXIT_CODE_NORMAL);
     }
 }

@@ -25,7 +25,9 @@ public final class AuthInputHelper
         char[] passwordChars = console.readPassword("Password: ");
         String password = passwordChars != null ? Cryptography.stringToSHA3_256(String.valueOf(passwordChars)) : "";
         char[] securityKeyChars = console.readPassword("Security Key (press ENTER to skip): ");
-        String securityKey = Cryptography.stringToSHA3_256(String.valueOf(securityKeyChars));
+        String securityKey = securityKeyChars != null && securityKeyChars.length > 0 
+            ? Cryptography.stringToSHA3_256(String.valueOf(securityKeyChars)) 
+            : "";
         return new String[] { username, password, securityKey };
     }
 }
