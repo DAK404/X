@@ -1,17 +1,36 @@
 /*
-*                                                      |
-*                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| ||||||||
-* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
-* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
-* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
-*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
-*                                               ||
-*                                               |
-*
-* A Cross Platform OS Shell
-* Powered By Truncheon Core
-*/
+ *                                                      |
+ *                                                     ||
+ *  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
+ * |||            ||    |||          ||       || |||  |||       ||       || |||        |||
+ * |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
+ * |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
+ *  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
+ *                                               ||
+ *                                               |
+ *
+ * A Cross Platform OS Shell
+ * Powered By Truncheon Core
+ */
+
+/*
+ * This file is part of the Cataphract project.
+ * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 
 /**
  * SycoraxKernel is the core kernel that handles user authentication,
@@ -38,6 +57,7 @@ import Cataphract.API.Astaroth.Time;
 import Cataphract.API.Dragon.AccountCreate;
 import Cataphract.API.Dragon.AccountDelete;
 import Cataphract.API.Dragon.AccountModify;
+import Cataphract.API.Dragon.AuthInputHelper;
 import Cataphract.API.Dragon.Login;
 
 import Cataphract.API.Minotaur.Cryptography;
@@ -49,7 +69,6 @@ import Cataphract.API.Minotaur.PolicyManager;
  */
 public class SycoraxKernel
 {
-
     // Default account details and system settings
     /** Store the account name */
     private String _accountName = "DEFAULT_USER";
@@ -79,8 +98,8 @@ public class SycoraxKernel
     private Console console = System.console();
 
     /**
-    * Sole constructor. (For invocation by subclass constructors, typically implicit.)
-    */
+     * Sole constructor. (For invocation by subclass constructors, typically implicit.)
+     */
     public SycoraxKernel()
     {
     }
@@ -113,6 +132,15 @@ public class SycoraxKernel
         userShell();
     }
 
+    private void clearSessionState() 
+    {
+        _username = "DEFAULT_USERNAME";
+        _accountName = "DEFAULT_USER";
+        _userUnlockPIN = "";
+        _isUserAdmin = false;
+        _prompt = '?';
+    }
+
     /**
      * User shell that continuously reads and processes user commands.
      *
@@ -133,6 +161,7 @@ public class SycoraxKernel
             commandProcessor(input);
             // Exit loop on logout
         } while(!input.equalsIgnoreCase("logout"));
+        clearSessionState();
     }
 
     /**
@@ -144,7 +173,7 @@ public class SycoraxKernel
     private void commandProcessor(String input) throws Exception
     {
         // Split the input command into array
-        String[] commandArray = Anvil.splitStringToArray(input);
+        String[] commandArray = IOStreams.splitStringToArray(input);
 
         // Process command based on first keyword
         switch(commandArray[0].toLowerCase())
@@ -204,24 +233,28 @@ public class SycoraxKernel
             break;
 
             case "usermgmt":
+                if(commandArray.length < 2)
+                {
+                    IOStreams.printError("Module Usermgmt: Missing subcommand. Use: create, modify, or delete");
+                    break;
+                }
                 switch(commandArray[1].toLowerCase())
                 {
                     // Create user account
                     case "create":
-                        new AccountCreate(_username).accountCreateLogic();
+                        new AccountCreate(_username).execute();
                     break;
 
                     // Modify user account
                     case "modify":
-                        new AccountModify(_username).accountModifyLogic();
+                        new AccountModify(_username).execute();
                     break;
 
-                    // Delete user account
                     case "delete":
-                        new AccountDelete(_username).deleteUserAccount();
-                        // Exit after deletion
-                        System.exit(0);
-                    break;
+                        new AccountDelete(_username).execute();
+                        IOStreams.printInfo("Account deleted. Logging out...");
+                        input = "logout"; // Force logout to return to login prompt
+                        break;
 
                     default:
                         IOStreams.printError("Module Usermgmt: " + commandArray[1] + " - Command Not Found");
@@ -249,10 +282,17 @@ public class SycoraxKernel
         // Show remaining authentication attempts
         IOStreams.printInfo("Authentication Attempts Left: " + _loginAttemptsRemaining);
 
-        // Read and hash user input for credentials
-        _username = Cryptography.stringToSHA3_256(console.readLine("> Username: "));
-        String password = Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("> Password: ")));
-        String securityKey = Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("> Security Key: ")));
+        // Read and hash user input for credentials using AuthInputHelper
+        String[] credentials = AuthInputHelper.readCredentials(console);
+        if (credentials == null) {
+            IOStreams.printError("Username cannot be empty.");
+            return false;
+        }
+
+        // Extract credentials
+        _username = credentials[0];
+        String password = credentials[1];
+        String securityKey = credentials[2];
 
         // Authenticate using Login class logic
         return new Login(_username).authenticationLogic(password, securityKey);
@@ -327,14 +367,13 @@ public class SycoraxKernel
             loginCounterLogic();  // Handle failed PIN attempts
         }
         _loginAttemptsRemaining = 5;  // Reset login attempts on successful unlock
-        System.gc();  // Run garbage collector
         Build.viewBuildInfo();  // Display build info again after unlock
     }
 
     /**
      * Challenges the user to enter the correct PIN.
      * @return true if the entered PIN matches the stored PIN, false otherwise.
-     * @throws Exception If there is an error during the PIN validation.
+     * @throws Exception If an error during the PIN validation.
      */
     private boolean challengePIN() throws Exception
     {
@@ -362,11 +401,10 @@ public class SycoraxKernel
                 scriptFileName = IOStreams.convertFileSeparator(".|Users|Cataphract|" + _username + "|" + scriptFileName);
 
                 // Check if the script file exists
-                if(!new File(scriptFileName).exists())
+                if(!new File(scriptFileName).exists() || new File(scriptFileName).isDirectory())
                 {
                     StringBuilder errorBuilder = new StringBuilder();
-                    errorBuilder.append("Script file ").append(scriptFileName.replace(_username, _accountName))
-                            .append(" has not been found.\nPlease check the directory of the script file and try again.");
+                    errorBuilder.append("The specified script file is invalid or has not been found.\nPlease check the script file name and try again.");
                     IOStreams.printAttention(errorBuilder.toString());
                 }
                 else
@@ -381,28 +419,24 @@ public class SycoraxKernel
                         _scriptMode = true;
 
                         // Initialize BufferedReader to read the script file
-                        BufferedReader br = new BufferedReader(new FileReader(scriptFileName));
-
-                        // Read script line by line and process commands
-                        String scriptLine;
-
-                        while ((scriptLine = br.readLine()) != null)
+                        try (BufferedReader br = new BufferedReader(new FileReader(scriptFileName)))
                         {
-                            if(scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
-                                // Skip comment or blank lines
-                                continue;
-                            else if(scriptLine.equalsIgnoreCase("End Script"))
-                                // Stop if "End Script" command is encountered
-                                break;
-                            else
-                                // Process script command
-                                commandProcessor(scriptLine);
-                        }
+                            // Read script line by line and process commands
+                            String scriptLine;
 
-                        // Close BufferedReader
-                        br.close();
-                        // Run garbage collector
-                        System.gc();
+                            while ((scriptLine = br.readLine()) != null)
+                            {
+                                if(scriptLine.startsWith("#") || scriptLine.equalsIgnoreCase(""))
+                                    // Skip comment or blank lines
+                                    continue;
+                                else if(scriptLine.equalsIgnoreCase("End Script"))
+                                    // Stop if "End Script" command is encountered
+                                    break;
+                                else
+                                    // Process script command
+                                    commandProcessor(scriptLine);
+                            }
+                        }
                         // Deactivate script mode
                         _scriptMode = false;
                     }

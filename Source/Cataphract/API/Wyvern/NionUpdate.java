@@ -1,7 +1,7 @@
 /*
 *                                                      |
 *                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| ||||||||
+*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
 * |||            ||    |||          ||       || |||  |||       ||       || |||        |||
 * |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
 * |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
@@ -13,12 +13,32 @@
 * Powered By Truncheon Core
 */
 
+/*
+* This file is part of the Cataphract project.
+* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
+
 package Cataphract.API.Wyvern;
 
 import Cataphract.API.IOStreams;
 import Cataphract.API.Dragon.Login;
 import Cataphract.API.Minotaur.PolicyCheck;
 import Cataphract.API.Wraith.FileDownload;
+import Cataphract.API.Wraith.FileWrite;
 import Cataphract.API.Wraith.Archive.FileUnzip;
 
 /**
@@ -58,6 +78,8 @@ public class NionUpdate
         // Check the policy if updating is allowed in the policy file, can be bypassed by the accounts with administrator privileges
         if(new PolicyCheck().retrievePolicyValue("update").equals("on") || _isUserAdmin)
         {
+            FileWrite.logger("Update initiated by: " + _username, "Update");
+            
             IOStreams.println("---- Wyvern: Program Update Utility 2.0 ----");
             IOStreams.printAttention("[*] This will install the lastest version of Cataphract. Please ensure that there is internet connectivity.");
             IOStreams.printAttention("[*] After updating, Cataphract will require a restart to updated files.\n");

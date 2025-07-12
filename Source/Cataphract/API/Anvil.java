@@ -1,7 +1,7 @@
 /*
 *                                                      |
 *                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| ||||||||
+*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
 * |||            ||    |||          ||       || |||  |||       ||       || |||        |||
 * |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
 * |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
@@ -13,12 +13,30 @@
 * Powered By Truncheon Core
 */
 
-package Cataphract.API;
+/*
+* This file is part of the Cataphract project.
+* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
 
-import java.util.regex.Pattern;
+package Cataphract.API;
 
 import Cataphract.API.Astaroth.Calendar;
 import Cataphract.API.Astaroth.Time;
+import Cataphract.API.Wraith.FileRead;
 
 /**
 * A class that provides a set of built in commands for all classes. Also provides a utility to split a string into an array for processing.
@@ -29,11 +47,6 @@ import Cataphract.API.Astaroth.Time;
 */
 public class Anvil
 {
-    /**
-     * Precompile the regex to split string to array, saves resources by precompilation
-     */
-    private static final Pattern SPLIT_PATTERN = Pattern.compile(" (?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-
     /**
     * Sole constructor. (For invocation by subclass constructors, typically implicit.)
     */
@@ -99,7 +112,10 @@ public class Anvil
             case "echo":
             //Display an error message if the entered syntax is incorrect
             if(commandArray.length < 2)
-            IOStreams.println("echo <STRING> \n\nOR\n\necho \"<STRING_WITH_SPACES>\"");
+            {
+                IOStreams.printError("Invalid Syntax.");
+            IOStreams.printInfo("Expected Syntax: echo <String> OR echo \"<String With Spaces>\"");
+            }
             else
             {
                 try
@@ -114,20 +130,34 @@ public class Anvil
             }
             break;
 
+            case "help":
+            if(commandArray.length < 2)
+            {
+                new FileRead().readHelpFile("API|Anvil.help");
+            }
+            else
+                new FileRead().readHelpFile(commandArray[1]);
+            break;
+
 
             //Wait: Waits for the specified value (milliseconds) for the shell to wait for a second
             case "wait":
             try
             {
                 //Display an error message if the entered syntax is incorrect
-                if(Integer.parseInt(commandArray[1]) < 1)
-                IOStreams.println("This will make the prompt wait for a given number of milliseconds.\nSyntax: wait 1000\n\nPrompt shall wait for 1 second.");
+                if(commandArray.length < 2 || Integer.parseInt(commandArray[1]) < 1)
+                {
+                    IOStreams.printError("Invalid Syntax.");
+                    IOStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
+                }
+
                 else
                 Thread.sleep(Integer.parseInt(commandArray[1]));
             }
             catch(NumberFormatException e)
             {
-                IOStreams.printError("Please provide a numeric input for the wait timer!");
+                IOStreams.printError("Invalid Argument!\nExpected Argument: milliseconds (Integer)");
+                IOStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer)");
             }
             catch(Exception e)
             {
@@ -146,26 +176,5 @@ public class Anvil
             IOStreams.printError(commandArray[0] + " - Command Not Found");
             break;
         }
-    }
-
-    /**
-    * Method to split an input string to individual words by at the occurrence of a blank space.
-    *
-    * @param command String that will need to be split into an array.
-    * @return String[] The string split into an array.
-    */
-    public static String[] splitStringToArray(String command)
-    {
-        //Regex to split the string at the occurrence of a blank space
-        String[] arr = SPLIT_PATTERN.split(command);
-
-        //Fix to remove the quotes, make the logic to split the input at every space only.
-        //Check the EasyGuide Documentation on why this is implemented the way it is.
-        for(int i = 0; i < arr.length; i++)
-        if(arr[i].startsWith("\"") && arr[i].endsWith("\""))
-            arr[i] = arr[i].substring(1, arr[i].length()-1);
-
-        //return the array of words split.
-        return arr;
     }
 }

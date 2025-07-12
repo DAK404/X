@@ -1,7 +1,7 @@
 /*
 *                                                      |
 *                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| ||||||||
+*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
 * |||            ||    |||          ||       || |||  |||       ||       || |||        |||
 * |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
 * |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
@@ -11,6 +11,25 @@
 *
 * A Cross Platform OS Shell
 * Powered By Truncheon Core
+*/
+
+/*
+* This file is part of the Cataphract project.
+* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
 package Cataphract.API.Wraith;
@@ -202,7 +221,7 @@ public class FileManagement
      */
     private final void navPreviousDirectory()throws Exception
     {
-        // Remove the trailing slash from the present working directory
+        // Remove the trailing file separator from the present working directory
         _presentWorkingDirectory = _presentWorkingDirectory.substring(0, _presentWorkingDirectory.length() - 1);
 
         // Replace the last directory in the path with a single slash
@@ -210,7 +229,7 @@ public class FileManagement
             _presentWorkingDirectory.substring(_presentWorkingDirectory.lastIndexOf('|'), _presentWorkingDirectory.length()),"|");
 
         // Check if the present working directory is the restricted user home directory
-        if (_presentWorkingDirectory.equals(IOStreams.convertFileSeparator(".|Users|Cataphract|")))
+        if (_presentWorkingDirectory.equals(".|Users|Cataphract|"))
         {
             // Print an error message if access is denied
             IOStreams.printError("Permission Denied.");
@@ -219,6 +238,7 @@ public class FileManagement
             resetToHomeDirectory();
         }
     }
+
 
     /**
      * Logic to reset the present working directory to the user home directory
@@ -484,8 +504,11 @@ public class FileManagement
      */
     private void grinchInterpreter(String command)throws Exception
     {
+        // Convert present working directory string to Nion File Separator format for compatibility
+        _presentWorkingDirectory = IOStreams.convertToNionSeparator(_presentWorkingDirectory);
+
         // Split the command string into an array of command arguments
-        String[] commandArray = Anvil.splitStringToArray(command);
+        String[] commandArray = IOStreams.splitStringToArray(command);
 
         // Switch statement to handle different commands
         switch (commandArray[0].toLowerCase())

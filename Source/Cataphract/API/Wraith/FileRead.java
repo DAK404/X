@@ -1,7 +1,7 @@
 /*
 *                                                      |
 *                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| ||||||||
+*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
 * |||            ||    |||          ||       || |||  |||       ||       || |||        |||
 * |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
 * |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
@@ -13,9 +13,29 @@
 * Powered By Truncheon Core
 */
 
+/*
+* This file is part of the Cataphract project.
+* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
+
 package Cataphract.API.Wraith;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
@@ -43,32 +63,20 @@ public class FileRead
     private static File fileName = null;
 
     /**
-     * Constructor to be used for reading help files
-     */
+    * Constructor to be used for reading help files
+    */
     public FileRead()
     {
     }
-    
+
     /**
-     * Constructor to be used for reading user generated files
-     * 
-     * @param username The username of the currently logged in user
-     */
+    * Constructor to be used for reading user generated files
+    *
+    * @param username The username of the currently logged in user
+    */
     public FileRead(String username)
     {
         _username = username;
-    }
-
-    /**
-    * Checks the validity of the file name.
-    *
-    * @return {@code true} if the file name is valid, {@code false} otherwise.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private final boolean checkFileValidity() throws Exception
-    {
-        // Return false if the file name is null, empty, or starts with a space; otherwise, return true
-        return !(fileName.getName() == null || fileName.getName().equals("") || fileName.getName().startsWith(" "));
     }
 
     /**
@@ -78,90 +86,103 @@ public class FileRead
     */
     private void readFileLogic() throws Exception
     {
-        if (!checkFileValidity())
+        try
         {
-            // If the file name is invalid
-            IOStreams.printError("Invalid File Name! Please Enter A Valid File Name.");
-        }
-        else if (!fileName.exists())
-        {
-            // If the specified file does not exist
-            IOStreams.printError("The Specified File Does Not Exist. Please Enter A Valid File Name.");
-        }
-        else
-        {
-            // Flag to control file reading loop
-            boolean continueFileRead = true;
-
-            // Display build information
-            Build.viewBuildInfo();
-
-            // Create a BufferedReader to read from the file
-            BufferedReader bufferObject = new BufferedReader(new FileReader(fileName));
-
-            // Variable to store file contents
-            String fileContents = "";
-
-            // If help mode is enabled
-            if (helpMode)
+            if (!IOStreams.checkFileValidity(fileName.getName()))
             {
-                do
-                {
-                    // Read a line from the file
-                    fileContents = bufferObject.readLine();
-
-                    if (fileContents.equalsIgnoreCase("<end of page>"))
-                    {
-                        // If it reaches the end of the page marker, prompt the user to continue or exit the help viewer
-                        if (IOStreams.confirmReturnToContinue("", "else type EXIT to quit Help Viewer.\\n" + "~DOC_HLP?> ").equalsIgnoreCase("exit"))
-                        // Set flag to stop reading
-                        continueFileRead = false;
-                        else
-                        {
-                            // Clear the screen and display build information and continue reading the file
-                            Build.viewBuildInfo();
-                            continue;
-                        }
-                    }
-                    // If it reaches the end of the help file marker
-                    else if (fileContents.equalsIgnoreCase("<end of help>"))
-                    {
-                        // Print end of help file message
-                        IOStreams.println("\n\nEnd of Help File.");
-                        break;
-                    }
-                    // If it encounters a comment line, skip this line
-                    else if (fileContents.startsWith("#"))
-                    {
-                        continue;
-                    }
-                    // Print the file contents
-                    IOStreams.println(fileContents);
-                }
-                // Continue until the end of file or instructed to stop
-                while (fileContents != null || continueFileRead);
+                // If the file name is invalid
+                IOStreams.printError("Invalid File Name! Please Enter A Valid File Name.");
             }
-            // If help mode is not enabled
+            else if (!fileName.exists())
+            {
+                // If the specified file does not exist
+                IOStreams.printError("The Specified File Does Not Exist. Please Enter A Valid File Name.");
+            }
             else
             {
-                // Read the file until the end of file is reached
-                while (fileContents != null)
+                // Flag to control file reading loop
+                boolean continueFileRead = true;
+
+                // Display build information
+                Build.viewBuildInfo();
+
+                // Create a BufferedReader to read from the file
+                BufferedReader bufferObject = new BufferedReader(new FileReader(fileName));
+
+                // Variable to store file contents
+                String fileContents = "";
+
+                // If help mode is enabled
+                if (helpMode)
                 {
-                    // Read a line from the file
-                    fileContents = bufferObject.readLine();
-                    // Print the file contents
-                    IOStreams.println(fileContents);
+                    // Continue until the end of file or instructed to stop
+                    while (fileContents != null && continueFileRead)
+                    {
+                        // Read a line from the file
+                        fileContents = bufferObject.readLine();
+
+                        if (fileContents != null && fileContents.equalsIgnoreCase("<end of page>"))
+                        {
+                            // If it reaches the end of the page marker, prompt the user to continue or exit the help viewer
+                            if (IOStreams.confirmReturnToContinue("", "else type EXIT to quit Help Viewer.\\n" + "~DOC_HLP?> ").equalsIgnoreCase("exit"))
+                            // Set flag to stop reading
+                            continueFileRead = false;
+                            else
+                            {
+                                // Clear the screen and display build information and continue reading the file
+                                Build.viewBuildInfo();
+                                continue;
+                            }
+                        }
+                        // If it reaches the end of the help file marker
+                        else if (fileContents != null && fileContents.equalsIgnoreCase("<end of help>"))
+                        {
+                            // Print end of help file message
+                            IOStreams.println("\n\nEnd of Help File.");
+                            break;
+                        }
+                        // If it encounters a comment line, skip this line
+                        else if (fileContents != null && fileContents.startsWith("#"))
+                        {
+                            continue;
+                        }
+                        // Print the file contents
+                        if (fileContents != null)
+                        {
+                            IOStreams.println(fileContents);
+                        }
+                    }
                 }
+                // If help mode is not enabled
+                else
+                {
+                    // Read the file until the end of file is reached
+                    while ((fileContents = bufferObject.readLine()) != null)
+                    {
+                        // Print the file contents
+                        IOStreams.println(fileContents);
+                    }
+                }
+
+                // Close the streams
+                bufferObject.close();
+
+                // Request garbage collection to free up resources
+                System.gc();
+
+                // Prompt to return to continue
+                IOStreams.confirmReturnToContinue();
             }
-
-            // Close the streams
-            bufferObject.close();
-
-            // Request garbage collection to free up resources
-            System.gc();
-
-            // Prompt to return to continue
-            IOStreams.confirmReturnToContinue();
+        }
+        catch (FileNotFoundException fnfe)
+        {
+            IOStreams.printError("The specified file " + fileName + "does not exist.");
+        }
+        catch (Exception e)
+        {
+            // Print error message if an exception occurs
+            IOStreams.printError("An Error Occurred While Reading The File: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -177,12 +198,12 @@ public class FileRead
         if (new PolicyCheck().retrievePolicyValue("update").equals("on") || new Login(_username).checkPrivilegeLogic())
         {
             // Set the file name
-            fileName = new File(userFileName);
+            fileName = new File(IOStreams.convertFileSeparator(userFileName));
             // Perform file reading logic
             readFileLogic();
         }
         else
-            IOStreams.printError("Policy Management System - Permission Denied.");
+        IOStreams.printError("Policy Management System - Permission Denied.");
     }
 
     /**
@@ -196,7 +217,7 @@ public class FileRead
         // Enable help mode
         helpMode = true;
         // Set the file name
-        fileName = new File(IOStreams.convertFileSeparator(".|Docs|Cataphract|Help|" + helpFile));
+        fileName = new File(IOStreams.convertFileSeparator(".|docs|Cataphract|Help|" + helpFile));
         // Perform file reading logic
         readFileLogic();
     }

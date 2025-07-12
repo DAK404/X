@@ -1,289 +1,137 @@
-/*
-*                                                      |
-*                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| ||||||||
-* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
-* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
-* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
-*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
-*                                               ||
-*                                               |
-*
-* A Cross Platform OS Shell
-* Powered By Truncheon Core
-*/
-
 package Cataphract.API.Dragon;
 
 import java.io.Console;
 import java.io.File;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 
 import Cataphract.API.Build;
 import Cataphract.API.IOStreams;
 import Cataphract.API.Minotaur.Cryptography;
 
 /**
-* A class to delete user accounts on the system. Can be restricted by policy "account_delete".
-*
-* @author DAK404 (https://github.com/DAK404)
-* @version 3.9.7 (20-February-2024, Cataphract)
-* @since 0.0.1 (Mosaic 0.0.1)
-*/
-public class AccountDelete
-{
-    /** Variable to store the current username */
-    private String _currentUsername = "";
-
-    /** Variable to store if the current user has administrator privileges */
-    private boolean _isCurrentUserAdmin = false;
-
-    /** Console object for user input */
-    private Console console = System.console();
+ * A class to delete user accounts on the system. Can be restricted by policy "account_delete".
+ *
+ * @author DAK404 (https://github.com/DAK404)
+ * @version 4.0.0 (12-July-2025, Cataphract)
+ * @since 0.0.1 (Mosaic 0.0.1)
+ */
+public final class AccountDelete implements AccountManager {
+    private final Console console = System.console();
+    private final String currentUsername;
+    private final boolean isCurrentUserAdmin;
 
     /**
-    * Constructor for AccountDelete class.
-    *
-    * @param currentUsername The current username.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public AccountDelete(String currentUsername) throws Exception
-    {
-        // Set the current username
-        _currentUsername = currentUsername;
-        //_isCurrentUserAdmin = new Login(currentUsername).checkPrivilegeLogic();
-        _isCurrentUserAdmin = new Login(currentUsername).checkUserExistence();
+     * Constructor for AccountDelete class.
+     *
+     * @param currentUsername The current username.
+     * @throws Exception If an error occurs during initialization.
+     */
+    public AccountDelete(String currentUsername) throws Exception {
+        this.currentUsername = currentUsername == null || currentUsername.isEmpty() ? "DEFAULT" : currentUsername;
+        this.isCurrentUserAdmin = new Login(currentUsername).checkPrivilegeLogic();
     }
 
-    /**
-    * Performs user deletion logic.
-    *
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public void deleteUserAccount() throws Exception
-    {
-        // Display build information
+    @Override
+    public void execute() throws Exception {
         Build.viewBuildInfo();
-
-        // Check the policy if account deletion is allowed in the policy file, can be bypassed by the accounts with administrator privileges
-        if(new Cataphract.API.Minotaur.PolicyCheck().retrievePolicyValue("account_delete").equals("on") || new Login(_currentUsername).checkPrivilegeLogic())
-        {
-            // Check login credentials
-            if (!login())
-            IOStreams.printError("Invalid Login Credentials. Please Try Again.");
-            // If login successful, proceed to check privileges and perform actions accordingly
-            else
-            userManagementConsoleDelete();
+        if (!new Cataphract.API.Minotaur.PolicyCheck().retrievePolicyValue("account_delete").equals("on") && !isCurrentUserAdmin) {
+            IOStreams.printError("Policy Management System - Permission Denied.");
+            return;
         }
-        else
-        IOStreams.printError("Policy Management System - Permission Denied.");
+
+        if (!authenticate(String.valueOf(console.readPassword("Password: ")), String.valueOf(console.readPassword("Security Key: ")))) {
+            IOStreams.printError("Invalid Login Credentials. Please Try Again.");
+            return;
+        }
+
+        userManagementConsoleDelete();
+    }
+
+    @Override
+    public boolean authenticate(String password, String securityKey) throws Exception {
+        IOStreams.println("Please login to continue.");
+        IOStreams.println("Username: " + new Login(currentUsername).getNameLogic());
+        String hashedPassword = Cryptography.stringToSHA3_256(password);
+        String hashedSecurityKey = Cryptography.stringToSHA3_256(securityKey);
+        return new Login(currentUsername).authenticationLogic(hashedPassword, hashedSecurityKey);
     }
 
     /**
-    * Provides a console to the user to delete the user accounts for both administrators and standard users.
-    *
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private void userManagementConsoleDelete()throws Exception
-    {
+     * Provides a console for user account deletion.
+     *
+     * @throws Exception If an error occurs.
+     */
+    private void userManagementConsoleDelete() throws Exception {
         IOStreams.println("-------------------------------------------------");
         IOStreams.println("|   User Management Console: Account Deletion   |");
         IOStreams.println("-------------------------------------------------\n");
 
-        if(_isCurrentUserAdmin)
-        {
-            // Warning message for administrator mode
+        if (isCurrentUserAdmin) {
             IOStreams.printWarning("ADMINISTRATOR MODE ACTIVE!");
-
-            // Array to store command and arguments
             String[] command;
-
-            // Loop for administrator session
-            do
-            {
-                // Read user input for command
-                command = Cataphract.API.Anvil.splitStringToArray(console.readLine("AccMgmt-Del!> "));
-
-                // Switch statement for different commands
-                switch (command[0].toLowerCase())
-                {
+            do {
+                command = IOStreams.splitStringToArray(console.readLine("AccMgmt-Del!> "));
+                if (command.length == 0 || command[0].isEmpty()) {
+                    continue;
+                }
+                switch (command[0].toLowerCase()) {
+                    case "exit":
+                        break;
                     case "del":
                     case "delete":
-                    // Check syntax for delete command
-                    if (command.length < 2)
-                    IOStreams.printError("Incorrect Syntax.");
-                    else
-                    {
-                        // force deletion of user account by specifying the hashed username
-                        if(command[1].equalsIgnoreCase("force") && command.length > 2)
-                            accountDeletionLogic(command[3]);
-                        else
-                            // Perform account deletion and display result
-                            IOStreams.printInfo("Account Deletion: " + (accountDeletionLogic(Cryptography.stringToSHA3_256(command[1])) ? "Successful" : "Failed"));
-                    }
-                    break;
-
+                        if (command.length < 2) {
+                            IOStreams.printError("Incorrect Syntax.");
+                        } else {
+                            String username = command.length > 2 && command[1].equalsIgnoreCase("force") ? command[2] : Cryptography.stringToSHA3_256(command[1]);
+                            boolean success = accountDeletionLogic(username);
+                            IOStreams.printInfo("Account Deletion: " + (success ? "Successful" : "Failed"));
+                        }
+                        break;
                     case "list":
-                    new Login(_currentUsername).listAllUserAccounts();
-                    break;
-
+                        new Login(currentUsername).listAllUserAccounts();
+                        break;
                     default:
-                    // Display error for unknown command
-                    IOStreams.printError("Command Not Found: " + command[0]);
-                    break;
+                        IOStreams.printError("Command Not Found: " + command[0]);
+                        break;
                 }
             } while (!command[0].equalsIgnoreCase("exit"));
+        } else {
+            accountDeletionLogic(currentUsername);
         }
-        else
-        accountDeletionLogic(_currentUsername);
     }
 
-
     /**
-    * Logic for account deletion.
-    *
-    * @param username The username to be deleted.
-    * @return {@code true} if the deletion is successful, {@code false} otherwise.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private boolean accountDeletionLogic(String username) throws Exception 
-    {
-        boolean status = false;
-
-        // Check if the username is "Administrator"
-        if (username.equals(Cryptography.stringToSHA3_256("Administrator")))
+     * Logic for account deletion.
+     *
+     * @param username The username to delete (hashed or unhashed).
+     * @return true if deletion succeeds, false otherwise.
+     * @throws Exception If an error occurs.
+     */
+    private boolean accountDeletionLogic(String username) throws Exception {
+        if (username.equals(Cryptography.stringToSHA3_256("Administrator"))) {
             IOStreams.printError("Deletion of Administrator Account is not allowed!");
-        else 
-        {
-            if (! new Login(Cryptography.stringToSHA3_256(username)).checkUserExistence() || ! new Login(username).checkUserExistence())
-            {
-                IOStreams.println("User does not exist! Please enter the correct username (or the username hash) to continue");
-            }
-            else
-            {
-                try
-                {
-                    // Prompt user for confirmation
-                    if (console.readLine("Are you sure you wish to delete user account \"" + new Login(username).getNameLogic() + "\"? [ YES | NO ]\n> ").equalsIgnoreCase("yes"))
-                    {
-                        // Delete account from database and directories
-                        status = deleteFromDatabase() & deleteDirectories(new File(IOStreams.convertFileSeparator(".|Users|Cataphract|" + username)));
-                        // Print success message and exit
-                        IOStreams.printAttention("Account Successfully Deleted.");
-                        if(! _isCurrentUserAdmin)
-                        {
-                            //wait for 5 seconds and then restart
-                            Thread.sleep(5000);
-                            System.exit(211);
-                        }
-                    }
+            return false;
+        }
+
+        if (!new Login(username).checkUserExistence()) {
+            IOStreams.println("User does not exist! Please enter the correct username (or the username hash) to continue");
+            return false;
+        }
+
+        if (console.readLine("Are you sure you wish to delete user account \"" + new Login(username).getNameLogic() + "\"? [ YES | NO ]\n> ").equalsIgnoreCase("yes")) {
+            boolean dbSuccess = DatabaseManager.executeUpdate("DELETE FROM MUD WHERE Username = ?", username);
+            boolean dirSuccess = FileManager.deleteDirectory(new File(Config.USER_HOME + username));
+            boolean success = dbSuccess && dirSuccess;
+            if (success) {
+                IOStreams.printAttention("Account Successfully Deleted.");
+                if (!isCurrentUserAdmin) {
+                    Thread.sleep(5000);
+                    System.exit(211);
                 }
-                catch (Exception e)
-                {
-                    // Print error message for any exceptions
-                    IOStreams.printError("System Error: Unable to delete account.");
-                }
+            } else {
+                IOStreams.printError("System Error: Unable to delete account.");
             }
-
+            return success;
         }
-
-        return status;
-    }
-
-    /**
-    * Login method.
-    *
-    * @return {@code true} if login is successful, {@code false} otherwise.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private boolean login() throws Exception
-    {
-        boolean status = false;
-        try
-        {
-            // Prompt user for login credentials
-            IOStreams.println("Please login to continue.");
-            IOStreams.println("Username: " + new Login(_currentUsername).getNameLogic());
-            // Authenticate user
-            status = new Login(_currentUsername).authenticationLogic(Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("Password: "))), Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("Security Key: "))));
-        }
-        catch (Exception e)
-        {
-            // Print error message for any exceptions
-            status = false;
-            e.printStackTrace();
-            System.in.read();
-        }
-        return status;
-    }
-
-    /**
-    * Method to delete user account from the database.
-    *
-    * @return {@code true} if the deletion is successful, {@code false} otherwise.
-    */
-    private boolean deleteFromDatabase()
-    {
-        boolean status = false;
-        try
-        {
-            // Define database path and SQL command
-            String databasePath = "jdbc:sqlite:" + IOStreams.convertFileSeparator(".|System|Cataphract|Private|Mud.dbx");
-            String sqlCommand = "DELETE FROM MUD WHERE Username = ?";
-
-            // Load JDBC driver and establish connection
-            Class.forName("org.sqlite.JDBC");
-            Connection dbConnection = DriverManager.getConnection(databasePath);
-            // Prepare statement and execute deletion
-            PreparedStatement preparedStatement = dbConnection.prepareStatement(sqlCommand);
-            preparedStatement.setString(1, _currentUsername);
-            preparedStatement.executeUpdate();
-
-            // Close resources
-            preparedStatement.closeOnCompletion();
-            dbConnection.close();
-            status = true;
-        }
-        catch (Exception e)
-        {
-            // Print error message for any exceptions
-            e.printStackTrace();
-        }
-        // Explicitly call garbage collector
-        System.gc();
-
-        return status;
-    }
-
-    /**
-    * Method to delete directories recursively.
-    *
-    * @param delFile The file to be deleted.
-    * @return {@code true} if the deletion is successful, {@code false} otherwise.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private boolean deleteDirectories(File delFile) throws Exception
-    {
-        boolean status = false;
-        try
-        {
-            // Check if file is a directory
-            if (delFile.listFiles() != null)
-            // Iterate over files in directory and delete recursively
-            for (File fn : delFile.listFiles())
-            deleteDirectories(fn);
-            // Delete the directory itself
-            status = delFile.delete();
-        }
-        catch (Exception e)
-        {
-            // Print error message for any exceptions
-            e.printStackTrace();
-        }
-
-        return status;
+        return false;
     }
 }

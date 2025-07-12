@@ -13,6 +13,25 @@
 * Powered By Truncheon Core
 */
 
+/*
+* This file is part of the Cataphract project.
+* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
+
 package Cataphract.API;
 
 /**
@@ -28,7 +47,7 @@ public class Build
     public final static String _Branding = """
                                                       |
                                                      ||
-  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| ||||||||
+  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
  |||            ||    |||          ||       || |||  |||       ||       || |||        |||
  |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
  |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
@@ -44,9 +63,7 @@ public class Build
     /**
     * Sole constructor. (For invocation by subclass constructors, typically implicit.)
     */
-    public Build()
-    {
-    }
+    public Build() {}
 
     /**
      * Logic to display the build information
@@ -56,9 +73,7 @@ public class Build
         //clear the screen before printing the branding.
         clearScreen();
         //print the branding string.
-        IOStreams.println(_Branding + "\n");
-        //new Build().debug();
-        IOStreams.printDebug("Development Build. Use at your own risk!");
+        IOStreams.println(_Branding + "\nVersion " + _BuildInfo[1]);
 
         debug();
     }
@@ -106,20 +121,22 @@ public class Build
     {
         //int mb = 1024 * 1024;
         // get Runtime instance
+
+        System.out.println("! DEBUG INFORMATION SPEW START !");
+        
         Runtime instance = Runtime.getRuntime();
-        System.out.println("\n*********************************************");
-        System.out.println("        ---   DEBUG INFORMATION   ---        ");
-        System.out.println("*********************************************");
-        System.out.println("\n   - Heap utilization statistics [Bytes] -  \n");
-        System.out.println("      [*]  Process ID   : "+ProcessHandle.current().pid());
-        // available memory
-        System.out.println("      [*]  Total Memory : " + instance.totalMemory() + " Bytes");
-        // free memory
-        System.out.println("      [*]  Free Memory  : " + instance.freeMemory() + " Bytes");
-        // used memory
-        System.out.println("      [*]  Used Memory  : " + (instance.totalMemory() - instance.freeMemory()) + " Bytes");
-        // Maximum available memory
-        System.out.println("      [*]  Max Memory   : " + instance.maxMemory() + " Bytes");
-        System.out.println("\n*********************************************\n\n");
+        
+        long memoryUsed = instance.totalMemory() - instance.freeMemory();
+        
+        System.out.println("\n000000000000000000000000000000");
+        System.out.println("! DEBUG - MEMORY INFORMATION !");
+        System.out.println("000000000000000000000000000000");
+        System.out.println("> Process ID   : " + ProcessHandle.current().pid());
+        System.out.println("> Total Memory : " + instance.totalMemory() + " Bytes");
+        System.out.println("> Free Memory  : " + instance.freeMemory() + " Bytes");
+        System.out.println("> Used Memory  : " + memoryUsed + " Bytes");
+        System.out.println("000000000000000000000000000000\n");
+
+        System.out.println("!  DEBUG INFORMATION SPEW END  !");
     }
 }
