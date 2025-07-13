@@ -1,11 +1,8 @@
 package Cataphract.API.Dragon;
 
-import java.io.Console;
 import java.io.File;
 
-import Cataphract.API.Build;
-import Cataphract.API.IOStreams;
-import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Config;
 import Cataphract.API.Minotaur.PolicyCheck;
 
 /**
@@ -16,7 +13,6 @@ import Cataphract.API.Minotaur.PolicyCheck;
  * @since 0.0.1 (Zen Quantum 0.0.1)
  */
 public final class AccountModify implements AccountManager {
-    private final Console console = System.console();
     private final String currentUsername;
     private final String currentAccountName;
     private final boolean isCurrentUserAdmin;
@@ -38,13 +34,13 @@ public final class AccountModify implements AccountManager {
     @Override
     public void execute() throws Exception {
         if (!new PolicyCheck().retrievePolicyValue("account_modify").equals("on") && !isCurrentUserAdmin) {
-            IOStreams.printError("Policy Management System - Permission Denied.");
+            Config.io.printError("Policy Management System - Permission Denied.");
             return;
         }
 
-        Build.viewBuildInfo();
-        if (!authenticate(String.valueOf(console.readPassword("Password: ")), String.valueOf(console.readPassword("Security Key: ")))) {
-            IOStreams.printError("Incorrect Credentials! Aborting...");
+        Config.build.viewBuildInfo(false);
+        if (!authenticate(String.valueOf(Config.console.readPassword("Password: ")), String.valueOf(Config.console.readPassword("Security Key: ")))) {
+            Config.io.printError("Incorrect Credentials! Aborting...");
             return;
         }
 
@@ -53,11 +49,11 @@ public final class AccountModify implements AccountManager {
 
     @Override
     public boolean authenticate(String password, String securityKey) throws Exception {
-        Build.viewBuildInfo();
-        IOStreams.printAttention("Please authenticate to continue.");
-        IOStreams.println("Username: " + currentAccountName);
-        String hashedPassword = Cryptography.stringToSHA3_256(password);
-        String hashedSecurityKey = securityKey.isEmpty() ? "" : Cryptography.stringToSHA3_256(securityKey);
+        Config.build.viewBuildInfo(false);
+        Config.io.printAttention("Please authenticate to continue.");
+        Config.io.println("Username: " + currentAccountName);
+        String hashedPassword = Config.cryptography.stringToSHA3_256(password);
+        String hashedSecurityKey = securityKey.isEmpty() ? "" : Config.cryptography.stringToSHA3_256(securityKey);
         return new Login(currentUsername).authenticationLogic(hashedPassword, hashedSecurityKey);
     }
 
@@ -70,8 +66,8 @@ public final class AccountModify implements AccountManager {
         String input;
         do {
             displayMenu();
-            input = console.readLine(currentAccountName + "} ");
-            String[] commandArray = IOStreams.splitStringToArray(input);
+            input = Config.console.readLine(currentAccountName + "} ");
+            String[] commandArray = Config.io.splitStringToArray(input);
 
             if (commandArray.length == 0 || commandArray[0].isEmpty()) {
                 continue;
@@ -95,16 +91,16 @@ public final class AccountModify implements AccountManager {
                 case "promote":
                 case "demote":
                     if (commandArray.length < 2) {
-                        IOStreams.printError("Invalid Syntax. Use: \npromote <target_username>\n   OR\ndemote <target_username>");
+                        Config.io.printError("Invalid Syntax. Use: \npromote <target_username>\n   OR\ndemote <target_username>");
                     } else {
                         accountPromoteDemoteLogic(commandArray[0], commandArray[1]);
                     }
                     break;
                 case "view":
                     if (commandArray.length < 2) {
-                        IOStreams.printError("Invalid Syntax. Use: \nview <target_username>");
+                        Config.io.printError("Invalid Syntax. Use: \nview <target_username>");
                     } else {
-                        viewUserInformation(Cryptography.stringToSHA3_256(commandArray[1]));
+                        viewUserInformation(Config.cryptography.stringToSHA3_256(commandArray[1]));
                     }
                     break;
                 case "list":
@@ -114,7 +110,7 @@ public final class AccountModify implements AccountManager {
                     displayMenu();
                     break;
                 default:
-                    IOStreams.printError("Invalid account modification option. Please specify a valid option.");
+                    Config.io.printError("Invalid account modification option. Please specify a valid option.");
                     break;
             }
         } while (!input.equalsIgnoreCase("exit"));
@@ -124,26 +120,26 @@ public final class AccountModify implements AccountManager {
      * Displays the account management menu.
      */
     private void displayMenu() {
-        Build.viewBuildInfo();
-        IOStreams.println("-------------------------------------------------");
-        IOStreams.println("| User Management Console: Account Modification |");
-        IOStreams.println("-------------------------------------------------\n");
-        IOStreams.println("How do you wish to manage or modify your account?\n");
-        IOStreams.println("[1] Change Account Name");
-        IOStreams.println("[2] Change Account Password");
-        IOStreams.println("[3] Change Account Security Key");
-        IOStreams.println("[4] Change Session Unlock PIN\n");
-        IOStreams.println("[ NAME | PASSWORD | KEY | PIN | HELP | EXIT ]");
+        Config.build.viewBuildInfo(false);
+        Config.io.println("-------------------------------------------------");
+        Config.io.println("| User Management Console: Account Modification |");
+        Config.io.println("-------------------------------------------------\n");
+        Config.io.println("How do you wish to manage or modify your account?\n");
+        Config.io.println("[1] Change Account Name");
+        Config.io.println("[2] Change Account Password");
+        Config.io.println("[3] Change Account Security Key");
+        Config.io.println("[4] Change Session Unlock PIN\n");
+        Config.io.println("[ NAME | PASSWORD | KEY | PIN | HELP | EXIT ]");
         if (isCurrentUserAdmin) {
-            IOStreams.println(1, 8, "\n       [ DANGER ZONE ]       ");
-            IOStreams.println(1, 8, "--- ADMINISTRATOR TOOLKIT ---");
-            IOStreams.println(1, 8, "[!] Promote Account to Administrator");
-            IOStreams.println(1, 8, "[!] Demote Account to Standard User");
-            IOStreams.println(1, 8, "[!] View Account Details of a User");
-            IOStreams.println(1, 8, "[!] List All User Accounts\n");
-            IOStreams.println(1, 8, "[ PROMOTE | DEMOTE | VIEW | LIST ]");
+            Config.io.println("\n       [ DANGER ZONE ]       ");
+            Config.io.println("--- ADMINISTRATOR TOOLKIT ---");
+            Config.io.println("[!] Promote Account to Administrator");
+            Config.io.println("[!] Demote Account to Standard User");
+            Config.io.println("[!] View Account Details of a User");
+            Config.io.println("[!] List All User Accounts\n");
+            Config.io.println("[ PROMOTE | DEMOTE | VIEW | LIST ]");
         }
-        IOStreams.println("");
+        Config.io.println("");
     }
 
     /**
@@ -156,14 +152,14 @@ public final class AccountModify implements AccountManager {
      * @throws Exception If an error occurs during validation or update.
      */
     private void changeCredential(String field, String policy, java.util.function.Predicate<String> validator, boolean isPassword) throws Exception {
-        String value = CredentialValidator.validateCredential(field, policy, validator, console, isPassword);
+        String value = CredentialValidator.validateCredential(field, policy, validator, Config.console, isPassword);
         if (value != null) {
-            String hashedValue = isPassword && !value.isEmpty() ? Cryptography.stringToSHA3_256(value) : value;
+            String hashedValue = isPassword && !value.isEmpty() ? Config.cryptography.stringToSHA3_256(value) : value;
             boolean success = DatabaseManager.executeUpdate(
                 "UPDATE MUD SET " + field + " = ? WHERE Username = ?",
                 hashedValue, targetUser
             );
-            IOStreams.printInfo(success ? "Account Modification Successful!" : "Account Modification Failed.");
+            Config.io.printInfo(success ? "Account Modification Successful!" : "Account Modification Failed.");
         }
     }
 
@@ -176,27 +172,27 @@ public final class AccountModify implements AccountManager {
      */
     private void accountPromoteDemoteLogic(String action, String targetUsername) throws Exception {
         if (targetUsername.equalsIgnoreCase("Administrator")) {
-            IOStreams.printError("Cannot promote or demote the user Administrator.");
+            Config.io.printError("Cannot promote or demote the user Administrator.");
             return;
         }
         if (!isCurrentUserAdmin) {
-            IOStreams.printError("Invalid Privileges! Cannot Modify User Privileges.");
+            Config.io.printError("Invalid Privileges! Cannot Modify User Privileges.");
             return;
         }
 
-        targetUser = Cryptography.stringToSHA3_256(targetUsername);
+        targetUser = Config.cryptography.stringToSHA3_256(targetUsername);
         if (!new Login(targetUser).checkUserExistence()) {
-            IOStreams.printError("Specified User does not exist!");
+            Config.io.printError("Specified User does not exist!");
             return;
         }
 
-        IOStreams.printAttention("YOU ARE ABOUT TO " + action.toUpperCase() + " \"" + new Login(targetUser).getNameLogic() + "\". ARE YOU SURE? [ Y | N ]");
-        if (console.readLine("Change Privileges?> ").equalsIgnoreCase("y")) {
+        Config.io.printAttention("YOU ARE ABOUT TO " + action.toUpperCase() + " \"" + new Login(targetUser).getNameLogic() + "\". ARE YOU SURE? [ Y | N ]");
+        if (Config.console.readLine("Change Privileges?> ").equalsIgnoreCase("y")) {
             boolean success = DatabaseManager.executeUpdate(
                 "UPDATE MUD SET Privileges = ? WHERE Username = ?",
                 action.equalsIgnoreCase("promote") ? "Yes" : "No", targetUser
             );
-            IOStreams.printInfo(success ? action.toUpperCase() + "D " + new Login(targetUser).getNameLogic() + " successfully!" : "Account Modification Failed.");
+            Config.io.printInfo(success ? action.toUpperCase() + "D " + new Login(targetUser).getNameLogic() + " successfully!" : "Account Modification Failed.");
         }
     }
 
@@ -208,18 +204,18 @@ public final class AccountModify implements AccountManager {
      */
     private void viewUserInformation(String targetUsername) throws Exception {
         if (!isCurrentUserAdmin) {
-            IOStreams.printError("Invalid Privileges! Cannot View User Details.");
+            Config.io.printError("Invalid Privileges! Cannot View User Details.");
             return;
         }
         if (!new Login(targetUsername).checkUserExistence()) {
-            IOStreams.printError("User Does Not Exist! Please Enter A Valid Username.");
+            Config.io.printError("User Does Not Exist! Please Enter A Valid Username.");
             return;
         }
 
         String userHomePath = Config.USER_HOME + targetUsername;
-        IOStreams.println("\n--- User Information ---");
-        IOStreams.println("Account Name        : " + new Login(targetUsername).getNameLogic());
-        IOStreams.println("Account Privileges  : " + (new Login(targetUsername).checkPrivilegeLogic() ? "Administrator" : "Standard"));
-        IOStreams.println("User Home Directory : " + (new File(userHomePath).exists() ? userHomePath : "Home Directory Does Not Exist!") + "\n");
+        Config.io.println("\n--- User Information ---");
+        Config.io.println("Account Name        : " + new Login(targetUsername).getNameLogic());
+        Config.io.println("Account Privileges  : " + (new Login(targetUsername).checkPrivilegeLogic() ? "Administrator" : "Standard"));
+        Config.io.println("User Home Directory : " + (new File(userHomePath).exists() ? userHomePath : "Home Directory Does Not Exist!") + "\n");
     }
 }

@@ -1,11 +1,6 @@
 package Cataphract.API.Dragon;
 
-import java.io.Console;
-
-import Cataphract.API.Build;
-import Cataphract.API.IOStreams;
-import Cataphract.API.Minotaur.Cryptography;
-import Cataphract.API.Minotaur.PolicyCheck;
+import Cataphract.API.Config;
 
 /**
  * A class to create new user accounts on the system. Can be restricted by policy "account_create".
@@ -16,7 +11,6 @@ import Cataphract.API.Minotaur.PolicyCheck;
  */
 public final class AccountCreate implements AccountManager 
 {
-    private final Console console = System.console();
     private final String currentUsername;
     private final boolean isCurrentUserAdmin;
     private final UserAccount account = new UserAccount();
@@ -45,20 +39,20 @@ public final class AccountCreate implements AccountManager
     @Override
     public void execute() throws Exception 
     {
-        if (!new PolicyCheck().retrievePolicyValue("account_create").equals("on") && !isCurrentUserAdmin) {
-            IOStreams.printError("Policy Management System - Permission Denied.");
+        if (! Config.policyCheck.retrievePolicyValue("account_create").equals("on") && !isCurrentUserAdmin) {
+            Config.io.printError("Policy Management System - Permission Denied.");
             return;
         }
 
-        Build.viewBuildInfo();
-        IOStreams.println("Please authenticate to continue.");
-        IOStreams.println("Username: " + new Login(currentUsername).getNameLogic());
-        String password = String.valueOf(console.readPassword("Password: "));
-        String securityKey = String.valueOf(console.readPassword("SecurityKey: "));
+        Config.build.viewBuildInfo(false);
+        Config.io.println("Please authenticate to continue.");
+        Config.io.println("Username: " + new Login(currentUsername).getNameLogic());
+        String password = String.valueOf(Config.console.readPassword("Password: "));
+        String securityKey = String.valueOf(Config.console.readPassword("SecurityKey: "));
 
         if (!authenticate(password, securityKey)) 
         {
-            IOStreams.println("Failed to authenticate user. Exiting...");
+            Config.io.println("Failed to authenticate user. Exiting...");
             return;
         }
 
@@ -68,16 +62,16 @@ public final class AccountCreate implements AccountManager
 
         setCredentials();
         addAccountToDatabase();
-        IOStreams.confirmReturnToContinue();
+        Config.io.confirmReturnToContinue();
     }
 
     @Override
     public boolean authenticate(String password, String securityKey) throws Exception 
     {
-        Build.viewBuildInfo();
-        IOStreams.println("Username: " + new Login(currentUsername).getNameLogic());
-        String hashedPassword = Cryptography.stringToSHA3_256(password);
-        String hashedSecurityKey = securityKey.isEmpty() ? "" : Cryptography.stringToSHA3_256(securityKey);
+        Config.build.viewBuildInfo(false);
+        Config.io.println("Username: " + new Login(currentUsername).getNameLogic());
+        String hashedPassword = Config.cryptography.stringToSHA3_256(password);
+        String hashedSecurityKey = securityKey.isEmpty() ? "" : Config.cryptography.stringToSHA3_256(securityKey);
         return new Login(currentUsername).authenticationLogic(hashedPassword, hashedSecurityKey);
     }
 
@@ -86,10 +80,10 @@ public final class AccountCreate implements AccountManager
      */
     private void promptForAdminPrivileges() 
     {
-        IOStreams.printAttention("The currently logged in user is an administrator.\nYou have the privileges to create other administrator accounts or standard user accounts.\n");
-        IOStreams.printWarning("Administrative rights have additional privileges over standard users! Beware on who the administrative privileges are granted to!\n");
-        IOStreams.println("Would you like to grant administrative privileges to the new user account? [ Y | N ]");
-        account.setAdmin(console.readLine("Grant Administrator Privileges?> ").equalsIgnoreCase("Y"));
+        Config.io.printAttention("The currently logged in user is an administrator.\nYou have the privileges to create other administrator accounts or standard user accounts.\n");
+        Config.io.printWarning("Administrative rights have additional privileges over standard users! Beware on who the administrative privileges are granted to!\n");
+        Config.io.println("Would you like to grant administrative privileges to the new user account? [ Y | N ]");
+        account.setAdmin(Config.console.readLine("Grant Administrator Privileges?> ").equalsIgnoreCase("Y"));
     }
 
     /**
@@ -100,11 +94,11 @@ public final class AccountCreate implements AccountManager
     private void setCredentials() throws Exception 
     {
         account.setName(setCredential("Account Name", CredentialValidator.NAME_POLICY, CredentialValidator::validateName));
-        account.setUsername(Cryptography.stringToSHA3_256(setCredential("Account Username", CredentialValidator.USERNAME_POLICY, CredentialValidator::validateUsername)));
-        account.setPassword(Cryptography.stringToSHA3_256(setCredential("Account Password", CredentialValidator.PASSWORD_POLICY, CredentialValidator::validatePassword, true)));
+        account.setUsername(Config.cryptography.stringToSHA3_256(setCredential("Account Username", CredentialValidator.USERNAME_POLICY, CredentialValidator::validateUsername)));
+        account.setPassword(Config.cryptography.stringToSHA3_256(setCredential("Account Password", CredentialValidator.PASSWORD_POLICY, CredentialValidator::validatePassword, true)));
         String securityKey = setCredential("Account Security Key", CredentialValidator.SECURITY_KEY_POLICY, CredentialValidator::validateSecurityKey, true);
-        account.setSecurityKey(securityKey.isEmpty() ? "" : Cryptography.stringToSHA3_256(securityKey));
-        account.setPin(Cryptography.stringToSHA3_256(setCredential("Account PIN", CredentialValidator.PIN_POLICY, CredentialValidator::validatePin, true)));
+        account.setSecurityKey(securityKey.isEmpty() ? "" : Config.cryptography.stringToSHA3_256(securityKey));
+        account.setPin(Config.cryptography.stringToSHA3_256(setCredential("Account PIN", CredentialValidator.PIN_POLICY, CredentialValidator::validatePin, true)));
     }
 
     /**
@@ -120,7 +114,7 @@ public final class AccountCreate implements AccountManager
         while (true) 
         {
             credentialDashboard();
-            String input = CredentialValidator.validateCredential(prompt, policy, validator, console, isPassword);
+            String input = CredentialValidator.validateCredential(prompt, policy, validator, Config.console, isPassword);
             if (input != null) 
             {
                 return input;
@@ -137,17 +131,17 @@ public final class AccountCreate implements AccountManager
      */
     private void credentialDashboard() 
     {
-        Build.viewBuildInfo();
-        IOStreams.println("-------------------------------------------------");
-        IOStreams.println("| User Management Console: Account Creation     |");
-        IOStreams.println("-------------------------------------------------\n");
-        IOStreams.println("Account Name  : " + (account.getName().isEmpty() ? "NOT SET" : account.getName()));
-        IOStreams.println("Username      : " + (account.getUsername().isEmpty() ? "NOT SET" : account.getUsername()));
-        IOStreams.println("Password      : " + (account.getPassword().isEmpty() ? "NOT SET" : "********"));
-        IOStreams.println("SecurityKey   : " + (account.getSecurityKey().isEmpty() ? "NOT SET" : "********"));
-        IOStreams.println("PIN           : " + (account.getPin().isEmpty() ? "NOT SET" : "****"));
-        IOStreams.println("Account Privileges: " + (account.isAdmin() ? "Administrator" : "Standard") + "\n");
-        IOStreams.println("========================================");
+        Config.build.viewBuildInfo(false);
+        Config.io.println("-------------------------------------------------");
+        Config.io.println("| User Management Config.console: Account Creation     |");
+        Config.io.println("-------------------------------------------------\n");
+        Config.io.println("Account Name  : " + (account.getName().isEmpty() ? "NOT SET" : account.getName()));
+        Config.io.println("Username      : " + (account.getUsername().isEmpty() ? "NOT SET" : account.getUsername()));
+        Config.io.println("Password      : " + (account.getPassword().isEmpty() ? "NOT SET" : "********"));
+        Config.io.println("SecurityKey   : " + (account.getSecurityKey().isEmpty() ? "NOT SET" : "********"));
+        Config.io.println("PIN           : " + (account.getPin().isEmpty() ? "NOT SET" : "****"));
+        Config.io.println("Account Privileges: " + (account.isAdmin() ? "Administrator" : "Standard") + "\n");
+        Config.io.println("========================================");
     }
 
     /**
@@ -161,9 +155,9 @@ public final class AccountCreate implements AccountManager
         );
         if (success) {
             FileManager.createUserDirectory(account.getUsername());
-            IOStreams.printInfo("Account Creation Successful!");
+            Config.io.printInfo("Account Creation Successful!");
         } else {
-            IOStreams.printError("Account Creation Failed.");
+            Config.io.printError("Account Creation Failed.");
         }
     }
 
@@ -181,18 +175,18 @@ public final class AccountCreate implements AccountManager
 
         account.setAdmin(true);
         account.setName("Administrator");
-        account.setUsername(Cryptography.stringToSHA3_256("Administrator"));
+        account.setUsername(Config.cryptography.stringToSHA3_256("Administrator"));
 
-        IOStreams.println("Administrator : " + account.isAdmin());
-        IOStreams.println("Account Name  : " + account.getName());
-        IOStreams.println("Username      : " + account.getUsername());
+        Config.io.println("Administrator : " + account.isAdmin());
+        Config.io.println("Account Name  : " + account.getName());
+        Config.io.println("Username      : " + account.getUsername());
 
-        account.setPassword(Cryptography.stringToSHA3_256(setCredential("Account Password", CredentialValidator.PASSWORD_POLICY, CredentialValidator::validatePassword, true)));
+        account.setPassword(Config.cryptography.stringToSHA3_256(setCredential("Account Password", CredentialValidator.PASSWORD_POLICY, CredentialValidator::validatePassword, true)));
         String securityKey = setCredential("Account Security Key", CredentialValidator.SECURITY_KEY_POLICY, CredentialValidator::validateSecurityKey, true);
-        account.setSecurityKey(securityKey.isEmpty() ? "" : Cryptography.stringToSHA3_256(securityKey));
-        account.setPin(Cryptography.stringToSHA3_256(setCredential("Account PIN", CredentialValidator.PIN_POLICY, CredentialValidator::validatePin, true)));
+        account.setSecurityKey(securityKey.isEmpty() ? "" : Config.cryptography.stringToSHA3_256(securityKey));
+        account.setPin(Config.cryptography.stringToSHA3_256(setCredential("Account PIN", CredentialValidator.PIN_POLICY, CredentialValidator::validatePin, true)));
 
         addAccountToDatabase();
-        IOStreams.confirmReturnToContinue();
+        Config.io.confirmReturnToContinue();
     }
 }

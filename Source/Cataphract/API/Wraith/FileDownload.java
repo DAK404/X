@@ -1,169 +1,79 @@
-/*
-*                                                      |
-*                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
-* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
-* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
-* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
-*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
-*                                               ||
-*                                               |
-*
-* A Cross Platform OS Shell
-* Powered By Truncheon Core
-*/
-
-/*
-* This file is part of the Cataphract project.
-* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software Foundation, Inc.,
-* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
-
 package Cataphract.API.Wraith;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-
+import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import java.net.URI;
-import java.net.URL;
-
-import Cataphract.API.IOStreams;
+import Cataphract.API.Config;
 import Cataphract.API.Dragon.Login;
-import Cataphract.API.Minotaur.PolicyCheck;
 
 /**
-* A utility class for downloading files from URLs.
-*
-* @author DAK404 (https://github.com/DAK404)
-* @version 3.1.0 (11-October-2023, Cataphract)
-* @since 0.0.1 (Zen Quantum 0.0.1)
-*/
-public class FileDownload
-{
-    /** Variable to store if the current user has administrator privileges */
-    private boolean _isUserAdmin = false;
+ * Implementation of FileDownloader for downloading files from URLs.
+ *
+ * @author DAK404 (https://github.com/DAK404)
+ * @version 1.4.1 (13-July-2025, Cataphract)
+ * @since 0.0.1 (Cataphract 0.0.1)
+ */
+public class FileDownload implements Cataphract.API.Wraith.FileDownloader {
+    private static final String UPDATE_FILE_NAME = "Update.zip";
+    private final PathUtils pathUtils;
+    private final boolean isUserAdmin;
 
-    /**
-    * Constructor to check if the current user is an administrator or not.
-    *
-    * @param username The currently logged in username
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public FileDownload(String username)throws Exception
-    {
-        _isUserAdmin = new Login(username).checkPrivilegeLogic();
+    public FileDownload(String username) throws Exception {
+        this.pathUtils = new PathUtils();
+        this.isUserAdmin = new Login(username).checkPrivilegeLogic();
     }
 
-    /**
-    * Downloads a file from the specified URL.
-    *
-    * @param URL The URL of the file to download.
-    * @param fileName The desired name for the downloaded file.
-    * @return {@code true} if the download was successful, {@code false} otherwise.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public final boolean downloadFile(String URL, String fileName) throws Exception
-    {
-        boolean status = false;
-
-        // Check the policy if file download is allowed in the policy file, can be bypassed by the accounts with administrator privileges
-        if (new PolicyCheck().retrievePolicyValue("download").equals("on") || _isUserAdmin)
-        {
-            status = downloadUsingNIO(URL, fileName);
-
-            // Check for an invalid URL
-            if (URL == null || fileName == null || URL.equalsIgnoreCase("") || fileName.equalsIgnoreCase(""))
-            IOStreams.printError("Invalid File Name. Enter a valid file name.");
+    @Override
+    public void downloadFile(String url, Path destination) throws Exception {
+        if (!canDownload()) {
+            Config.io.printError("Policy Management System - Permission Denied.");
+            return;
         }
-        else
-            IOStreams.printError("Policy Management System - Permission Denied.");
-
-        return status;
-    }
-
-    /**
-    * Downloads an update file based on the provided username.
-    *
-    * @return {@code true} if the update download was successful, {@code false} otherwise.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public final boolean downloadUpdate() throws Exception
-    {
-        boolean status = false;
-
-        if (new PolicyCheck().retrievePolicyValue("update").equals("on") || _isUserAdmin)
-        {
-            // Define the URL for the update file.
-            String updateFileURL = "https://github.com/DAK404/Cataphract/releases/download/TestBuilds/Cataphract.zip";
-            IOStreams.printInfo("Downloading update file from: " + updateFileURL);
-            // Attempt to download the update file using NIO.
-            status = downloadUsingNIO(updateFileURL, "Update.zip");
+        if (url == null || url.isEmpty() || !pathUtils.isValidPathName(destination.getFileName().toString())) {
+            Config.io.printError("Invalid URL or file name.");
+            return;
         }
-        else
-            IOStreams.printError("Policy Management System - Permission Denied.");
-        return status;
+        Path parentDir = destination.getParent();
+        if (!Files.exists(parentDir)) {
+            Config.io.printError("Destination directory does not exist: " + parentDir);
+            return;
+        }
+        downloadUsingNIO(url, destination);
+        Config.io.printInfo("Downloaded file to: " + destination);
     }
 
-    /**
-    * Downloads a file using NIO (non-blocking I/O).
-    *
-    * @param urlStr The URL of the file to download.
-    * @param fileName The desired name for the downloaded file.
-    * @return {@code true} if the download was successful, {@code false} otherwise.
-    * @throws Exception Throws any exceptions encountered during runtime. if any error occurs during the download process.
-    */
-    private boolean downloadUsingNIO(String urlStr, String fileName) throws Exception
-    {
-        boolean status = false;
+    @Override
+    public void downloadUpdate() throws Exception {
+        if (!canUpdate()) {
+            Config.io.printError("Policy Management System - Permission Denied.");
+            return;
+        }
+        String updateUrl = Config.UPDATE_URL;
+        Path destination = pathUtils.resolveRelativePath(Path.of("."), UPDATE_FILE_NAME);
+        Config.io.printInfo("Downloading update from: " + updateUrl);
+        downloadUsingNIO(updateUrl, destination);
+        Config.io.printInfo("Update downloaded to: " + destination);
+    }
 
-        try
-        {
-            // Convert the URL string to a URL object.
-            URL url = new URI(urlStr).toURL();
-
-            // Open a readable byte channel from the URL stream.
-            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-
-            // Create a file output stream for the specified file.
-            FileOutputStream fos = new FileOutputStream(fileName);
-
-            // Transfer data from the channel to the file.
+    private void downloadUsingNIO(String urlStr, Path destination) throws Exception {
+        try (ReadableByteChannel rbc = Channels.newChannel(new URI(urlStr).toURL().openStream());
+             FileOutputStream fos = new FileOutputStream(destination.toFile())) {
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-
-            // Close the streams.
-            fos.close();
-            rbc.close();
-
-            // Download successful.
-            status = true;
+        } catch (Exception e) {
+            Config.io.printError("Download failed: " + e.getMessage());
+            throw e;
         }
-        catch(FileNotFoundException fnfe)
-        {
-            IOStreams.printError("File Not Found On Remote.\nValidate URL And Resource Availability At Specified Address.");
-        }
-        catch (Exception e)
-        {
-            // Print any exceptions that occur during the download.
-            e.printStackTrace();
-        }
+    }
 
-        // Return the status of the download
-        return status;
+    private boolean canDownload() throws Exception {
+        return Config.policyCheck.retrievePolicyValue("download").equals("on") || isUserAdmin;
+    }
+
+    private boolean canUpdate() throws Exception {
+        return Config.policyCheck.retrievePolicyValue("update").equals("on") || isUserAdmin;
     }
 }

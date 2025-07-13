@@ -2,8 +2,7 @@ package Cataphract.API.Dragon;
 
 import java.util.function.Predicate;
 
-import Cataphract.API.IOStreams;
-import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Config;
 
 /**
  * Utility class for credential validation.
@@ -84,17 +83,17 @@ public final class CredentialValidator
             if (username == null || username.isEmpty() || username.equalsIgnoreCase("Administrator")) {
                 return false;
             }
-            String hashedUsername = Cryptography.stringToSHA3_256(username);
+            String hashedUsername = Config.cryptography.stringToSHA3_256(username);
             if (new Login(hashedUsername).checkUserExistence()) 
             {
-                IOStreams.printError("Username has already been enrolled! Please try again with another username.");
+                Config.io.printError("Username has already been enrolled! Please try again with another username.");
                 return false;
             }
             return true;
         }
         catch(Exception e)
         {
-            IOStreams.printError("Error with Username.");
+            Config.io.printError("Error with Username.");
         }
         return false;
     }

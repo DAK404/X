@@ -1,11 +1,8 @@
 package Cataphract.API.Dragon;
 
-import java.io.Console;
 import java.io.File;
 
-import Cataphract.API.Build;
-import Cataphract.API.IOStreams;
-import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Config;
 
 /**
  * A class to delete user accounts on the system. Can be restricted by policy "account_delete".
@@ -15,7 +12,6 @@ import Cataphract.API.Minotaur.Cryptography;
  * @since 0.0.1 (Mosaic 0.0.1)
  */
 public final class AccountDelete implements AccountManager {
-    private final Console console = System.console();
     private final String currentUsername;
     private final boolean isCurrentUserAdmin;
 
@@ -32,14 +28,14 @@ public final class AccountDelete implements AccountManager {
 
     @Override
     public void execute() throws Exception {
-        Build.viewBuildInfo();
+        Config.build.viewBuildInfo(false);
         if (!new Cataphract.API.Minotaur.PolicyCheck().retrievePolicyValue("account_delete").equals("on") && !isCurrentUserAdmin) {
-            IOStreams.printError("Policy Management System - Permission Denied.");
+            Config.io.printError("Policy Management System - Permission Denied.");
             return;
         }
 
-        if (!authenticate(String.valueOf(console.readPassword("Password: ")), String.valueOf(console.readPassword("Security Key: ")))) {
-            IOStreams.printError("Invalid Login Credentials. Please Try Again.");
+        if (!authenticate(String.valueOf(Config.console.readPassword("Password: ")), String.valueOf(Config.console.readPassword("Security Key: ")))) {
+            Config.io.printError("Invalid Login Credentials. Please Try Again.");
             return;
         }
 
@@ -48,28 +44,28 @@ public final class AccountDelete implements AccountManager {
 
     @Override
     public boolean authenticate(String password, String securityKey) throws Exception {
-        IOStreams.println("Please login to continue.");
-        IOStreams.println("Username: " + new Login(currentUsername).getNameLogic());
-        String hashedPassword = Cryptography.stringToSHA3_256(password);
-        String hashedSecurityKey = Cryptography.stringToSHA3_256(securityKey);
+        Config.io.println("Please login to continue.");
+        Config.io.println("Username: " + new Login(currentUsername).getNameLogic());
+        String hashedPassword = Config.cryptography.stringToSHA3_256(password);
+        String hashedSecurityKey = Config.cryptography.stringToSHA3_256(securityKey);
         return new Login(currentUsername).authenticationLogic(hashedPassword, hashedSecurityKey);
     }
 
     /**
-     * Provides a console for user account deletion.
+     * Provides a Config.console for user account deletion.
      *
      * @throws Exception If an error occurs.
      */
     private void userManagementConsoleDelete() throws Exception {
-        IOStreams.println("-------------------------------------------------");
-        IOStreams.println("|   User Management Console: Account Deletion   |");
-        IOStreams.println("-------------------------------------------------\n");
+        Config.io.println("-------------------------------------------------");
+        Config.io.println("|   User Management Config.console: Account Deletion   |");
+        Config.io.println("-------------------------------------------------\n");
 
         if (isCurrentUserAdmin) {
-            IOStreams.printWarning("ADMINISTRATOR MODE ACTIVE!");
+            Config.io.printWarning("ADMINISTRATOR MODE ACTIVE!");
             String[] command;
             do {
-                command = IOStreams.splitStringToArray(console.readLine("AccMgmt-Del!> "));
+                command = Config.io.splitStringToArray(Config.console.readLine("AccMgmt-Del!> "));
                 if (command.length == 0 || command[0].isEmpty()) {
                     continue;
                 }
@@ -79,18 +75,18 @@ public final class AccountDelete implements AccountManager {
                     case "del":
                     case "delete":
                         if (command.length < 2) {
-                            IOStreams.printError("Incorrect Syntax.");
+                            Config.io.printError("Incorrect Syntax.");
                         } else {
-                            String username = command.length > 2 && command[1].equalsIgnoreCase("force") ? command[2] : Cryptography.stringToSHA3_256(command[1]);
+                            String username = command.length > 2 && command[1].equalsIgnoreCase("force") ? command[2] : Config.cryptography.stringToSHA3_256(command[1]);
                             boolean success = accountDeletionLogic(username);
-                            IOStreams.printInfo("Account Deletion: " + (success ? "Successful" : "Failed"));
+                            Config.io.printInfo("Account Deletion: " + (success ? "Successful" : "Failed"));
                         }
                         break;
                     case "list":
                         new Login(currentUsername).listAllUserAccounts();
                         break;
                     default:
-                        IOStreams.printError("Command Not Found: " + command[0]);
+                        Config.io.printError("Command Not Found: " + command[0]);
                         break;
                 }
             } while (!command[0].equalsIgnoreCase("exit"));
@@ -107,28 +103,28 @@ public final class AccountDelete implements AccountManager {
      * @throws Exception If an error occurs.
      */
     private boolean accountDeletionLogic(String username) throws Exception {
-        if (username.equals(Cryptography.stringToSHA3_256("Administrator"))) {
-            IOStreams.printError("Deletion of Administrator Account is not allowed!");
+        if (username.equals(Config.cryptography.stringToSHA3_256("Administrator"))) {
+            Config.io.printError("Deletion of Administrator Account is not allowed!");
             return false;
         }
 
         if (!new Login(username).checkUserExistence()) {
-            IOStreams.println("User does not exist! Please enter the correct username (or the username hash) to continue");
+            Config.io.println("User does not exist! Please enter the correct username (or the username hash) to continue");
             return false;
         }
 
-        if (console.readLine("Are you sure you wish to delete user account \"" + new Login(username).getNameLogic() + "\"? [ YES | NO ]\n> ").equalsIgnoreCase("yes")) {
+        if (Config.console.readLine("Are you sure you wish to delete user account \"" + new Login(username).getNameLogic() + "\"? [ YES | NO ]\n> ").equalsIgnoreCase("yes")) {
             boolean dbSuccess = DatabaseManager.executeUpdate("DELETE FROM MUD WHERE Username = ?", username);
             boolean dirSuccess = FileManager.deleteDirectory(new File(Config.USER_HOME + username));
             boolean success = dbSuccess && dirSuccess;
             if (success) {
-                IOStreams.printAttention("Account Successfully Deleted.");
+                Config.io.printAttention("Account Successfully Deleted.");
                 if (!isCurrentUserAdmin) {
                     Thread.sleep(5000);
                     System.exit(211);
                 }
             } else {
-                IOStreams.printError("System Error: Unable to delete account.");
+                Config.io.printError("System Error: Unable to delete account.");
             }
             return success;
         }

@@ -2,7 +2,7 @@ package Cataphract.API.Dragon;
 
 import java.io.File;
 
-import Cataphract.API.IOStreams;
+import Cataphract.API.Config;
 
 /**
  * A class to handle user login and authentication.
@@ -86,23 +86,23 @@ public final class Login {
      */
     public void listAllUserAccounts() throws Exception {
         if (!checkPrivilegeLogic()) {
-            IOStreams.printError("Insufficient Privileges.");
+            Config.io.printError("Insufficient Privileges.");
             return;
         }
 
         String format = "%1$-64s| %2$-32s| %3$-5s\n";
         String c = "-";
-        IOStreams.println("");
+        Config.io.println("");
         String header = String.format(format, "Username", "Account Name", "Privileges");
-        IOStreams.println(header + c.repeat(header.length()) + "\n");
+        Config.io.println(header + c.repeat(header.length()) + "\n");
 
         File[] fileList = new File(Config.USER_HOME).listFiles();
         if (fileList != null) {
             for (File userDir : fileList) {
                 String user = userDir.getName();
-                IOStreams.println(String.format(format, user, new Login(user).getNameLogic(), new Login(user).checkPrivilegeLogic() ? "Yes" : "No"));
+                Config.io.println(String.format(format, user, new Login(user).getNameLogic(), new Login(user).checkPrivilegeLogic() ? "Yes" : "No"));
             }
         }
-        IOStreams.println("");
+        Config.io.println("");
     }
 }

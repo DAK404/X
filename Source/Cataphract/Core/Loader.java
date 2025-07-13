@@ -41,11 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import Cataphract.API.Build;
-import Cataphract.API.IOStreams;
-import Cataphract.API.Astaroth.Calendar;
-import Cataphract.API.Astaroth.Time;
-import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Config;
 import Cataphract.API.Wraith.FileRead;
 import Cataphract.API.Dragon.DatabaseInitializer;
 import Cataphract.API.Dragon.AccountCreate;
@@ -60,7 +56,7 @@ public class Loader
     {
         if (args.length == 0)
         {
-            IOStreams.printError("No boot mode specified. Aborting...");
+            Config.io.printError("No boot mode specified. Aborting...");
             System.exit(1);
         }
 
@@ -78,13 +74,13 @@ public class Loader
             case "debug":
                 if (args.length < 2) 
                 {
-                    IOStreams.printError("Invalid Syntax for debug mode.");
+                    Config.io.printError("Invalid Syntax for debug mode.");
                     System.exit(1);
                 }
                 bootMode = new DebugMode(args[1]);
                 break;
             default:
-                IOStreams.printError("Invalid Boot Mode. Aborting...");
+                Config.io.printError("Invalid Boot Mode. Aborting...");
                 System.exit(3);
                 return;
         }
@@ -93,7 +89,7 @@ public class Loader
         {
             bootMode.execute();
         } catch (Exception e) {
-            new ExceptionHandler().handleException(e);
+            Config.exceptionHandler.handleException(e);
         }
     }
 }
@@ -112,7 +108,7 @@ class ProbeMode implements BootMode {
 class NormalMode implements BootMode {
     @Override
     public void execute() throws Exception {
-        Build.viewBuildInfo();
+        Config.build.viewBuildInfo(false);
         new LoaderLogic().execute();
     }
 }
@@ -130,29 +126,22 @@ class DebugMode implements BootMode {
             case "crash":
                 throw new Exception("Simulated crash for debugging.");
             case "astaroth":
-                IOStreams.println(String.valueOf(new Time().getUnixEpoch()));
-                IOStreams.println(String.valueOf(new Time().getDateTimeUsingSpecifiedFormat("dd-MMMM-yyyy \nEEEE HH:mm:ss")));
-                new Calendar().printCalendar(0, 0);
-                new Calendar().printCalendar(8, 2077);
+                Config.io.println(String.valueOf(Config.time.getUnixEpoch()));
+                Config.io.println(String.valueOf(Config.time.getDateTimeUsingSpecifiedFormat("dd-MMMM-yyyy \nEEEE HH:mm:ss")));
+                Config.calendar.printCalendar(0, 0);
+                Config.calendar.printCalendar(8, 2077);
                 System.exit(0);
                 break;
-            case "iostreams":
-                IOStreams.printError("This is an error message.");
-                IOStreams.printWarning("This is a warning message.");
-                IOStreams.printAttention("This is an attention message.");
-                IOStreams.printInfo("This is an information message.");
-                IOStreams.println("This is a normal printline message. Printing the same with colors");
-                for (int i = 0; i < 9; i++) {
-                    for (int j = 0; j < 9; j++) {
-                        IOStreams.print(i, j, "testing IOStreams");
-                        System.out.print(" ");
-                    }
-                    System.out.println();
-                }
+            case "Config.io":
+                Config.io.printError("This is an error message.");
+                Config.io.printWarning("This is a warning message.");
+                Config.io.printAttention("This is an attention message.");
+                Config.io.printInfo("This is an information message.");
+                Config.io.println("This is a normal printline message. Printing the same with colors");
                 System.exit(0);
                 break;
             default:
-                IOStreams.printError("Undefined Debug Parameter.");
+                Config.io.printError("Undefined Debug Parameter.");
                 break;
         }
     }
@@ -166,23 +155,23 @@ class LoaderLogic {
 
         switch (result) {
             case 0:
-                IOStreams.printInfo("Integrity checks passed. Booting Cataphract...");
+                Config.io.printInfo("Integrity checks passed. Booting Cataphract...");
                 new GuestShell().execute();
                 break;
             case 1:
-                IOStreams.printError("Unable to locate or parse Manifest Files! Aborting boot...");
+                Config.io.printError("Unable to locate or parse Manifest Files! Aborting boot...");
                 System.exit(4);
                 break;
             case 2:
-                IOStreams.printError("Unable to populate the Kernel files! Aborting boot...");
+                Config.io.printError("Unable to populate the Kernel files! Aborting boot...");
                 System.exit(4);
                 break;
             case 3:
-                IOStreams.printError("File Signature verification failed! Aborting boot...");
+                Config.io.printError("File Signature verification failed! Aborting boot...");
                 System.exit(4);
                 break;
             case 4:
-                IOStreams.printError("File verification failed: Found File Size Discrepancy! Aborting boot...");
+                Config.io.printError("File verification failed: Found File Size Discrepancy! Aborting boot...");
                 System.exit(4);
                 break;
             case 5:
@@ -190,11 +179,11 @@ class LoaderLogic {
                 if (setup.setupCataphract()) {
                     System.exit(100);
                 } else {
-                    IOStreams.printError("Setup Failed!");
+                    Config.io.printError("Setup Failed!");
                 }
                 break;
             default:
-                IOStreams.printError("Generic Failure. Cannot Boot.");
+                Config.io.printError("Generic Failure. Cannot Boot.");
                 System.exit(4);
                 break;
         }
@@ -207,19 +196,19 @@ class IntegrityChecker {
     public byte checkIntegrity() {
         byte result = 55;
 
-        IOStreams.printInfo("Stage 0: Checking Manifest Files...");
+        Config.io.printInfo("Stage 0: Checking Manifest Files...");
         if (manifestFilesCheck()) {
-            IOStreams.printInfo("Stage 1: Manifest Files Found. Populating Kernel Files and Directories...");
+            Config.io.printInfo("Stage 1: Manifest Files Found. Populating Kernel Files and Directories...");
             if (populateKernelFiles(new File("./"))) {
-                IOStreams.printInfo("Stage 2: Kernel Files and Directories populated. Checking File Integrity - Phase 1...");
+                Config.io.printInfo("Stage 2: Kernel Files and Directories populated. Checking File Integrity - Phase 1...");
                 if (checkFileHashes()) {
-                    IOStreams.printInfo("Stage 3: File Integrity Check - Phase 1 Complete. Checking File Integrity - Phase 2...");
+                    Config.io.printInfo("Stage 3: File Integrity Check - Phase 1 Complete. Checking File Integrity - Phase 2...");
                     if (checkFileSizes()) {
                         result = 0;
-                        IOStreams.printInfo("Stage 4: File Integrity Check - Phase 2 Complete. Checking System and User Files...");
+                        Config.io.printInfo("Stage 4: File Integrity Check - Phase 2 Complete. Checking System and User Files...");
                         if (!setupStatusCheck()) {
                             result = 5;
-                            IOStreams.printAttention("Setting up Cataphract...");
+                            Config.io.printAttention("Setting up Cataphract...");
                         }
                     } else {
                         result = 4;
@@ -240,8 +229,8 @@ class IntegrityChecker {
     }
 
     private boolean manifestFilesCheck() {
-        return new File(IOStreams.convertFileSeparator(".|.Manifest|Cataphract|KernelFilesHashes.m1")).exists() &&
-               new File(IOStreams.convertFileSeparator(".|.Manifest|Cataphract|KernelFiles.m2")).exists();
+        return new File(Config.io.convertFileSeparator(".|.Manifest|Cataphract|KernelFilesHashes.m1")).exists() &&
+               new File(Config.io.convertFileSeparator(".|.Manifest|Cataphract|KernelFiles.m2")).exists();
     }
 
     private boolean populateKernelFiles(File fileDirectory) {
@@ -277,22 +266,22 @@ class IntegrityChecker {
     private boolean checkFileHashes() {
         try {
             Properties manifestM1Entries = new Properties();
-            FileInputStream m1FileStream = new FileInputStream(IOStreams.convertFileSeparator(".|.Manifest|Cataphract|KernelFilesHashes.m1"));
+            FileInputStream m1FileStream = new FileInputStream(Config.io.convertFileSeparator(".|.Manifest|Cataphract|KernelFilesHashes.m1"));
             manifestM1Entries.loadFromXML(m1FileStream);
             m1FileStream.close();
 
             for (String fileName : abraxisFilePathList) {
                 if (fileIgnoreList(fileName)) continue;
-                String kernelFileHash = Cryptography.fileToSHA3_256(new File(fileName));
-                String manifestHash = manifestM1Entries.getProperty(IOStreams.convertToNionSeparator(fileName));
+                String kernelFileHash = Config.cryptography.fileToSHA3_256(new File(fileName));
+                String manifestHash = manifestM1Entries.getProperty(Config.io.convertToNionSeparator(fileName));
                 if (manifestHash == null || !manifestHash.equals(kernelFileHash)) {
-                    IOStreams.printError("Integrity Check Failure at " + kernelFileHash + "\t" + fileName);
+                    Config.io.printError("Integrity Check Failure at " + kernelFileHash + "\t" + fileName);
                     return false;
                 }
             }
             return true;
         } catch (Exception e) {
-            IOStreams.println("Manifest Parse Error! Unable to continue.");
+            Config.io.println("Manifest Parse Error! Unable to continue.");
             return false;
         }
     }
@@ -301,34 +290,34 @@ class IntegrityChecker {
         try 
         {
             Properties manifestM2Entries = new Properties();
-            FileInputStream m2FileStream = new FileInputStream(IOStreams.convertFileSeparator(".|.Manifest|Cataphract|KernelFiles.m2"));
+            FileInputStream m2FileStream = new FileInputStream(Config.io.convertFileSeparator(".|.Manifest|Cataphract|KernelFiles.m2"));
             manifestM2Entries.loadFromXML(m2FileStream);
             m2FileStream.close();
 
             int fileCount = 0;
             for (String fileName : abraxisFilePathList) {
                 if (!fileName.endsWith(".class")) continue;
-                long fileSizeM2 = Long.parseLong(manifestM2Entries.getProperty(IOStreams.convertToNionSeparator(fileName), "-1"));
+                long fileSizeM2 = Long.parseLong(manifestM2Entries.getProperty(Config.io.convertToNionSeparator(fileName), "-1"));
                 long fileSize = new File(fileName).length();
                 if (fileSize != fileSizeM2) {
-                    IOStreams.printError("Integrity Check Failure at " + fileName + "\t" + fileSize + ". Expected " + fileSizeM2);
+                    Config.io.printError("Integrity Check Failure at " + fileName + "\t" + fileSize + ". Expected " + fileSizeM2);
                     return false;
                 }
                 fileCount++;
             }
             if (fileCount < manifestM2Entries.size()) {
-                IOStreams.printError("Integrity Check Failure. Expected " + manifestM2Entries.size() + ". Found " + fileCount);
+                Config.io.printError("Integrity Check Failure. Expected " + manifestM2Entries.size() + ". Found " + fileCount);
                 return false;
             }
             return true;
         } catch (Exception e) {
-            IOStreams.printError("File Operations Failure! Unable to continue.");
+            Config.io.printError("File Operations Failure! Unable to continue.");
             return false;
         }
     }
 
     private boolean setupStatusCheck() {
-        return new File(IOStreams.convertFileSeparator(".|System|Cataphract")).exists() && new File(IOStreams.convertFileSeparator(".|Users|Cataphract")).exists();
+        return new File(Config.io.convertFileSeparator(".|System|Cataphract")).exists() && new File(Config.io.convertFileSeparator(".|Users|Cataphract")).exists();
     }
 }
 
@@ -339,22 +328,22 @@ class GuestShell {
         String input;
         do {
             input = console.readLine("> ");
-            String[] commandArray = IOStreams.splitStringToArray(input);
+            String[] commandArray = Config.io.splitStringToArray(input);
 
             switch (commandArray[0].toLowerCase()) {
                 case "exit":
                 case "":
                     break;
                 case "clear":
-                    Build.clearScreen();
+                    Config.build.clearScreen();
                     break;
                 case "login":
                     new SycoraxKernel().startSycoraxKernel();
-                    Build.viewBuildInfo();
-                    IOStreams.println(3, 0, "Logout Successful");
+                    Config.build.viewBuildInfo(false);
+                    Config.io.println("Logout Successful");
                     break;
                 default:
-                    IOStreams.printError(commandArray[0] + " Command Not Found.");
+                    Config.io.printError(commandArray[0] + " Command Not Found.");
                     break;
             }
         } while (!input.equalsIgnoreCase("exit"));
@@ -375,7 +364,7 @@ class Setup
      * @return boolean returnValue - Returns if the setup was successful or not.
      */
     boolean setupCataphract() throws Exception {
-        String oobeIntroduction = Build._Branding + """
+        String oobeIntroduction = """
 
         Welcome to Cataphract!
 
@@ -391,15 +380,15 @@ class Setup
 
         If the current user is a System Administrator,\u00A0""";
 
-        Build.clearScreen();
-        IOStreams.confirmReturnToContinue(oobeIntroduction, ".\nSetup> ");
+        //Build.clearScreen();
+        Config.io.confirmReturnToContinue(oobeIntroduction, ".\nSetup> ");
         showAndAcceptEULA();
         createSystemDirectories();
         initializeDatabase();
         initializeDefaultPolicies();
         createAdministratorAccount();
         displaySetupProgress();
-        IOStreams.confirmReturnToContinue("Setup complete! ", ".\nSetup> ");
+        Config.io.confirmReturnToContinue("Setup complete! ", ".\nSetup> ");
 
         return prereqInfoStatus && initAdminAccount && initDB && initDirs && initPolicies;
     }
@@ -408,14 +397,14 @@ class Setup
      * Display the progress of the setup to the user: what's pending and what's completed
      */
     private void displaySetupProgress() {
-        Build.viewBuildInfo();
-        IOStreams.println("[ -- Program Setup Checklist -- ]");
-        IOStreams.println("[*] Show Program Prerequisites   : " + (prereqInfoStatus ? "COMPLETED" : "PENDING"));
-        IOStreams.println("[*] Initialize Directories       : " + (initDirs ? "COMPLETED" : "PENDING"));
-        IOStreams.println("[*] Initialize Database System   : " + (initDB ? "COMPLETED" : "PENDING"));
-        IOStreams.println("[*] Initialize Program Policies  : " + (initPolicies ? "COMPLETED" : "PENDING"));
-        IOStreams.println("[*] Create Administrator Account : " + (initAdminAccount ? "COMPLETED" : "PENDING"));
-        IOStreams.println("[ ----------------------------- ]\n");
+        Config.build.viewBuildInfo(false);
+        Config.io.println("[ -- Program Setup Checklist -- ]");
+        Config.io.println("[*] Show Program Prerequisites   : " + (prereqInfoStatus ? "COMPLETED" : "PENDING"));
+        Config.io.println("[*] Initialize Directories       : " + (initDirs ? "COMPLETED" : "PENDING"));
+        Config.io.println("[*] Initialize Database System   : " + (initDB ? "COMPLETED" : "PENDING"));
+        Config.io.println("[*] Initialize Program Policies  : " + (initPolicies ? "COMPLETED" : "PENDING"));
+        Config.io.println("[*] Create Administrator Account : " + (initAdminAccount ? "COMPLETED" : "PENDING"));
+        Config.io.println("[ ----------------------------- ]\n");
     }
 
     /**
@@ -436,10 +425,10 @@ class Setup
      */
     private void createSystemDirectories() {
         displaySetupProgress();
-        IOStreams.printInfo("Creating Directories...");
+        Config.io.printInfo("Creating Directories...");
         String[] directoryNames = {".|System|Cataphract|Public|Logs", ".|UsersCataphract"};
         for (String dirs : directoryNames) {
-            new File(IOStreams.convertFileSeparator(dirs)).mkdirs();
+            new File(Config.io.convertFileSeparator(dirs)).mkdirs();
         }
         initDirs = true;
     }

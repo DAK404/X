@@ -1,12 +1,11 @@
 package Cataphract.API.Dragon;
 
-import Cataphract.API.IOStreams;
-import Cataphract.API.ExceptionHandler;
-
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+
+import Cataphract.API.Config;
 
 public final class DatabaseInitializer {
     private static final String DATABASE_PATH = DatabaseInitializer.getDatabasePath();
@@ -29,12 +28,12 @@ public final class DatabaseInitializer {
     public static boolean initializeDatabase() {
         try {
             // Create directory for database if it doesn't exist
-            new File(IOStreams.convertFileSeparator(".|System|Cataphract|Private")).mkdirs();
+            new File(Config.io.convertFileSeparator(".|System|Cataphract|Private")).mkdirs();
 
             // Check if database already exists
-            IOStreams.printInfo("Checking for existing Master User Database...");
+            Config.io.printInfo("Checking for existing Master User Database...");
             if (new File(DATABASE_PATH.replace("jdbc:sqlite:", "")).exists()) {
-                IOStreams.printInfo("Master User Database already exists. Skipping initialization.");
+                Config.io.printInfo("Master User Database already exists. Skipping initialization.");
                 return true;
             }
 
@@ -45,12 +44,12 @@ public final class DatabaseInitializer {
             try (Connection dbConnection = DriverManager.getConnection(DATABASE_PATH);
                  Statement statement = dbConnection.createStatement()) {
                 statement.execute(CREATE_MUD_TABLE);
-                IOStreams.printInfo("Master User Database initialized successfully.");
+                Config.io.printInfo("Master User Database initialized successfully.");
                 return true;
             }
         } catch (Exception e) {
-            new ExceptionHandler().handleException(e);
-            IOStreams.printError("Failed to initialize Master User Database: " + e.getMessage());
+            Config.exceptionHandler.handleException(e);
+            Config.io.printError("Failed to initialize Master User Database: " + e.getMessage());
             return false;
         } finally {
             System.gc(); // Encourage garbage collection

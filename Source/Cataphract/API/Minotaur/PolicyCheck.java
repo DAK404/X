@@ -34,72 +34,73 @@
 
 package Cataphract.API.Minotaur;
 
-//Import the required Java IO classes
 import java.io.FileInputStream;
-
-//Import the required Java Util classes
 import java.util.Properties;
 
-import Cataphract.API.IOStreams;
+import Cataphract.API.Config;
 
 /**
-* A class that helps to check the policy for a given module.
-*
-* @author DAK404 (https://github.com/DAK404)
-* @version 2.0.6 (11-October-2023, Cataphract)
-* @since 0.0.1 (Mosaic 1.0)
-*/
-public class PolicyCheck
-{
+ * Manages policy value retrieval for the Cataphract shell.
+ */
+public class PolicyCheck {
+    private final PolicyProvider policyProvider;
+    private final String policyFilePath;
 
     /**
-    * Sole constructor. (For invocation by subclass constructors, typically implicit.)
-    */
-    public PolicyCheck()
-    {
+     * Constructs a PolicyCheck with default XML policy provider and path.
+     */
+    public PolicyCheck() {
+        this(new XmlPolicyProvider(), Config.io.convertFileSeparator(".|System|Cataphract|Private|Policy.burn"));
     }
 
     /**
-    * Retrieves the policy value in a string format, to the program requesting the value
-    *
-    * @param policyParameter The policy that must be checked against the policy file
-    * @return String The value of the value retrieved from the file
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public final String retrievePolicyValue(String policyParameter)throws Exception
-    {
-        //Initialize the policy value as an empty string
-        String policyValue = "";
-        try
-        {
-            //Open the properties streams
+     * Constructs a PolicyCheck with custom provider and file path.
+     * @param policyProvider The policy provider implementation.
+     * @param policyFilePath The path to the policy file.
+     */
+    public PolicyCheck(PolicyProvider policyProvider, String policyFilePath) {
+        this.policyProvider = policyProvider;
+        this.policyFilePath = policyFilePath;
+    }
+
+    /**
+     * Retrieves the policy value for the specified parameter.
+     * @param policyParameter The policy key to look up.
+     * @return The policy value, or "error" if not found or an error occurs.
+     */
+    public String retrievePolicyValue(String policyParameter) {
+        if (policyParameter == null || policyParameter.trim().isEmpty()) {
+            Config.io.printError("Invalid policy parameter: null or empty.");
+            return "error";
+        }
+        try {
+            String value = policyProvider.retrievePolicy(policyFilePath, policyParameter);
+            return value != null ? value : "error";
+        } catch (Exception e) {
+            Config.io.printError("Error retrieving policy '" + policyParameter + "': " + e.getMessage());
+            Config.exceptionHandler.handleException(e);
+            return "error";
+        }
+    }
+}
+
+/**
+ * Interface for policy value retrieval.
+ */
+interface PolicyProvider {
+    String retrievePolicy(String filePath, String policyParameter) throws Exception;
+}
+
+/**
+ * XML-based policy provider using Properties.
+ */
+class XmlPolicyProvider implements PolicyProvider {
+    @Override
+    public String retrievePolicy(String filePath, String policyParameter) throws Exception {
+        try (FileInputStream configStream = new FileInputStream(filePath)) {
             Properties prop = new Properties();
-            String propsFileName = IOStreams.convertFileSeparator(".|System|Cataphract|Private|Policy.burn");
-
-            //Load the file stream containing the program properties
-            FileInputStream configStream = new FileInputStream(propsFileName);
-
-            //Load the properties from an XML formatted file
             prop.loadFromXML(configStream);
-
-            //Get the property value specified in the file
-            policyValue = prop.getProperty(policyParameter);
-
-            //Close the streams
-            configStream.close();
+            return prop.getProperty(policyParameter);
         }
-        catch(Exception E)
-        {
-            //Set the string value to "error" if the given property is not found, unreadable or is misconfigured
-            policyValue = "error";
-        }
-
-        if(policyValue == null)
-        policyValue = "error";
-
-        System.gc();
-
-        //return the policy value in the string format
-        return policyValue;
     }
 }

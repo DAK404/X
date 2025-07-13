@@ -29,14 +29,10 @@ import java.io.Console;
 import java.util.HashMap;
 import java.util.Map;
 
-import Cataphract.API.Build;
-import Cataphract.API.IOStreams;
-import Cataphract.API.Astaroth.Time;
-import Cataphract.API.Anvil;
-import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Config;
 import Cataphract.API.Minotaur.PolicyCheck;
 import Cataphract.API.Minotaur.PolicyManager;
-import Cataphract.API.Wraith.FileManagement;
+import Cataphract.API.Wraith.FileManager;
 import Cataphract.API.Wyvern.NionUpdate;
 import Cataphract.API.Dragon.AccountCreate;
 import Cataphract.API.Dragon.AccountDelete;
@@ -63,12 +59,12 @@ public class SycoraxKernel {
      * Starts the Sycorax kernel, handles login, and launches user shell.
      */
     public void startSycoraxKernel() throws Exception {
-        Build.viewBuildInfo();
+        Config.build.viewBuildInfo(false);
         while (!authManager.login()) {
-            IOStreams.printError("Incorrect Credentials! Please try again.");
+            Config.io.printError("Incorrect Credentials! Please try again.");
             authManager.handleFailedLoginAttempt();
         }
-        IOStreams.printInfo("Login Successful. Loading Sycorax Kernel...");
+        Config.io.printInfo("Login Successful. Loading Sycorax Kernel...");
         sessionManager.fetchUserDetails(authManager.getUsername());
         commandProcessor.runUserShell();
     }
@@ -86,11 +82,11 @@ class AuthenticationManager {
      * @return true if login is successful, false otherwise.
      */
     public boolean login() throws Exception {
-        Build.viewBuildInfo();
-        IOStreams.printInfo("Authentication Attempts Left: " + loginAttemptsRemaining);
+        Config.build.viewBuildInfo(false);
+        Config.io.printInfo("Authentication Attempts Left: " + loginAttemptsRemaining);
         String[] credentials = AuthInputHelper.readCredentials(System.console());
         if (credentials == null) {
-            IOStreams.printError("Username cannot be empty.");
+            Config.io.printError("Username cannot be empty.");
             return false;
         }
         username = credentials[0];
@@ -105,7 +101,7 @@ class AuthenticationManager {
     public void handleFailedLoginAttempt() throws Exception {
         loginAttemptsRemaining--;
         if (loginAttemptsRemaining <= 0) {
-            IOStreams.printError("Authentication Attempts Exceeded! Further attempts are locked!");
+            Config.io.printError("Authentication Attempts Exceeded! Further attempts are locked!");
             Thread.sleep(36000);
             loginAttemptsRemaining = 5;
         }
@@ -118,7 +114,7 @@ class AuthenticationManager {
      */
     public boolean challengePIN(String storedPIN) throws Exception {
         String enteredPIN = String.valueOf(System.console().readPassword("> PIN : "));
-        return Cryptography.stringToSHA3_256(enteredPIN).equals(storedPIN);
+        return Config.cryptography.stringToSHA3_256(enteredPIN).equals(storedPIN);
     }
 
     public String getUsername() {
@@ -202,7 +198,7 @@ class CommandProcessor {
         commands.put("files", new FileManagementCommand(sessionManager.getUsername()));
         commands.put("exit", new ExitCommand());
         commands.put("restart", new RestartCommand());
-        commands.put("script", new ScriptCommand(this, sessionManager));
+        commands.put("script", new ScriptCommand(this));
         commands.put("update", new UpdateCommand(sessionManager.getUsername()));
         commands.put("usermgmt", new UserManagementCommand(sessionManager.getUsername()));
     }
@@ -213,7 +209,7 @@ class CommandProcessor {
     public void runUserShell() throws Exception {
         Console console = System.console();
         String input;
-        Build.viewBuildInfo();
+        Config.build.viewBuildInfo(false);
         do {
             input = console.readLine(sessionManager.getPrompt());
             processCommand(input);
@@ -226,12 +222,12 @@ class CommandProcessor {
      */
     public void processCommand(String input) throws Exception {
         if (input == null || input.trim().isEmpty()) return;
-        String[] commandArray = IOStreams.splitStringToArray(input);
+        String[] commandArray = Config.io.splitStringToArray(input);
         Command command = commands.get(commandArray[0].toLowerCase());
         if (command != null) {
             command.execute(commandArray);
         } else {
-            Anvil.anvilInterpreter(commandArray);
+            Config.anvil.anvilInterpreter(commandArray);
         }
     }
 
@@ -240,21 +236,21 @@ class CommandProcessor {
      */
     public boolean executeScript(String scriptFileName) throws Exception {
         if (scriptFileName == null || scriptFileName.trim().isEmpty() || scriptFileName.startsWith(" ")) {
-            IOStreams.printError("The name of the script file cannot be blank.");
+            Config.io.printError("The name of the script file cannot be blank.");
             return false;
         }
         if (!new PolicyCheck().retrievePolicyValue("script").equals("on") || !sessionManager.isUserAdmin()) {
-            IOStreams.printError("Insufficient Privileges to run scripts! Please contact the Administrator.");
+            Config.io.printError("Insufficient Privileges to run scripts! Please contact the Administrator.");
             return false;
         }
-        String filePath = IOStreams.convertFileSeparator(".|Users|Cataphract|" + sessionManager.getUsername() + "|" + scriptFileName);
+        String filePath = Config.io.convertFileSeparator(".|Users|Cataphract|" + sessionManager.getUsername() + "|" + scriptFileName);
         File scriptFile = new File(filePath);
         if (!scriptFile.exists() || scriptFile.isDirectory()) {
-            IOStreams.printAttention("The specified script file is invalid or has not been found.\nPlease check the script file name and try again.");
+            Config.io.printAttention("The specified script file is invalid or has not been found.\nPlease check the script file name and try again.");
             return false;
         }
         if (scriptMode) {
-            IOStreams.printError("Cannot execute script within another script.");
+            Config.io.printError("Cannot execute script within another script.");
             return false;
         }
         scriptMode = true;
@@ -293,7 +289,7 @@ class RefreshCommand implements Command {
     @Override
     public void execute(String[] args) throws Exception {
         sessionManager.fetchUserDetails(sessionManager.getUsername());
-        IOStreams.printInfo("User details refreshed.");
+        Config.io.printInfo("User details refreshed.");
     }
 }
 
@@ -308,22 +304,22 @@ class LockCommand implements Command {
     public void execute(String[] args) throws Exception {
         AuthenticationManager authManager = new AuthenticationManager();
         String input;
-        Build.clearScreen();
+        Config.build.clearScreen();
         do {
             StringBuilder lockPromptBuilder = new StringBuilder()
                     .append((char)27).append("[33;49m")
-                    .append(new Time().getDateTimeUsingSpecifiedFormat("yyyy-MMM-dd HH:mm:ss"))
+                    .append(Config.time.getDateTimeUsingSpecifiedFormat("yyyy-MMM-dd HH:mm:ss"))
                     .append("  LOCKED\n")
                     .append(sessionManager.getPrompt())
                     .append((char)27).append("[0m");
             input = System.console().readLine(lockPromptBuilder.toString());
         } while (!input.equalsIgnoreCase("unlock"));
-        IOStreams.printAttention("Please Enter Unlock PIN To Continue.");
+        Config.io.printAttention("Please Enter Unlock PIN To Continue.");
         while (!authManager.challengePIN(sessionManager.getUserUnlockPIN())) {
-            IOStreams.printError("Incorrect PIN.");
+            Config.io.printError("Incorrect PIN.");
             authManager.handleFailedLoginAttempt();
         }
-        Build.viewBuildInfo();
+        Config.build.viewBuildInfo(false);
     }
 }
 
@@ -363,17 +359,15 @@ class RestartCommand implements Command {
 
 class ScriptCommand implements Command {
     private final CommandProcessor commandProcessor;
-    private final SessionManager sessionManager;
 
-    public ScriptCommand(CommandProcessor commandProcessor, SessionManager sessionManager) {
+    public ScriptCommand(CommandProcessor commandProcessor) {
         this.commandProcessor = commandProcessor;
-        this.sessionManager = sessionManager;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
         if (args.length < 2) {
-            IOStreams.printError("Invalid Syntax: script <filename>");
+            Config.io.printError("Invalid Syntax: script <filename>");
             return;
         }
         commandProcessor.executeScript(args[1]);
@@ -390,7 +384,7 @@ class UpdateCommand implements Command {
     @Override
     public void execute(String[] args) throws Exception {
         new NionUpdate(username).updater();
-        new File(IOStreams.convertFileSeparator(".|Update.zip")).delete();
+        new File(Config.io.convertFileSeparator(".|Update.zip")).delete();
     }
 }
 
@@ -404,7 +398,7 @@ class UserManagementCommand implements Command {
     @Override
     public void execute(String[] args) throws Exception {
         if (args.length < 2) {
-            IOStreams.printError("Module Usermgmt: Missing subcommand. Use: create, modify, or delete");
+            Config.io.printError("Module Usermgmt: Missing subcommand. Use: create, modify, or delete");
             return;
         }
         switch (args[1].toLowerCase()) {
@@ -416,11 +410,11 @@ class UserManagementCommand implements Command {
                 break;
             case "delete":
                 new AccountDelete(username).execute();
-                IOStreams.printInfo("Account deleted. Logging out...");
+                Config.io.printInfo("Account deleted. Logging out...");
                 System.console().readLine("Press Enter to logout...");
                 break;
             default:
-                IOStreams.printError("Module Usermgmt: " + args[1] + " - Command Not Found");
+                Config.io.printError("Module Usermgmt: " + args[1] + " - Command Not Found");
                 break;
         }
     }

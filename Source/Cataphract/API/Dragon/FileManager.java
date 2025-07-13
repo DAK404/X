@@ -2,7 +2,7 @@ package Cataphract.API.Dragon;
 
 import java.io.File;
 
-import Cataphract.API.IOStreams;
+import Cataphract.API.Config;
 
 /**
  * Utility class for file and directory operations.
@@ -10,7 +10,8 @@ import Cataphract.API.IOStreams;
  * @author DAK404 (https://github.com/DAK404)
  * @version 4.0.0 (12-July-2025, Cataphract)
  */
-public final class FileManager {
+public final class FileManager 
+{
     private FileManager() {
         // Private constructor to prevent instantiation
     }
@@ -22,7 +23,7 @@ public final class FileManager {
      * @return true if successful, false otherwise.
      */
     public static boolean createUserDirectory(String username) {
-        return new File(IOStreams.convertFileSeparator(Config.USER_HOME + username)).mkdirs();
+        return new File(Config.io.convertFileSeparator(Config.USER_HOME + username)).mkdirs();
     }
 
     /**
@@ -40,7 +41,7 @@ public final class FileManager {
             }
             return directory.delete();
         } catch (Exception e) {
-            IOStreams.printError("Directory Deletion Failed: " + e.getMessage());
+            Config.io.printError("Directory Deletion Failed: " + e.getMessage());
             return false;
         }
     }

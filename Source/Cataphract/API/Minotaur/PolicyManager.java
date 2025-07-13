@@ -34,272 +34,230 @@
 
 package Cataphract.API.Minotaur;
 
-import java.io.Console;
-
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileInputStream;
-
+import java.io.FileOutputStream;
+import java.security.SecureRandom;
 import java.util.Properties;
 
-import Cataphract.API.Build;
-import Cataphract.API.IOStreams;
+import Cataphract.API.Config;
+import Cataphract.API.Dragon.Login;
 
 /**
-* A class implementing policy management system.
-*
-* @author DAK404 (https://github.com/DAK404)
-* @version 2.0.1 (11-October-2023, Cataphract)
-* @since 0.2.4.6 (Mosaic)
-*/
-public class PolicyManager
-{
-    /** Stores the value if the user is an administrator or not.*/
-    private boolean _isUserAdmin = false;
-
-    /** Stores the default Cataphract values in an array.*/
-    public final String [] resetValues = {"update", "download", "script", "filemgmt", "read", "edit", "policy", "account_create", "account_delete", "account_modify"};
-
-    /** Stores the path of the policy file.*/
-    private final String policyFileName = IOStreams.convertFileSeparator(".|System|Cataphract|Private|Policy.burn");
-
-    /** Provide a set of applicable commands to the users.*/
-    private String suggestedInputs = "";
-
-    /** Instantiate Console to get user inputs*/
-    private Console console = System.console();
-
-    /** Instantiate Properties to load and write to the policy file.*/
-    private Properties props = null;
-
-    /** Sole constructor. Checks if the policy file exists. Will reset if the file does not exist.*/
-    public PolicyManager()
-    {
-        try
-        {
-            if(!new File(policyFileName).exists())
-            resetPolicyFile();
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
+ * Manages policy editing for the Cataphract shell.
+ */
+public class PolicyManager {
+    private final PolicyStorage policyStorage;
+    private final Authenticator authenticator;
+    private final String policyFilePath;
+    private final String[] defaultPolicies = {"update", "download", "script", "filemgmt", "read", "edit", "policy", "account_create", "account_delete", "account_modify"};
+    private boolean isUserAdmin;
 
     /**
-    * Logic to edit the policy file with the policy name and its corresponding values.
-    *
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public final void policyEditorLogic()throws Exception
-    {
-        //If authentication logic fails, exit the module.
-        if(!authenticationLogic())
-        IOStreams.printError("Authentication Failure. Exiting...");
-        else
-        //Check if the policy management is enabled for users. If disabled, check if the user is admin and override the policy.
-        if((new PolicyCheck().retrievePolicyValue("policy").equalsIgnoreCase("on")) || _isUserAdmin)
-        //Call the policy editor if conditions are met.
-        policyEditor();
-        else
-        //Notify the user about the privileges and policy.
-        IOStreams.printError("Policy Management Disabled: Insufficient Privileges");
-
-        System.gc();
-    }
-
-    /**
-    * Logic to authenticate a user to access the policy management system
-    *
-    * @return boolean Returns the Authentication status.
-    */
-    private final boolean authenticationLogic()
-    {
-        //Boolean to store the result of the authentication check.
-        boolean challengeStatus = false;
-
-        //Added a try-catch block for better error handling mechanism
-        try
-        {
-            //Clear the screen and display build information
-            Build.viewBuildInfo();
-            IOStreams.printAttention("This module requires the user to authenticate to continue. Please enter the user credentials.");
-
-            //Store the username, will be required to check if the user has administrator privileges.
-            String username = Cryptography.stringToSHA3_256(console.readLine("Username: "));
-
-            //Use the Login API to check if the entered credentials are valid or not
-            challengeStatus = (new Cataphract.API.Dragon.Login(username).authenticationLogic(Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("Password: "))), Cryptography.stringToSHA3_256(String.valueOf(console.readPassword("Security Key: ")))));
-
-            //Update the value to check if the user has administrator privileges.
-            _isUserAdmin = new Cataphract.API.Dragon.Login(username).checkPrivilegeLogic();
-        }
-        catch(Exception E)
-        {
-            //Handle any exceptions thrown during runtime
-            //Set the challenge status to be false
-            challengeStatus = false;
-        }
-        return challengeStatus;
-    }
-
-    /**
-    * Logic containing the implementation to edit policies.
-    *
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private final void policyEditor()throws Exception
-    {
-        //Display the suggested inputs to the user.
-        suggestedInputs = "[ MODIFY " + (_isUserAdmin?"| RESET ":"") + "| REFRESH | HELP | EXIT ]";
-
-        //Load the properties from the policy file.
-        props = new Properties();
-
-        //If the policy file is not found, reset the policies and force recreate the policy file.
-        if(! new File(policyFileName).exists())
-        resetPolicyFile();
-
-        //Display the policies.
-        viewPolicyInfo();
-
-        //A string to hold the inputs provided by the user.
-        String input;
-
-        //Loop the logic until the user wants to exit the module.
-        do
-        {
-            //Store the user input command in variable "input"
-            input = console.readLine("PolicyEditor)> ");
-
-            //Split the contents of "input" at the occurrence of a blank space and store it in an array.
-            String[] policyCommandArray = IOStreams.splitStringToArray(input);
-
-            //Logic to decide which command needs to be executed, and converting the input to lowercase to avoid any discrepancies.
-            switch(policyCommandArray[0].toLowerCase())
-            {
-                //Logic to modify the policy file.
-                case "modify":
-                //If the command syntax is invalid, notify the user and display the correct syntax.
-                if(policyCommandArray.length < 2)
-                IOStreams.printError("Invalid Syntax: Missing Policy Name or Value");
-                //Else, save the policy and the value to the file.
-                else
-                savePolicy(policyCommandArray[1], policyCommandArray[2]);
-                break;
-
-                //Logic to reset the policy file.
-                case "reset":
-                //Reset can be performed by Administrators only. Restrict normal users from using this command.
-                if(_isUserAdmin)
-                {
-                    IOStreams.printAttention("Resetting Policy File...");
-                    resetPolicyFile();
-                }
-                break;
-
-                //Logic to reload and display the policy file
-                case "refresh":
-                viewPolicyInfo();
-                break;
-
-                //logic to handle the exiting of program. NOTE: the while loop shall take care of the exit, therefore, a break is suitable here.
-                case "exit":
-                case "":
-                break;
-
-                //Default string when a command is not found.
-                default:
-                IOStreams.printError("Invalid command. Please try again.");
-                break;
-            }
-            System.gc();
-        }
-        while(! input.equalsIgnoreCase("exit"));
-    }
-
-    /**
-    * Display the policies and the required data.
-    *
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private final void viewPolicyInfo()throws Exception
-    {
-        displaySettings();
-        IOStreams.println(suggestedInputs + "\n");
-    }
-
-    /**
-     * Display the details of the policy file and the policies itself.
-     *
-     * @throws Exception Throws any exceptions encountered during runtime.
+     * Constructs a PolicyManager with default XML storage and path.
      */
-    private final void displaySettings()throws Exception
-    {
-        Build.viewBuildInfo();
-        IOStreams.println("--------------------------------------------");
-        IOStreams.println("         Minotaur Policy Editor 2.0         ");
-        IOStreams.println("--------------------------------------------");
-        IOStreams.println("      - Current Policy Configuration -      ");
-        IOStreams.println("--------------------------------------------");
-        IOStreams.println("\nPolicy File  : " + policyFileName);
-        IOStreams.println("Policy Format: XML\n");
-        FileInputStream configStream = new FileInputStream(policyFileName);
-        props.loadFromXML(configStream);
-        configStream.close();
+    public PolicyManager() {
+        this(new XmlPolicyStorage(), new LoginAuthenticator(), Config.io.convertFileSeparator(".|System|Cataphract|Private|Policy.burn"));
+    }
+
+    /**
+     * Constructs a PolicyManager with custom storage, authenticator, and path.
+     */
+    public PolicyManager(PolicyStorage policyStorage, Authenticator authenticator, String policyFilePath) {
+        this.policyStorage = policyStorage;
+        this.authenticator = authenticator;
+        this.policyFilePath = policyFilePath;
+        initializePolicyFile();
+    }
+
+    /**
+     * Runs the interactive policy editor CLI.
+     */
+    public void policyEditorLogic() {
+        try {
+            if (!authenticateUser()) {
+                Config.io.printError("Authentication Failure. Exiting...");
+                return;
+            }
+            String policyStatus = Config.policyCheck.retrievePolicyValue("policy");
+            if (policyStatus.equalsIgnoreCase("on") || isUserAdmin) {
+                runPolicyEditor();
+            } else {
+                Config.io.printError("Policy Management Disabled: Insufficient Privileges");
+            }
+        } catch (Exception e) {
+            Config.io.printError("Error in policy editor: " + e.getMessage());
+            Config.exceptionHandler.handleException(e);
+        }
+    }
+
+    private void initializePolicyFile() {
+        try {
+            if (!new File(policyFilePath).exists()) {
+                resetPolicyFile();
+            }
+        } catch (Exception e) {
+            Config.io.printError("Error initializing policy file: " + e.getMessage());
+            Config.exceptionHandler.handleException(e);
+        }
+    }
+
+    private boolean authenticateUser() throws Exception {
+        Config.build.viewBuildInfo(false);
+        Config.io.printAttention("This module requires authentication. Please enter credentials.");
+        String username = Config.console.readLine("Username: ");
+        if (username == null || username.trim().isEmpty()) {
+            Config.io.printError("Username cannot be empty.");
+            return false;
+        }
+        String hashedUsername = Config.cryptography.stringToSHA3_256(username);
+        char[] password = Config.console.readPassword("Password: ");
+        String hashedPassword = Config.cryptography.stringToSHA3_256(password != null ? new String(password) : "");
+        char[] securityKey = Config.console.readPassword("Security Key: ");
+        String hashedSecurityKey = Config.cryptography.stringToSHA3_256(securityKey != null ? new String(securityKey) : "");
+        boolean authenticated = authenticator.authenticate(hashedUsername, hashedPassword, hashedSecurityKey);
+        isUserAdmin = authenticator.isAdmin(hashedUsername);
+        return authenticated;
+    }
+
+    private void runPolicyEditor() throws Exception {
+        String suggestedInputs = "[ MODIFY " + (isUserAdmin ? "| RESET " : "") + "| REFRESH | HELP | EXIT ]";
+        Config.build.viewBuildInfo(false);
+        displayPolicyInfo(suggestedInputs);
+        String input;
+        do {
+            input = Config.console.readLine("PolicyEditor)> ");
+            if (input == null) {
+                input = "";
+            }
+            String[] policyCommandArray = Config.io.splitStringToArray(input);
+            if (policyCommandArray.length == 0 || policyCommandArray[0].isEmpty()) {
+                continue;
+            }
+            switch (policyCommandArray[0].toLowerCase()) {
+                case "modify":
+                    if (policyCommandArray.length < 3) {
+                        Config.io.printError("Invalid Syntax: Expected 'modify <policy> <value>'");
+                    } else {
+                        savePolicy(policyCommandArray[1], policyCommandArray[2]);
+                    }
+                    break;
+                case "reset":
+                    if (isUserAdmin) {
+                        Config.io.printAttention("Resetting Policy File...");
+                        resetPolicyFile();
+                    } else {
+                        Config.io.printError("Reset restricted to administrators.");
+                    }
+                    break;
+                case "refresh":
+                    displayPolicyInfo(suggestedInputs);
+                    break;
+                case "help":
+                    Config.io.println("Commands: " + suggestedInputs);
+                    break;
+                case "exit":
+                    break;
+                default:
+                    Config.io.printError("Invalid command. Use: " + suggestedInputs);
+                    break;
+            }
+        } while (!input.equalsIgnoreCase("exit"));
+    }
+
+    private void displayPolicyInfo(String suggestedInputs) throws Exception {
+        Config.build.viewBuildInfo(false);
+        Config.io.println("--------------------------------------------");
+        Config.io.println("         Minotaur Policy Editor 2.0         ");
+        Config.io.println("--------------------------------------------");
+        Config.io.println("      - Current Policy Configuration -      ");
+        Config.io.println("--------------------------------------------");
+        Config.io.println("\nPolicy File  : " + policyFilePath);
+        Config.io.println("Policy Format: XML\n");
+        Properties props = policyStorage.loadPolicies(policyFilePath);
         props.list(System.out);
-        IOStreams.println("\n--------------------------------------------\n");
-        System.gc();
+        Config.io.println("\n--------------------------------------------\n");
+        Config.io.println(suggestedInputs + "\n");
     }
 
-    /**
-    * Saves a policy to the file, with the key and value structure
-    *
-    * The policies are stored in an XML structured file
-    * @param policyName Name of the policy that needs to be stored.
-    * @param policyValue Value of the policy that needs to be stored.
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private final void savePolicy(String policyName, String policyValue)throws Exception
-    {
-        //Set the policy name and the policy value specified in the arguments.
+    private void savePolicy(String policyName, String policyValue) throws Exception {
+        if (policyName == null || policyValue == null || policyName.trim().isEmpty()) {
+            Config.io.printError("Invalid policy name or value.");
+            return;
+        }
+        policyStorage.savePolicy(policyFilePath, policyName, policyValue);
+        Config.io.printInfo("Policy '" + policyName + "' set to '" + policyValue + "'.");
+    }
+
+    private void resetPolicyFile() throws Exception {
+        new File(policyFilePath).delete();
+        for (String policy : defaultPolicies) {
+            policyStorage.savePolicy(policyFilePath, policy, "on");
+        }
+        SecureRandom random = new SecureRandom();
+        policyStorage.savePolicy(policyFilePath, "sysname", "SYSTEM" + (100000 + random.nextInt(900000)));
+        policyStorage.savePolicy(policyFilePath, "module", "off");
+        policyStorage.savePolicy(policyFilePath, "policy", "off");
+        policyStorage.savePolicy(policyFilePath, "auth", "off");
+    }
+}
+
+/**
+ * Interface for policy storage operations.
+ */
+interface PolicyStorage {
+    Properties loadPolicies(String filePath) throws Exception;
+    void savePolicy(String filePath, String policyName, String policyValue) throws Exception;
+}
+
+/**
+ * XML-based policy storage using Properties.
+ */
+class XmlPolicyStorage implements PolicyStorage {
+    @Override
+    public Properties loadPolicies(String filePath) throws Exception {
+        try (FileInputStream configStream = new FileInputStream(filePath)) {
+            Properties props = new Properties();
+            props.loadFromXML(configStream);
+            return props;
+        }
+    }
+
+    @Override
+    public void savePolicy(String filePath, String policyName, String policyValue) throws Exception {
+        Properties props = new Properties();
+        File file = new File(filePath);
+        if (file.exists()) {
+            try (FileInputStream configStream = new FileInputStream(file)) {
+                props.loadFromXML(configStream);
+            }
+        }
         props.setProperty(policyName, policyValue);
+        try (FileOutputStream output = new FileOutputStream(filePath)) {
+            props.storeToXML(output, "CataphractSettings");
+        }
+    }
+}
 
-        //Write the data out to the file.
-        FileOutputStream output = new FileOutputStream(policyFileName);
+/**
+ * Interface for authentication operations.
+ */
+interface Authenticator {
+    boolean authenticate(String username, String password, String securityKey) throws Exception;
+    boolean isAdmin(String username) throws Exception;
+}
 
-        //Store the policy data under CataphractSettings.
-        props.storeToXML(output, "CataphractSettings");
-
-        //Close the output stream
-        output.close();
-        System.gc();
+/**
+ * Authenticator using Login class.
+ */
+class LoginAuthenticator implements Authenticator {
+    @Override
+    public boolean authenticate(String username, String password, String securityKey) throws Exception {
+        return new Login(username).authenticationLogic(password, securityKey);
     }
 
-    /**
-    * Resets all the policies to its default values.
-    *
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    private final void resetPolicyFile()throws Exception
-    {
-        //force delete the policy file
-        new File(policyFileName).delete();
-
-        //Instantiate the Properties class.
-        props = new Properties();
-
-        //Set the policy name and values.
-        for(int i = 0; i < resetValues.length; ++i)
-        savePolicy(resetValues[i], "on");
-
-        //Generate a random system name and store it in the policy file
-        savePolicy("sysname", "SYSTEM" + ((int)(Math.random() * (999999 - 100000 + 1)) + 100000));
-
-        // EXCEPTIONS! These policies need to be set to off for the sake of program security. //
-
-        savePolicy("module", "off");
-        savePolicy("policy", "off");
-        savePolicy("auth", "off");
+    @Override
+    public boolean isAdmin(String username) throws Exception {
+        return new Login(username).checkPrivilegeLogic();
     }
 }

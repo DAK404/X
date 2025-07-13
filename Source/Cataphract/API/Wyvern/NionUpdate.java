@@ -34,84 +34,110 @@
 
 package Cataphract.API.Wyvern;
 
-import Cataphract.API.IOStreams;
+import Cataphract.API.Config;
+import Cataphract.API.ExceptionHandler;
 import Cataphract.API.Dragon.Login;
 import Cataphract.API.Minotaur.PolicyCheck;
 import Cataphract.API.Wraith.FileDownload;
-import Cataphract.API.Wraith.FileWrite;
-import Cataphract.API.Wraith.Archive.FileUnzip;
+import Cataphract.API.Wraith.FileWriter;
+import Cataphract.API.Wraith.Archive.ZipArchiveHandler;
 
 /**
 * A class that provides utilities for updating Cataphract
 *
 * @author DAK404 (https://github.com/DAK404)
-* @version 2.0.0 (03-March-2024, Cataphract)
+* @version 2.0.0 (13-July-2025, Cataphract)
 * @since 0.0.1 (Mosaic 0.0.1)
 */
-public class NionUpdate
-{
+public class NionUpdate {
     /** Stores the username of the current user. */
-    private String _username = "";
+    private final String username;
 
     /** Stores the value of user privileges. */
-    private boolean _isUserAdmin = false;
+    private final boolean isUserAdmin;
+
+    /** FileWriter instance for logging update events. */
+    private final FileWriter fileWriter;
+
+    /** ExceptionHandler instance for handling errors. */
+    private final ExceptionHandler exceptionHandler;
+
+    /** Log file name for update events. */
+    private static final String LOG_FILE_NAME = "UpdateLog";
 
     /**
-    * Constructor to store username and check if the current user is an administrator or not.
+    * Constructor to store username, check privileges, and initialize dependencies.
     *
     * @param username Username of the current user
-    * @throws Exception Throws any exceptions encountered during runtime.
+    * @param fileWriter FileWriter instance for logging
+    * @param exceptionHandler ExceptionHandler instance for error handling
+    * @throws Exception Throws any exceptions encountered during runtime
     */
-    public NionUpdate(String username)throws Exception
-    {
-        _username = username;
-        _isUserAdmin = new Login(username).checkPrivilegeLogic();
+    public NionUpdate(String username, FileWriter fileWriter, ExceptionHandler exceptionHandler) throws Exception {
+        this.username = username;
+        this.isUserAdmin = new Login(username).checkPrivilegeLogic();
+        this.fileWriter = fileWriter;
+        this.exceptionHandler = exceptionHandler;
     }
 
     /**
-    * Updates Cataphract, fetching the latest release from remote,
+    * Updates Cataphract, fetching the latest release from remote.
     *
-    * @throws Exception Throws any exceptions encountered during runtime.
+    * @throws Exception Throws any exceptions encountered during runtime
     */
-    public void updater()throws Exception
-    {
-        // Check the policy if updating is allowed in the policy file, can be bypassed by the accounts with administrator privileges
-        if(new PolicyCheck().retrievePolicyValue("update").equals("on") || _isUserAdmin)
-        {
-            FileWrite.logger("Update initiated by: " + _username, "Update");
-            
-            IOStreams.println("---- Wyvern: Program Update Utility 2.0 ----");
-            IOStreams.printAttention("[*] This will install the lastest version of Cataphract. Please ensure that there is internet connectivity.");
-            IOStreams.printAttention("[*] After updating, Cataphract will require a restart to updated files.\n");
-            IOStreams.printWarning("DO NOT TURN OFF THE SYSTEM, CHANGE NETWORK STATES OR CLOSE THIS PROGRAM.\nBY DOING THIS, YOU MIGHT RISK THE LOSS OF DATA OR PROGRAM INSTABILITY.");
-            IOStreams.println("--------------------------------------------\n");
+    public void updater() throws Exception {
+        try {
+            // Check if updating is allowed or if user has admin privileges
+            if (!new PolicyCheck().retrievePolicyValue("update").equals("on") && !isUserAdmin) {
+                Config.io.printError("Policy Management System - Permission Denied.");
+                return;
+            }
+
+            fileWriter.log("Starting Cataphract update process", LOG_FILE_NAME);
+
+            Config.io.println("---- Wyvern: Program Update Utility 2.0 ----");
+            Config.io.printAttention("[*] This will install the latest version of Cataphract. Please ensure that there is internet connectivity.");
+            Config.io.printAttention("[*] After updating, Cataphract will require a restart to apply updated files.\n");
+            Config.io.printWarning("DO NOT TURN OFF THE SYSTEM, CHANGE NETWORK STATES, OR CLOSE THIS PROGRAM.\nBY DOING THIS, YOU MIGHT RISK THE LOSS OF DATA OR PROGRAM INSTABILITY.");
+            Config.io.println("--------------------------------------------\n");
 
             downloadUpdate();
             installUpdate();
-            IOStreams.printAttention("It is recommended to restart Cataphract for the updates to be reflected.");
+            Config.io.printAttention("It is recommended to restart Cataphract for the updates to be reflected.");
+            fileWriter.log("Update process completed successfully", LOG_FILE_NAME);
+        } catch (Exception e) {
+            exceptionHandler.handleException(e);
         }
-        else
-        IOStreams.printError("Policy Management System - Permission Denied.");
     }
 
     /**
-    * Downloads the update
+    * Downloads the update.
     *
-    * @throws Exception Throws any exceptions encountered during runtime.
+    * @throws Exception Throws any exceptions encountered during runtime
     */
-    private void downloadUpdate()throws Exception
-    {
-        IOStreams.println("Download Status: " + (new FileDownload(_username).downloadUpdate()?"Complete":"Failed"));
+    private void downloadUpdate() throws Exception {
+        try {
+            new FileDownload(username).downloadUpdate();
+            fileWriter.log("Download status: Complete", LOG_FILE_NAME);
+        } catch (Exception e) {
+            fileWriter.log("Download failed: " + e.getMessage(), LOG_FILE_NAME);
+            throw e;
+        }
     }
 
     /**
-    * Unzips the update file to the Cataphract install directory
+    * Unzips the update file to the Cataphract install directory.
     *
-    * @throws Exception Throws any exceptions encountered during runtime.
+    * @throws Exception Throws any exceptions encountered during runtime
     */
-    private void installUpdate()throws Exception
-    {
-        IOStreams.println("Installing Update...");
-        new FileUnzip(_username).installUpdate();
+    private void installUpdate() throws Exception {
+        try {
+            Config.io.println("Installing Update...");
+            fileWriter.log("Installing update", LOG_FILE_NAME);
+            new ZipArchiveHandler(username, fileWriter).installUpdate();
+        } catch (Exception e) {
+            fileWriter.log("Installation failed: " + e.getMessage(), LOG_FILE_NAME);
+            throw e;
+        }
     }
 }

@@ -14,167 +14,229 @@
 */
 
 /*
-* This file is part of the Cataphract project.
-* Copyright (C) 2024 DAK404 (https://github.com/DAK404)
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software Foundation, Inc.,
-* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+ * This file is part of the Cataphract project.
+ * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 
 package Cataphract.API;
 
 import Cataphract.API.Astaroth.Calendar;
 import Cataphract.API.Astaroth.Time;
 import Cataphract.API.Wraith.FileRead;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
-* A class that provides a set of built in commands for all classes. Also provides a utility to split a string into an array for processing.
-*
-* @author DAK404 (https://github.com/DAK404)
-* @version 2.1.0 (20-February-2024, Cataphract)
-* @since 0.0.1 (Truncheon 1.0.1)
-*/
-public class Anvil
-{
-    /**
-    * Sole constructor. (For invocation by subclass constructors, typically implicit.)
-    */
-    public Anvil()
-    {
+ * Interprets common shell commands for Cataphract.
+ */
+public class Anvil {
+    private final Map<String, AnvilCommand> commands;
+
+    public Anvil() {
+        this.commands = new HashMap<>();
+        initializeCommands();
     }
 
     /**
-    * Module implementing the interpreter for common commands. Also helps in scripting and reduces code duplication.
-    *
-    * @param command Command String that the interpreter shall... Interpret
-    * @throws Exception Throws any exceptions encountered during runtime.
-    */
-    public static void anvilInterpreter(String commandArray[])throws Exception
-    {
-        //Logic to check which command was fed into the interpreter. Converted to lowercase for avoiding case sensitivity
-        switch(commandArray[0].toLowerCase())
-        {
-            //Time: Print the date/time in the specified format
-            case "time":
-            if(commandArray.length < 2)
-            IOStreams.println(new Time().getTime());
-            else
-            IOStreams.println(new Time().getDateTimeUsingSpecifiedFormat(commandArray[1]));
-            break;
+     * Interprets and executes a command.
+     * @param commandArray The command and its arguments.
+     * @throws Exception If the command execution fails.
+     */
+    public void anvilInterpreter(String[] commandArray) throws Exception {
+        if (commandArray == null || commandArray.length == 0) {
+            Config.io.printError("Invalid command: empty input");
+            return;
+        }
+        AnvilCommand command = commands.get(commandArray[0].toLowerCase());
+        if (command != null) {
+            command.execute(commandArray);
+        } else {
+            Config.io.printError(commandArray[0] + " - Command Not Found");
+        }
+    }
 
-            case "cal":
-            case "calendar":
+    private void initializeCommands() {
+        commands.put("time", new TimeCommand(Config.time, Config.io));
+        commands.put("cal", new CalendarCommand(Config.calendar, Config.io));
+        commands.put("calendar", new CalendarCommand(Config.calendar, Config.io));
+        commands.put("clear", new ClearCommand());
+        commands.put("echo", new EchoCommand(Config.io));
+        commands.put("wait", new WaitCommand(Config.io));
+        commands.put("confirm", new ConfirmCommand(Config.io));
+    }
+}
+
+/**
+ * Interface for Anvil commands.
+ */
+interface AnvilCommand {
+    void execute(String[] args) throws Exception;
+}
+
+/**
+ * Displays the current or formatted time.
+ */
+class TimeCommand implements AnvilCommand {
+    private final Time timeProvider;
+    private final IOStreams ioStreams;
+
+    public TimeCommand(Time timeProvider, IOStreams ioStreams) {
+        this.timeProvider = timeProvider;
+        this.ioStreams = ioStreams;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        if (args.length < 2) {
+            ioStreams.println(timeProvider.getTime());
+        } else {
+            ioStreams.println(timeProvider.getDateTimeUsingSpecifiedFormat(args[1]));
+        }
+    }
+}
+
+/**
+ * Displays a calendar for a given month and year.
+ */
+class CalendarCommand implements AnvilCommand {
+    private final Calendar calendarProvider;
+    private final IOStreams ioStreams;
+
+    public CalendarCommand(Calendar calendarProvider, IOStreams ioStreams) {
+        this.calendarProvider = calendarProvider;
+        this.ioStreams = ioStreams;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        try {
             int month = 0;
             int year = 0;
-            try
-            {
-                switch(commandArray.length)
-                {
-                    case 3:
-                    year = Integer.parseInt(commandArray[2]);
-
-                    case 2:
-                    month = Integer.parseInt(commandArray[1]);
-                    new Calendar().printCalendar(month, year);
-                    break;
-
-                    default:
-                    break;
-                }
+            if (args.length >= 2) {
+                month = Integer.parseInt(args[1]);
             }
-            catch(NumberFormatException e)
-            {
-                IOStreams.printError("Please provide a numeric input for month and year!");
+            if (args.length >= 3) {
+                year = Integer.parseInt(args[2]);
             }
-            break;
-
-            //Clear: Clears the screen, calls the viewBuildInfo() to display the build info and clear the rest of the contents
-            case "clear":
-            if(commandArray.length < 2)
-                Build.viewBuildInfo();
-            else
-                if(commandArray[1].equalsIgnoreCase("force"))
-                    Build.clearScreen();
-            break;
-
-            //Echo: Prints a string on the display
-            case "echo":
-            //Display an error message if the entered syntax is incorrect
-            if(commandArray.length < 2)
-            {
-                IOStreams.printError("Invalid Syntax.");
-            IOStreams.printInfo("Expected Syntax: echo <String> OR echo \"<String With Spaces>\"");
-            }
-            else
-            {
-                try
-                {
-                    IOStreams.println(commandArray[1]);
-                }
-                catch(Exception e)
-                {
-                    IOStreams.printError("ANVIL : ERROR IN ECHO MODULE!");
-                    e.printStackTrace();
-                }
-            }
-            break;
-
-            case "help":
-            if(commandArray.length < 2)
-            {
-                new FileRead().readHelpFile("API|Anvil.help");
-            }
-            else
-                new FileRead().readHelpFile(commandArray[1]);
-            break;
-
-
-            //Wait: Waits for the specified value (milliseconds) for the shell to wait for a second
-            case "wait":
-            try
-            {
-                //Display an error message if the entered syntax is incorrect
-                if(commandArray.length < 2 || Integer.parseInt(commandArray[1]) < 1)
-                {
-                    IOStreams.printError("Invalid Syntax.");
-                    IOStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
-                }
-
-                else
-                Thread.sleep(Integer.parseInt(commandArray[1]));
-            }
-            catch(NumberFormatException e)
-            {
-                IOStreams.printError("Invalid Argument!\nExpected Argument: milliseconds (Integer)");
-                IOStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer)");
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-            }
-            break;
-
-            //Confirm: requests the user to press RETURN to continue with the execution
-            case "confirm":
-            //Check for arguments so that if there are prefixes and suffixes, call the method with the arguments to have a custom string instead of the default.
-            IOStreams.confirmReturnToContinue();
-            break;
-
-            //If no command is found, return false. Usually, Sycorax Kernel shall display an error if no commands in both lists are found.
-            default:
-            IOStreams.printError(commandArray[0] + " - Command Not Found");
-            break;
+            calendarProvider.printCalendar(month, year);
+        } catch (NumberFormatException e) {
+            ioStreams.printError("Please provide a numeric input for month and year!");
         }
+    }
+}
+
+/**
+ * Clears the terminal screen.
+ */
+class ClearCommand implements AnvilCommand {
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        Build build = new Build();
+        if (args.length < 2) {
+            build.viewBuildInfo(false); // No debug output
+        } else if (args[1].equalsIgnoreCase("force")) {
+            build.clearScreen();
+        }
+    }
+}
+
+/**
+ * Prints a string to the console.
+ */
+class EchoCommand implements AnvilCommand {
+    private final IOStreams ioStreams;
+
+    public EchoCommand(IOStreams ioStreams) {
+        this.ioStreams = ioStreams;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        if (args.length < 2) {
+            ioStreams.printError("Invalid Syntax.");
+            ioStreams.printInfo("Expected Syntax: echo <String> OR echo \"<String With Spaces>\"");
+            return;
+        }
+        ioStreams.println(args[1]);
+    }
+}
+
+/**
+ * Displays help information from a file.
+ */
+class HelpCommand implements AnvilCommand {
+    private final FileRead fileReader;
+
+    public HelpCommand(FileRead fileReader) {
+        this.fileReader = fileReader;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        String helpFile = args.length < 2 ? "API|Anvil.help" : args[1];
+        fileReader.readHelpFile(helpFile);
+    }
+}
+
+/**
+ * Pauses execution for a specified duration.
+ */
+class WaitCommand implements AnvilCommand {
+    private final IOStreams ioStreams;
+
+    public WaitCommand(IOStreams ioStreams) {
+        this.ioStreams = ioStreams;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        if (args.length < 2) {
+            ioStreams.printError("Invalid Syntax.");
+            ioStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
+            return;
+        }
+        try {
+            int milliseconds = Integer.parseInt(args[1]);
+            if (milliseconds < 1) {
+                ioStreams.printError("Invalid Syntax.");
+                ioStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
+                return;
+            }
+            Thread.sleep(milliseconds);
+        } catch (NumberFormatException e) {
+            ioStreams.printError("Invalid Argument! Expected Argument: milliseconds (Integer)");
+            ioStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer)");
+        }
+    }
+}
+
+/**
+ * Prompts the user to press RETURN to continue.
+ */
+class ConfirmCommand implements AnvilCommand {
+    private final IOStreams ioStreams;
+
+    public ConfirmCommand(IOStreams ioStreams) {
+        this.ioStreams = ioStreams;
+    }
+
+    @Override
+    public void execute(String[] args) throws Exception {
+        ioStreams.confirmReturnToContinue();
     }
 }

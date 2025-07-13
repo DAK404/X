@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import Cataphract.API.IOStreams;
+import Cataphract.API.Config;
 
 /**
  * Utility class to manage database operations for the Cataphract shell.
@@ -66,7 +66,7 @@ public final class DatabaseManager {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            IOStreams.printError("Database Update Failed: " + e.getMessage());
+            Config.io.printError("Database Update Failed: " + e.getMessage());
             return false;
         }
     }
@@ -92,7 +92,7 @@ public final class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            IOStreams.printError("Database Query Failed: " + e.getMessage());
+            Config.io.printError("Database Query Failed: " + e.getMessage());
         }
         return "Error";
     }

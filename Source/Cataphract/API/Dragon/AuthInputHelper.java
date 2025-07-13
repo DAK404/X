@@ -2,7 +2,8 @@ package Cataphract.API.Dragon;
 
 import java.io.Console;
 
-import Cataphract.API.Minotaur.Cryptography;
+import Cataphract.API.Config;
+
 /**
  * Utility class for reading authentication inputs securely.
  */
@@ -21,12 +22,12 @@ public final class AuthInputHelper
         if (username == null || username.trim().isEmpty()) {
             return null; // Signal invalid input
         }
-        username = Cryptography.stringToSHA3_256(username);
+        username = Config.cryptography.stringToSHA3_256(username);
         char[] passwordChars = console.readPassword("Password: ");
-        String password = passwordChars != null ? Cryptography.stringToSHA3_256(String.valueOf(passwordChars)) : "";
+        String password = passwordChars != null ? Config.cryptography.stringToSHA3_256(String.valueOf(passwordChars)) : "";
         char[] securityKeyChars = console.readPassword("Security Key (press ENTER to skip): ");
         String securityKey = securityKeyChars != null && securityKeyChars.length > 0 
-            ? Cryptography.stringToSHA3_256(String.valueOf(securityKeyChars)) 
+            ? Config.cryptography.stringToSHA3_256(String.valueOf(securityKeyChars)) 
             : "";
         return new String[] { username, password, securityKey };
     }

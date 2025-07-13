@@ -34,11 +34,10 @@
 
 package Cataphract.API;
 
-import java.io.Console;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import Cataphract.API.Wraith.FileWrite;
+import Cataphract.API.Wraith.FileWriter;
 
 /**
  * Handles exceptions by formatting stack traces, logging errors, and managing program termination.
@@ -49,9 +48,9 @@ public class ExceptionHandler {
     private final UserInteractionHandler userInteractionHandler;
     private final ExitHandler exitHandler;
 
-    public ExceptionHandler() {
+    public ExceptionHandler(FileWriter fileWriter) {
         this.stackTraceFormatter = new StackTraceFormatter();
-        this.errorLogger = new FileErrorLogger();
+        this.errorLogger = new FileErrorLogger(fileWriter);
         this.userInteractionHandler = new ConsoleUserInteractionHandler();
         this.exitHandler = new DefaultExitHandler();
     }
@@ -62,15 +61,15 @@ public class ExceptionHandler {
      */
     public void handleException(Exception e) {
         String stackTrace = stackTraceFormatter.formatStackTrace(e);
-        IOStreams.println(1, 8, "[ FATAL ERROR ] AN EXCEPTION OCCURRED DURING THE EXECUTION OF THE PROGRAM.");
-        IOStreams.println(1, 8, "\n[ --- TECHNICAL DETAILS --- ]\n");
-        IOStreams.println(1, 8, "Class: " + e.getClass().getName());
-        IOStreams.println(1, 8, "Trace Details: " + e.getStackTrace());
-        IOStreams.println(1, 8, stackTrace);
-        IOStreams.println(1, 8, "[ END OF TECHNICAL DETAILS ]\n");
+        Config.io.println("[ FATAL ERROR ] AN EXCEPTION OCCURRED DURING THE EXECUTION OF THE PROGRAM.");
+        Config.io.println("\n[ --- TECHNICAL DETAILS --- ]\n");
+        Config.io.println("Class: " + e.getClass().getName());
+        Config.io.println("Trace Details: " + e.getStackTrace());
+        Config.io.println(stackTrace);
+        Config.io.println("[ END OF TECHNICAL DETAILS ]\n");
 
-        IOStreams.println("This information will be written into a log file which can be used to debug the cause of the failure.");
-        IOStreams.println("Any additional information can be useful to find the root cause of the issue efficiently.");
+        Config.io.println("This information will be written into a log file which can be used to debug the cause of the failure.");
+        Config.io.println("Any additional information can be useful to find the root cause of the issue efficiently.");
 
         String userComment = userInteractionHandler.collectUserComment();
         errorLogger.logError(e, stackTrace, userComment);
@@ -118,7 +117,12 @@ interface ErrorLogger {
  * Logs errors to a file using FileWrite.
  */
 class FileErrorLogger implements ErrorLogger {
-    private static final String LOG_FILE_NAME = "ExceptionLog";
+    private static final String LOG_FILE_NAME = Config.LOG_FILE_NAME;
+    private final FileWriter fileWrite;
+
+    FileErrorLogger(FileWriter fileWrite) {
+        this.fileWrite = fileWrite;
+    }
 
     @Override
     public void logError(Exception e, String stackTrace, String userComment) {
@@ -129,9 +133,9 @@ class FileErrorLogger implements ErrorLogger {
                 .append(e.getStackTrace().toString()).append("\n")
                 .append(stackTrace).append("\n")
                 .append("User Comment> ").append(userComment).append("\n\n");
-            FileWrite.logger(logContent.toString(), LOG_FILE_NAME);
+            fileWrite.log(logContent.toString(), LOG_FILE_NAME);
         } catch (Exception ex) {
-            IOStreams.println(1, 8, "Error logging exception: " + ex.getMessage());
+            Config.io.println("Error logging exception: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -149,16 +153,14 @@ interface UserInteractionHandler {
  * Handles user interaction via console.
  */
 class ConsoleUserInteractionHandler implements UserInteractionHandler {
-    private final Console console = System.console();
-
     @Override
     public String collectUserComment() {
-        return console.readLine("User Comment> ");
+        return Config.console.readLine("User Comment> ");
     }
 
     @Override
     public boolean promptForRestart() {
-        String response = console.readLine("Do you want to restart the program? [ Y | N ]> ");
+        String response = Config.console.readLine("Do you want to restart the program? [ Y | N ]> ");
         return response != null && response.trim().equalsIgnoreCase("y");
     }
 }
