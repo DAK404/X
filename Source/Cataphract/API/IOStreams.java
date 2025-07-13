@@ -34,7 +34,6 @@
 
 package Cataphract.API;
 
-import java.io.Console;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -228,16 +227,15 @@ interface ConsoleInputHandler {
  * Default console input handler.
  */
 class DefaultConsoleInputHandler implements ConsoleInputHandler {
-    private final Console console = System.console();
 
     @Override
     public String confirmReturnToContinue() {
-        return console.readLine("Press RETURN to Continue.");
+        return Config.console.readLine("Press RETURN to Continue.");
     }
 
     @Override
     public String confirmReturnToContinue(String prefix, String suffix) {
-        return console.readLine(prefix + "Press RETURN to Continue" + suffix);
+        return Config.console.readLine(prefix + "Press RETURN to Continue" + suffix);
     }
 }
 

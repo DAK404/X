@@ -1,7 +1,19 @@
 /*
- * A Cross Platform OS Shell
- * Powered By Truncheon Core
- *
+*                                                      |
+*                                                     ||
+*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
+* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
+* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
+* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
+*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
+*                                               ||
+*                                               |
+*
+* A Cross Platform OS Shell
+* Powered By Truncheon Core
+*/
+
+/*
  * This file is part of the Cataphract project.
  * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
  *
@@ -29,8 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import Cataphract.API.Config;
-import Cataphract.API.Minotaur.PolicyCheck;
-import Cataphract.API.Minotaur.PolicyManager;
 import Cataphract.API.Wraith.FileDownload;
 import Cataphract.API.Wraith.FileManager;
 import Cataphract.API.Wyvern.NionUpdate;
@@ -186,7 +196,7 @@ class SessionManager {
             this.accountName = new Login(username).getNameLogic();
             this.isUserAdmin = new Login(username).checkPrivilegeLogic();
             this.userUnlockPIN = new Login(username).getPINLogic();
-            this.systemName = new PolicyCheck().retrievePolicyValue("sysname");
+            this.systemName = Config.policyCheck.retrievePolicyValue("sysname");
             this.prompt = isUserAdmin ? '!' : '*';
             Config.fileWriter.log("Fetched user details for: " + username, SycoraxKernel.LOG_FILE_NAME);
         } catch (Exception e) {
@@ -315,7 +325,7 @@ class CommandProcessor {
                 Config.fileWriter.log("Script execution failed: Invalid script file name", SycoraxKernel.LOG_FILE_NAME);
                 return false;
             }
-            if (!new PolicyCheck().retrievePolicyValue("script").equals("on") && !sessionManager.isUserAdmin()) {
+            if (! Config.policyCheck.retrievePolicyValue("script").equals("on") && !sessionManager.isUserAdmin()) {
                 Config.io.printError("Insufficient Privileges to run scripts! Please contact the Administrator.");
                 Config.fileWriter.log("Script execution failed: Insufficient privileges", SycoraxKernel.LOG_FILE_NAME);
                 return false;
@@ -429,7 +439,7 @@ class PolicyManagementCommand implements Command {
     @Override
     public void execute(String[] args) throws Exception {
         try {
-            new PolicyManager().policyEditorLogic();
+            Config.policyManager.policyEditorLogic();
             Config.fileWriter.log("Policy management executed", SycoraxKernel.LOG_FILE_NAME);
         } catch (Exception e) {
             Config.exceptionHandler.handleException(e);

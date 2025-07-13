@@ -1,7 +1,19 @@
 /*
- * A Cross Platform OS Shell
- * Powered By Truncheon Core
- *
+*                                                      |
+*                                                     ||
+*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
+* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
+* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
+* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
+*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
+*                                               ||
+*                                               |
+*
+* A Cross Platform OS Shell
+* Powered By Truncheon Core
+*/
+
+/*
  * This file is part of the Cataphract project.
  * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
  *
@@ -31,7 +43,6 @@ import java.util.Properties;
 import Cataphract.API.Config;
 import Cataphract.API.Dragon.DatabaseInitializer;
 import Cataphract.API.Dragon.AccountCreate;
-import Cataphract.API.Minotaur.PolicyManager;
 
 /**
  * Initializes the Cataphract shell with different boot modes.
@@ -599,8 +610,7 @@ class Setup {
         try {
             displaySetupProgress();
             Config.io.printInfo("Initializing default policies...");
-            PolicyManager policyManager = new PolicyManager();
-            policyManager.initializePolicyFile();
+            Config.policyManager.initializePolicyFile();
             String policyFilePath = Config.io.convertFileSeparator(".|System|Cataphract|Private|Policy.burn");
             boolean policiesInitialized = new File(policyFilePath).exists();
             if (!policiesInitialized) {

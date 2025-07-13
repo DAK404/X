@@ -43,7 +43,7 @@ public class Build {
     private final BrandingManager brandingManager;
     private final ScreenClearer screenClearer;
     private final DebugManager debugManager;
-    private final IOStreams ioStreams;
+    
 
     /**
      * Constructs a Build instance with default components and ANSI screen clearing.
@@ -69,7 +69,6 @@ public class Build {
         this.brandingManager = new BrandingManager();
         this.screenClearer = screenClearer;
         this.debugManager = new DebugManager(debugEnabled);
-        this.ioStreams = new IOStreams();
     }
 
     /**
@@ -79,9 +78,9 @@ public class Build {
     public void viewBuildInfo(boolean includeDebug) {
         try {
             screenClearer.clearScreen();
-            brandingManager.displayBranding(ioStreams);
+            brandingManager.displayBranding(Config.io);
             if (includeDebug) {
-                debugManager.displayDebugInfo(ioStreams);
+                debugManager.displayDebugInfo(Config.io);
             }
         } catch (Exception e) {
             Config.exceptionHandler.handleException(e);
@@ -164,16 +163,14 @@ interface ScreenClearer {
  * Clears the screen using ANSI escape codes.
  */
 class ANSIScreenClearer implements ScreenClearer {
-    private final IOStreams ioStreams;
 
     public ANSIScreenClearer() {
-        this.ioStreams = new IOStreams();
     }
 
     @Override
     public void clearScreen() throws Exception {
-        ioStreams.print("\033[H\033[2J");
-        ioStreams.println("");
+        Config.io.print("\033[H\033[2J");
+        Config.io.println("");
     }
 }
 
@@ -181,11 +178,8 @@ class ANSIScreenClearer implements ScreenClearer {
  * Clears the screen using OS-specific processes.
  */
 class ProcessScreenClearer implements ScreenClearer {
-    private final IOStreams ioStreams;
-
-    public ProcessScreenClearer() {
-        this.ioStreams = new IOStreams();
-    }
+    
+    public ProcessScreenClearer() {}
 
     @Override
     public void clearScreen() throws Exception {
@@ -197,7 +191,7 @@ class ProcessScreenClearer implements ScreenClearer {
             pb = new ProcessBuilder("/bin/bash", "-c", "reset");
         }
         pb.inheritIO().start().waitFor();
-        ioStreams.println("");
+        Config.io.println("");
     }
 }
 

@@ -36,7 +36,6 @@ package Cataphract.API;
 
 import Cataphract.API.Astaroth.Calendar;
 import Cataphract.API.Astaroth.Time;
-import Cataphract.API.Wraith.FileRead;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,13 +69,12 @@ public class Anvil {
     }
 
     private void initializeCommands() {
-        commands.put("time", new TimeCommand(Config.time, Config.io));
-        commands.put("cal", new CalendarCommand(Config.calendar, Config.io));
-        commands.put("calendar", new CalendarCommand(Config.calendar, Config.io));
+        commands.put("time", new TimeCommand(Config.time));
+        commands.put("calendar", new CalendarCommand(Config.calendar));
         commands.put("clear", new ClearCommand());
-        commands.put("echo", new EchoCommand(Config.io));
-        commands.put("wait", new WaitCommand(Config.io));
-        commands.put("confirm", new ConfirmCommand(Config.io));
+        commands.put("echo", new EchoCommand());
+        commands.put("wait", new WaitCommand());
+        commands.put("confirm", new ConfirmCommand());
     }
 }
 
@@ -92,19 +90,18 @@ interface AnvilCommand {
  */
 class TimeCommand implements AnvilCommand {
     private final Time timeProvider;
-    private final IOStreams ioStreams;
+    
 
-    public TimeCommand(Time timeProvider, IOStreams ioStreams) {
+    public TimeCommand(Time timeProvider) {
         this.timeProvider = timeProvider;
-        this.ioStreams = ioStreams;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
         if (args.length < 2) {
-            ioStreams.println(timeProvider.getTime());
+            Config.io.println(timeProvider.getTime());
         } else {
-            ioStreams.println(timeProvider.getDateTimeUsingSpecifiedFormat(args[1]));
+            Config.io.println(timeProvider.getDateTimeUsingSpecifiedFormat(args[1]));
         }
     }
 }
@@ -114,11 +111,10 @@ class TimeCommand implements AnvilCommand {
  */
 class CalendarCommand implements AnvilCommand {
     private final Calendar calendarProvider;
-    private final IOStreams ioStreams;
+    
 
-    public CalendarCommand(Calendar calendarProvider, IOStreams ioStreams) {
+    public CalendarCommand(Calendar calendarProvider) {
         this.calendarProvider = calendarProvider;
-        this.ioStreams = ioStreams;
     }
 
     @Override
@@ -134,7 +130,7 @@ class CalendarCommand implements AnvilCommand {
             }
             calendarProvider.printCalendar(month, year);
         } catch (NumberFormatException e) {
-            ioStreams.printError("Please provide a numeric input for month and year!");
+            Config.io.printError("Please provide a numeric input for month and year!");
         }
     }
 }
@@ -159,20 +155,18 @@ class ClearCommand implements AnvilCommand {
  * Prints a string to the console.
  */
 class EchoCommand implements AnvilCommand {
-    private final IOStreams ioStreams;
-
-    public EchoCommand(IOStreams ioStreams) {
-        this.ioStreams = ioStreams;
+    
+    public EchoCommand() {
     }
 
     @Override
     public void execute(String[] args) throws Exception {
         if (args.length < 2) {
-            ioStreams.printError("Invalid Syntax.");
-            ioStreams.printInfo("Expected Syntax: echo <String> OR echo \"<String With Spaces>\"");
+            Config.io.printError("Invalid Syntax.");
+            Config.io.printInfo("Expected Syntax: echo <String> OR echo \"<String With Spaces>\"");
             return;
         }
-        ioStreams.println(args[1]);
+        Config.io.println(args[1]);
     }
 }
 
@@ -180,16 +174,14 @@ class EchoCommand implements AnvilCommand {
  * Displays help information from a file.
  */
 class HelpCommand implements AnvilCommand {
-    private final FileRead fileReader;
 
-    public HelpCommand(FileRead fileReader) {
-        this.fileReader = fileReader;
+    public HelpCommand() {
     }
 
     @Override
     public void execute(String[] args) throws Exception {
         String helpFile = args.length < 2 ? "API|Anvil.help" : args[1];
-        fileReader.readHelpFile(helpFile);
+        Config.fileReader.readHelpFile(helpFile);
     }
 }
 
@@ -197,30 +189,29 @@ class HelpCommand implements AnvilCommand {
  * Pauses execution for a specified duration.
  */
 class WaitCommand implements AnvilCommand {
-    private final IOStreams ioStreams;
+    
 
-    public WaitCommand(IOStreams ioStreams) {
-        this.ioStreams = ioStreams;
+    public WaitCommand() {
     }
 
     @Override
     public void execute(String[] args) throws Exception {
         if (args.length < 2) {
-            ioStreams.printError("Invalid Syntax.");
-            ioStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
+            Config.io.printError("Invalid Syntax.");
+            Config.io.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
             return;
         }
         try {
             int milliseconds = Integer.parseInt(args[1]);
             if (milliseconds < 1) {
-                ioStreams.printError("Invalid Syntax.");
-                ioStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
+                Config.io.printError("Invalid Syntax.");
+                Config.io.printInfo("Expected Syntax: wait <milliseconds> (Integer > 0)");
                 return;
             }
             Thread.sleep(milliseconds);
         } catch (NumberFormatException e) {
-            ioStreams.printError("Invalid Argument! Expected Argument: milliseconds (Integer)");
-            ioStreams.printInfo("Expected Syntax: wait <milliseconds> (Integer)");
+            Config.io.printError("Invalid Argument! Expected Argument: milliseconds (Integer)");
+            Config.io.printInfo("Expected Syntax: wait <milliseconds> (Integer)");
         }
     }
 }
@@ -229,14 +220,12 @@ class WaitCommand implements AnvilCommand {
  * Prompts the user to press RETURN to continue.
  */
 class ConfirmCommand implements AnvilCommand {
-    private final IOStreams ioStreams;
 
-    public ConfirmCommand(IOStreams ioStreams) {
-        this.ioStreams = ioStreams;
+    public ConfirmCommand() {
     }
 
     @Override
     public void execute(String[] args) throws Exception {
-        ioStreams.confirmReturnToContinue();
+        Config.io.confirmReturnToContinue();
     }
 }
