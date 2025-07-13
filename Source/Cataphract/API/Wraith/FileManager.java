@@ -26,16 +26,13 @@ public class FileManager implements FileOperationHandler {
     private final PathUtils pathUtils;
     private final CommandInterpreter interpreter;
 
-    public FileManager(String username, Login login, 
-                       Cataphract.API.Wraith.FileReader fileReader, Cataphract.API.Wraith.FileWriter fileWriter,
-                       Cataphract.API.Wraith.FileDownloader fileDownloader) throws Exception {
+    public FileManager(String username, Login login, Cataphract.API.Wraith.FileDownloader fileDownloader) throws Exception {
         this.username = username;
         this.login = login;
         this.pathUtils = new PathUtils();
         this.userHomeDirectory = pathUtils.getUserHomePath(username);
         this.presentWorkingDirectory = userHomeDirectory;
-        this.interpreter = new CommandInterpreter(this, new ZipArchiveHandler(username, fileWriter), 
-                                                 fileReader, fileWriter, fileDownloader);
+        this.interpreter = new CommandInterpreter(this, new ZipArchiveHandler(username, Config.fileWriter), fileDownloader);
 
         String tempName;
         try {

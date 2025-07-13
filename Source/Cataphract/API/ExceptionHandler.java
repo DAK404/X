@@ -48,9 +48,9 @@ public class ExceptionHandler {
     private final UserInteractionHandler userInteractionHandler;
     private final ExitHandler exitHandler;
 
-    public ExceptionHandler(FileWriter fileWriter) {
+    public ExceptionHandler() {
         this.stackTraceFormatter = new StackTraceFormatter();
-        this.errorLogger = new FileErrorLogger(fileWriter);
+        this.errorLogger = new FileErrorLogger(Config.fileWriter);
         this.userInteractionHandler = new ConsoleUserInteractionHandler();
         this.exitHandler = new DefaultExitHandler();
     }

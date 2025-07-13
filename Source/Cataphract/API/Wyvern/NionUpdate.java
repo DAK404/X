@@ -35,11 +35,9 @@
 package Cataphract.API.Wyvern;
 
 import Cataphract.API.Config;
-import Cataphract.API.ExceptionHandler;
 import Cataphract.API.Dragon.Login;
 import Cataphract.API.Minotaur.PolicyCheck;
 import Cataphract.API.Wraith.FileDownload;
-import Cataphract.API.Wraith.FileWriter;
 import Cataphract.API.Wraith.Archive.ZipArchiveHandler;
 
 /**
@@ -56,12 +54,6 @@ public class NionUpdate {
     /** Stores the value of user privileges. */
     private final boolean isUserAdmin;
 
-    /** FileWriter instance for logging update events. */
-    private final FileWriter fileWriter;
-
-    /** ExceptionHandler instance for handling errors. */
-    private final ExceptionHandler exceptionHandler;
-
     /** Log file name for update events. */
     private static final String LOG_FILE_NAME = "UpdateLog";
 
@@ -69,15 +61,11 @@ public class NionUpdate {
     * Constructor to store username, check privileges, and initialize dependencies.
     *
     * @param username Username of the current user
-    * @param fileWriter FileWriter instance for logging
-    * @param exceptionHandler ExceptionHandler instance for error handling
     * @throws Exception Throws any exceptions encountered during runtime
     */
-    public NionUpdate(String username, FileWriter fileWriter, ExceptionHandler exceptionHandler) throws Exception {
+    public NionUpdate(String username) throws Exception {
         this.username = username;
         this.isUserAdmin = new Login(username).checkPrivilegeLogic();
-        this.fileWriter = fileWriter;
-        this.exceptionHandler = exceptionHandler;
     }
 
     /**
@@ -93,7 +81,7 @@ public class NionUpdate {
                 return;
             }
 
-            fileWriter.log("Starting Cataphract update process", LOG_FILE_NAME);
+            Config.fileWriter.log("Starting Cataphract update process", LOG_FILE_NAME);
 
             Config.io.println("---- Wyvern: Program Update Utility 2.0 ----");
             Config.io.printAttention("[*] This will install the latest version of Cataphract. Please ensure that there is internet connectivity.");
@@ -104,9 +92,9 @@ public class NionUpdate {
             downloadUpdate();
             installUpdate();
             Config.io.printAttention("It is recommended to restart Cataphract for the updates to be reflected.");
-            fileWriter.log("Update process completed successfully", LOG_FILE_NAME);
+            Config.fileWriter.log("Update process completed successfully", LOG_FILE_NAME);
         } catch (Exception e) {
-            exceptionHandler.handleException(e);
+            Config.exceptionHandler.handleException(e);
         }
     }
 
@@ -118,9 +106,9 @@ public class NionUpdate {
     private void downloadUpdate() throws Exception {
         try {
             new FileDownload(username).downloadUpdate();
-            fileWriter.log("Download status: Complete", LOG_FILE_NAME);
+            Config.fileWriter.log("Download status: Complete", LOG_FILE_NAME);
         } catch (Exception e) {
-            fileWriter.log("Download failed: " + e.getMessage(), LOG_FILE_NAME);
+            Config.fileWriter.log("Download failed: " + e.getMessage(), LOG_FILE_NAME);
             throw e;
         }
     }
@@ -133,10 +121,10 @@ public class NionUpdate {
     private void installUpdate() throws Exception {
         try {
             Config.io.println("Installing Update...");
-            fileWriter.log("Installing update", LOG_FILE_NAME);
-            new ZipArchiveHandler(username, fileWriter).installUpdate();
+            Config.fileWriter.log("Installing update", LOG_FILE_NAME);
+            new ZipArchiveHandler(username, Config.fileWriter).installUpdate();
         } catch (Exception e) {
-            fileWriter.log("Installation failed: " + e.getMessage(), LOG_FILE_NAME);
+            Config.fileWriter.log("Installation failed: " + e.getMessage(), LOG_FILE_NAME);
             throw e;
         }
     }

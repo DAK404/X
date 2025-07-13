@@ -17,8 +17,6 @@ import Cataphract.API.Wraith.Archive.ZipArchiveHandler;
 public class CommandInterpreter {
     private final FileOperationHandler fileOps;
     private final ZipArchiveHandler zipHandler;
-    private final Cataphract.API.Wraith.FileReader fileReader;
-    private final Cataphract.API.Wraith.FileWriter fileWriter;
     private final Cataphract.API.Wraith.FileDownloader fileDownloader;
     private final PathUtils pathUtils;
     private final Map<String, CommandAction> commands;
@@ -29,13 +27,9 @@ public class CommandInterpreter {
     }
 
     public CommandInterpreter(FileOperationHandler fileOps, ZipArchiveHandler zipHandler,
-                             Cataphract.API.Wraith.FileReader fileReader,
-                             Cataphract.API.Wraith.FileWriter fileWriter,
                              Cataphract.API.Wraith.FileDownloader fileDownloader) {
         this.fileOps = fileOps;
         this.zipHandler = zipHandler;
-        this.fileReader = fileReader;
-        this.fileWriter = fileWriter;
         this.fileDownloader = fileDownloader;
         this.pathUtils = new PathUtils();
         this.commands = initializeCommands();
@@ -138,7 +132,7 @@ public class CommandInterpreter {
             return;
         }
         Path filePath = pathUtils.resolveRelativePath(fileOps.getCurrentDirectory(), args[1]);
-        fileWriter.editFile(filePath.getFileName().toString(), filePath.getParent());
+        Config.fileWriter.editFile(filePath.getFileName().toString(), filePath.getParent());
     }
 
     private void handleRead(String[] args) throws Exception {
@@ -147,7 +141,7 @@ public class CommandInterpreter {
             return;
         }
         Path filePath = pathUtils.resolveRelativePath(fileOps.getCurrentDirectory(), args[1]);
-        fileReader.readUserFile(filePath);
+        Config.fileReader.readUserFile(filePath);
     }
 
     private void handleDownload(String[] args) throws Exception {

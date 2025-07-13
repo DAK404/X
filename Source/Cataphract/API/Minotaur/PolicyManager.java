@@ -91,7 +91,7 @@ public class PolicyManager {
         }
     }
 
-    private void initializePolicyFile() {
+    public void initializePolicyFile() {
         try {
             if (!new File(policyFilePath).exists()) {
                 resetPolicyFile();

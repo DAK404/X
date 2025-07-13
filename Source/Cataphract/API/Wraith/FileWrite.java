@@ -17,12 +17,10 @@ import Cataphract.API.Dragon.Login;
  */
 public class FileWrite implements Cataphract.API.Wraith.FileWriter {
     private final PathUtils pathUtils;
-    private final Cataphract.API.Wraith.FileReader fileReader;
     private final boolean isUserAdmin;
 
-    public FileWrite(String username, Cataphract.API.Wraith.FileReader fileReader) throws Exception {
+    public FileWrite(String username) throws Exception {
         this.pathUtils = new PathUtils();
-        this.fileReader = fileReader;
         this.isUserAdmin = new Login(username).checkPrivilegeLogic();
     }
 
@@ -56,7 +54,7 @@ public class FileWrite implements Cataphract.API.Wraith.FileWriter {
                     Config.io.println("The new content will be added to the end of the file! Previous data will remain unchanged.");
                     break;
                 case "help":
-                    fileReader.readHelpFile("edit");
+                    Config.fileReader.readHelpFile("edit");
                     return;
                 case "return":
                 default:
