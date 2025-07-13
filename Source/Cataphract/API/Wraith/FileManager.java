@@ -66,7 +66,7 @@ public class FileManager implements FileOperationHandler {
         this.pathUtils = new PathUtils();
         this.userHomeDirectory = pathUtils.getUserHomePath(username);
         this.presentWorkingDirectory = userHomeDirectory;
-        this.interpreter = new CommandInterpreter(this, new ZipArchiveHandler(username, Config.fileWriter), fileDownloader);
+        this.interpreter = new CommandInterpreter(this, new ZipArchiveHandler(username), fileDownloader);
 
         String tempName;
         try {

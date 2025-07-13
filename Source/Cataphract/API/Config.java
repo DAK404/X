@@ -42,10 +42,9 @@ import Cataphract.API.Dragon.UserAccount;
 import Cataphract.API.Astaroth.Calendar;
 import Cataphract.API.Minotaur.Cryptography;
 import Cataphract.API.Minotaur.PolicyCheck;
-import Cataphract.API.Minotaur.PolicyManager;
-import Cataphract.API.Wraith.FileWriter;
+import Cataphract.API.Wraith.FileRead;
+import Cataphract.API.Wraith.FileWrite;
 import Cataphract.API.Wraith.PathUtils;
-import Cataphract.API.Wraith.FileReader;
 
 /**
  * Centralized configuration and dependency provider for the Cataphract shell.
@@ -54,8 +53,8 @@ public final class Config {
     // Dependency instances
     public static final Console console;
 
-    public static FileWriter fileWriter;
-    public static FileReader fileReader;
+    public static final FileWrite fileWrite = new FileWrite();
+    public static final FileRead fileRead = new FileRead();
 
     public static final Anvil anvil = new Anvil();
     public static final Build build = new Build();
@@ -73,7 +72,6 @@ public final class Config {
     // MINOTAUR CLASSES //
     public static final Cryptography cryptography = new Cryptography();
     public static final PolicyCheck policyCheck = new PolicyCheck();
-    public static final PolicyManager policyManager = new PolicyManager();
 
     // WRAITH CLASSES //
     public static final PathUtils pathUtils = new PathUtils();

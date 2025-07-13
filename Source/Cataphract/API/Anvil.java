@@ -174,14 +174,13 @@ class EchoCommand implements AnvilCommand {
  * Displays help information from a file.
  */
 class HelpCommand implements AnvilCommand {
-
     public HelpCommand() {
     }
 
     @Override
     public void execute(String[] args) throws Exception {
         String helpFile = args.length < 2 ? "API|Anvil.help" : args[1];
-        Config.fileReader.readHelpFile(helpFile);
+        Config.fileRead.readHelpFile(helpFile);
     }
 }
 

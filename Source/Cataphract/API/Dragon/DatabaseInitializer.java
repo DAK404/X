@@ -95,6 +95,6 @@ public final class DatabaseInitializer {
      * @return The JDBC connection URL for the database.
      */
     public static String getDatabasePath() {
-        return DATABASE_PATH;
+        return "jdbc:sqlite:" + Config.DB_PATH;
     }
 }

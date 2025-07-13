@@ -96,8 +96,8 @@ public class CommandInterpreter {
         cmdMap.put("rm", this::handleDelete);
         cmdMap.put("rename", this::handleRename);
         cmdMap.put("mkdir", this::handleMkdir);
-        cmdMap.put("edit", this::handleEdit);
-        cmdMap.put("read", this::handleRead);
+        // cmdMap.put("edit", this::handleEdit);
+        // cmdMap.put("read", this::handleRead);
         cmdMap.put("pwd", args -> Config.io.println(fileOps.getCurrentDirectory().toString()));
         cmdMap.put("cd", this::handleCd);
         cmdMap.put("cd..", args -> fileOps.changeDirectory(null));
@@ -159,23 +159,23 @@ public class CommandInterpreter {
         fileOps.makeDirectory(path);
     }
 
-    private void handleEdit(String[] args) throws Exception {
-        if (args.length < 2) {
-            Config.io.printError("Invalid Syntax: edit <file>");
-            return;
-        }
-        Path filePath = pathUtils.resolveRelativePath(fileOps.getCurrentDirectory(), args[1]);
-        Config.fileWriter.editFile(filePath.getFileName().toString(), filePath.getParent());
-    }
+    // private void handleEdit(String[] args) throws Exception {
+    //     if (args.length < 2) {
+    //         Config.io.printError("Invalid Syntax: edit <file>");
+    //         return;
+    //     }
+    //     Path filePath = pathUtils.resolveRelativePath(fileOps.getCurrentDirectory(), args[1]);
+    //     Config.fileWrite.editFile(filePath.getFileName().toString(), filePath.getParent());
+    // }
 
-    private void handleRead(String[] args) throws Exception {
-        if (args.length < 2) {
-            Config.io.printError("Invalid Syntax: read <file>");
-            return;
-        }
-        Path filePath = pathUtils.resolveRelativePath(fileOps.getCurrentDirectory(), args[1]);
-        Config.fileReader.readUserFile(filePath);
-    }
+    // private void handleRead(String[] args) throws Exception {
+    //     if (args.length < 2) {
+    //         Config.io.printError("Invalid Syntax: read <file>");
+    //         return;
+    //     }
+    //     Path filePath = pathUtils.resolveRelativePath(fileOps.getCurrentDirectory(), args[1]);
+    //     Config.fileReader.readUserFile(filePath);
+    // }
 
     private void handleDownload(String[] args) throws Exception {
         if (args.length < 3) {

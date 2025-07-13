@@ -45,21 +45,17 @@ import Cataphract.API.Dragon.Login;
  * Implementation of FileReader interface for reading user and help files.
  *
  * @author DAK404 (https://github.com/DAK404)
- * @version 1.4.1 (13-July-2025, Cataphract)
+ * @version 1.4.2 (13-July-2025, Cataphract)
  * @since 0.0.1 (Cataphract 0.0.1)
  */
-public class FileRead implements FileReader {
-    private final PathUtils pathUtils;
-    private final boolean isUserAdmin;
-
-    public FileRead(String username) throws Exception {
-        this.pathUtils = new PathUtils();
-        this.isUserAdmin = new Login(username).checkPrivilegeLogic();
+public class FileRead implements FileReader 
+{
+    public FileRead() {
     }
 
     @Override
-    public void readUserFile(Path filePath) throws Exception {
-        if (!canReadFile()) {
+    public void readUserFile(Path filePath, String username) throws Exception {
+        if (!canReadFile(username)) {
             Config.io.printError("Policy Management System - Permission Denied.");
             return;
         }
@@ -68,12 +64,12 @@ public class FileRead implements FileReader {
 
     @Override
     public void readHelpFile(String helpFile) throws Exception {
-        Path helpPath = pathUtils.getHelpFilePath(helpFile);
+        Path helpPath = Config.pathUtils.getHelpFilePath(helpFile);
         readFile(helpPath, true);
     }
 
     private void readFile(Path filePath, boolean helpMode) throws Exception {
-        if (!pathUtils.isValidPathName(filePath.getFileName().toString())) {
+        if (! Config.pathUtils.isValidPathName(filePath.getFileName().toString())) {
             Config.io.printError("Invalid file name: " + filePath.getFileName());
             return;
         }
@@ -112,7 +108,7 @@ public class FileRead implements FileReader {
         }
     }
 
-    private boolean canReadFile() throws Exception {
-        return Config.policyCheck.retrievePolicyValue("fileread").equals("on") || isUserAdmin;
+    private boolean canReadFile(String username) throws Exception {
+        return Config.policyCheck.retrievePolicyValue("fileread").equals("on") || new Login(username).checkPrivilegeLogic();
     }
 }

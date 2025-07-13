@@ -44,6 +44,6 @@ import java.nio.file.Path;
  * @since 0.0.1 (Cataphract 0.0.1)
  */
 public interface FileWriter {
-    void editFile(String fileName, Path directory) throws Exception;
+    void editFile(String fileName, Path directory, String username) throws Exception;
     void log(String message, String logFileName) throws Exception;
 }

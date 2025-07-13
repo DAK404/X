@@ -44,6 +44,6 @@ import java.nio.file.Path;
  * @since 0.0.1 (Cataphract 0.0.1)
  */
 public interface FileReader {
-    void readUserFile(Path filePath) throws Exception;
+    void readUserFile(Path filePath, String username) throws Exception;
     void readHelpFile(String helpFile) throws Exception;
 }

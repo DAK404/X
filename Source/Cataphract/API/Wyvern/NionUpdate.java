@@ -38,6 +38,7 @@ import Cataphract.API.Config;
 import Cataphract.API.Dragon.Login;
 import Cataphract.API.Minotaur.PolicyCheck;
 import Cataphract.API.Wraith.FileDownload;
+
 import Cataphract.API.Wraith.Archive.ZipArchiveHandler;
 
 /**
@@ -81,7 +82,7 @@ public class NionUpdate {
                 return;
             }
 
-            Config.fileWriter.log("Starting Cataphract update process", LOG_FILE_NAME);
+            Config.fileWrite.log("Starting Cataphract update process", LOG_FILE_NAME);
 
             Config.io.println("---- Wyvern: Program Update Utility 2.0 ----");
             Config.io.printAttention("[*] This will install the latest version of Cataphract. Please ensure that there is internet connectivity.");
@@ -92,7 +93,7 @@ public class NionUpdate {
             downloadUpdate();
             installUpdate();
             Config.io.printAttention("It is recommended to restart Cataphract for the updates to be reflected.");
-            Config.fileWriter.log("Update process completed successfully", LOG_FILE_NAME);
+            Config.fileWrite.log("Update process completed successfully", LOG_FILE_NAME);
         } catch (Exception e) {
             Config.exceptionHandler.handleException(e);
         }
@@ -106,9 +107,9 @@ public class NionUpdate {
     private void downloadUpdate() throws Exception {
         try {
             new FileDownload(username).downloadUpdate();
-            Config.fileWriter.log("Download status: Complete", LOG_FILE_NAME);
+            Config.fileWrite.log("Download status: Complete", LOG_FILE_NAME);
         } catch (Exception e) {
-            Config.fileWriter.log("Download failed: " + e.getMessage(), LOG_FILE_NAME);
+            Config.fileWrite.log("Download failed: " + e.getMessage(), LOG_FILE_NAME);
             throw e;
         }
     }
@@ -121,10 +122,10 @@ public class NionUpdate {
     private void installUpdate() throws Exception {
         try {
             Config.io.println("Installing Update...");
-            Config.fileWriter.log("Installing update", LOG_FILE_NAME);
-            new ZipArchiveHandler(username, Config.fileWriter).installUpdate();
+            Config.fileWrite.log("Installing update", LOG_FILE_NAME);
+            new ZipArchiveHandler(username).installUpdate();
         } catch (Exception e) {
-            Config.fileWriter.log("Installation failed: " + e.getMessage(), LOG_FILE_NAME);
+            Config.fileWrite.log("Installation failed: " + e.getMessage(), LOG_FILE_NAME);
             throw e;
         }
     }

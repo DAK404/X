@@ -45,7 +45,6 @@ import java.util.zip.ZipOutputStream;
 
 import Cataphract.API.Config;
 import Cataphract.API.Dragon.Login;
-import Cataphract.API.Wraith.FileWriter;
 
 /**
  * Implementation of ArchiveHandler for ZIP operations.
@@ -58,11 +57,9 @@ public class ZipArchiveHandler implements ArchiveHandler {
     private static final int BUFFER_SIZE = 8192;
     private static final String UPDATE_ARCHIVE_PATH = ".|Update.zip";
     private final boolean isUserAdmin;
-    private final FileWriter fileWrite;
-
-    public ZipArchiveHandler(String username, FileWriter fileWrite) throws Exception {
+    
+    public ZipArchiveHandler(String username) throws Exception {
         this.isUserAdmin = new Login(username).checkPrivilegeLogic();
-        this.fileWrite = fileWrite;
     }
 
     @Override
@@ -168,7 +165,7 @@ public class ZipArchiveHandler implements ArchiveHandler {
                     try (FileOutputStream fos = new FileOutputStream(entryPath.toFile())) {
                         if (isUpdateMode) {
                             Config.io.printInfo("Installing File: " + entryName);
-                            fileWrite.log("Installing: " + entryName, "Update");
+                            Config.fileWrite.log("Installing: " + entryName, "Update");
                         }
                         int bytesRead;
                         while ((bytesRead = zipIn.read(buffer)) != -1) {

@@ -1,37 +1,3 @@
-/*
-*                                                      |
-*                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
-* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
-* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
-* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
-*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
-*                                               ||
-*                                               |
-*
-* A Cross Platform OS Shell
-* Powered By Truncheon Core
-*/
-
-/*
- * This file is part of the Cataphract project.
- * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
-
 package Cataphract.API.Wraith;
 
 import java.io.BufferedWriter;
@@ -45,22 +11,24 @@ import Cataphract.API.Dragon.Login;
 /**
  * Implementation of FileWriter interface for editing files and logging messages.
  *
- * @author DAK404 (https://github.com/DAK404)
- * @version 1.4.1 (13-July-2025, Cataphract)
+ * @author DAK404[](https://github.com/DAK404)
+ * @version 1.4.2 (13-July-2025, Cataphract)
  * @since 0.0.1 (Cataphract 0.0.1)
  */
 public class FileWrite implements FileWriter {
     private final PathUtils pathUtils;
-    private final boolean isUserAdmin;
 
-    public FileWrite(String username) throws Exception {
+    public FileWrite() {
         this.pathUtils = new PathUtils();
-        this.isUserAdmin = new Login(username).checkPrivilegeLogic();
     }
 
     @Override
-    public void editFile(String fileName, Path directory) throws Exception {
-        if (!canWriteFile()) {
+    public void editFile(String fileName, Path directory, String username) throws Exception {
+        if (username == null) {
+            Config.io.printError("Username is required to edit files.");
+            return;
+        }
+        if (!canWriteFile(username)) {
             Config.io.printError("Policy Management System - Permission Denied.");
             return;
         }
@@ -88,7 +56,7 @@ public class FileWrite implements FileWriter {
                     Config.io.println("The new content will be added to the end of the file! Previous data will remain unchanged.");
                     break;
                 case "help":
-                    Config.fileReader.readHelpFile("edit");
+                    new FileRead().readHelpFile("edit");
                     return;
                 case "return":
                 default:
@@ -134,7 +102,8 @@ public class FileWrite implements FileWriter {
         }
     }
 
-    private boolean canWriteFile() throws Exception {
-        return Config.policyCheck.retrievePolicyValue("filewrite").equals("on") || isUserAdmin;
+    private boolean canWriteFile(String username) throws Exception 
+    {
+        return Config.policyCheck.retrievePolicyValue("filewrite").equals("on") || new Login(username).checkPrivilegeLogic();
     }
 }
