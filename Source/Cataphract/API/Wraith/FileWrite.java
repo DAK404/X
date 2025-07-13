@@ -49,7 +49,7 @@ import Cataphract.API.Dragon.Login;
  * @version 1.4.1 (13-July-2025, Cataphract)
  * @since 0.0.1 (Cataphract 0.0.1)
  */
-public class FileWrite implements Cataphract.API.Wraith.FileWriter {
+public class FileWrite implements FileWriter {
     private final PathUtils pathUtils;
     private final boolean isUserAdmin;
 

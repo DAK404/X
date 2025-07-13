@@ -51,7 +51,7 @@ import Cataphract.API.Wraith.Archive.ZipArchiveHandler;
 public class CommandInterpreter {
     private final FileOperationHandler fileOps;
     private final ZipArchiveHandler zipHandler;
-    private final Cataphract.API.Wraith.FileDownloader fileDownloader;
+    private final FileDownloader fileDownloader;
     private final PathUtils pathUtils;
     private final Map<String, CommandAction> commands;
 
@@ -60,8 +60,7 @@ public class CommandInterpreter {
         void execute(String[] args) throws Exception;
     }
 
-    public CommandInterpreter(FileOperationHandler fileOps, ZipArchiveHandler zipHandler,
-                             Cataphract.API.Wraith.FileDownloader fileDownloader) {
+    public CommandInterpreter(FileOperationHandler fileOps, ZipArchiveHandler zipHandler, FileDownloader fileDownloader) {
         this.fileOps = fileOps;
         this.zipHandler = zipHandler;
         this.fileDownloader = fileDownloader;

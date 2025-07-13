@@ -60,7 +60,7 @@ public class FileManager implements FileOperationHandler {
     private final PathUtils pathUtils;
     private final CommandInterpreter interpreter;
 
-    public FileManager(String username, Login login, Cataphract.API.Wraith.FileDownloader fileDownloader) throws Exception {
+    public FileManager(String username, Login login, FileDownloader fileDownloader) throws Exception {
         this.username = username;
         this.login = login;
         this.pathUtils = new PathUtils();
