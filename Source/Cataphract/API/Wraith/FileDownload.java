@@ -1,114 +1,109 @@
-
-/*
-*                                                      |
-*                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
-* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
-* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
-* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
-*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
-*                                               ||
-*                                               |
-*
-* A Cross Platform OS Shell
-* Powered By Truncheon Core
-*/
-
-/*
- * This file is part of the Cataphract project.
- * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
-
 package Cataphract.API.Wraith;
 
 import java.io.FileOutputStream;
 import java.net.URI;
 import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import Cataphract.API.Config;
 import Cataphract.API.Dragon.Login;
 
 /**
- * Implementation of FileDownloader for downloading files from URLs.
- *
- * @author DAK404 (https://github.com/DAK404)
- * @version 1.4.1 (13-July-2025, Cataphract)
- * @since 0.0.1 (Cataphract 0.0.1)
+ * Handles file downloading operations for the Cataphract shell.
+ * Implements IFileOperation to provide a standardized interface for download commands.
  */
-public class FileDownload implements FileDownloader {
-    private static final String UPDATE_FILE_NAME = "Update.zip";
-    private final PathUtils pathUtils;
-    private final boolean isUserAdmin;
+public class FileDownload implements IFileOperation {
+    private final Login login;
 
-    public FileDownload(String username) throws Exception {
-        this.pathUtils = new PathUtils();
-        this.isUserAdmin = new Login(username).checkPrivilegeLogic();
+    /**
+     * Constructs a FileDownload instance with dependencies.
+     *
+     * @param login        The login handler for privilege checks.
+     * @param policyCheck  The policy checker for permission validation.
+     * @param Config.io    The IO streams handler for path conversion and output.
+     */
+    public FileDownload(Login login) {
+        this.login = login;
     }
 
+    /**
+     * Executes the file download command.
+     *
+     * @param commandArray The command and its arguments (e.g., ["download", "url", "filename"]).
+     * @throws Exception If the command execution fails.
+     */
     @Override
-    public void downloadFile(String url, Path destination) throws Exception {
-        if (!canDownload()) {
-            Config.io.printError("Policy Management System - Permission Denied.");
+    public void execute(String[] commandArray) throws Exception {
+        if (commandArray.length < 3) {
+            Config.io.printError("Invalid syntax. Expected: download <url> <filename>");
             return;
         }
-        if (url == null || url.isEmpty() || !pathUtils.isValidPathName(destination.getFileName().toString())) {
-            Config.io.printError("Invalid URL or file name.");
+
+        String url = commandArray[1];
+        String filename = commandArray[2];
+
+        if (!hasPermission("Download")) {
+            Config.io.printError("Insufficient privileges to download files.");
             return;
         }
-        Path parentDir = destination.getParent();
-        if (!Files.exists(parentDir)) {
-            Config.io.printError("Destination directory does not exist: " + parentDir);
+
+        if (!isValidFileName(filename)) {
+            Config.io.printError("Invalid file name: " + filename);
             return;
         }
-        downloadUsingNIO(url, destination);
-        Config.io.printInfo("Downloaded file to: " + destination);
+
+        Path destination = resolvePath(filename);
+        downloadFile(url, destination);
     }
 
-    @Override
-    public void downloadUpdate() throws Exception {
-        if (!canUpdate()) {
-            Config.io.printError("Policy Management System - Permission Denied.");
-            return;
-        }
-        String updateUrl = Config.UPDATE_URL;
-        Path destination = pathUtils.resolveRelativePath(Path.of("."), UPDATE_FILE_NAME);
-        Config.io.printInfo("Downloading update from: " + updateUrl);
-        downloadUsingNIO(updateUrl, destination);
-        Config.io.printInfo("Update downloaded to: " + destination);
-    }
-
-    private void downloadUsingNIO(String urlStr, Path destination) throws Exception {
-        try (ReadableByteChannel rbc = Channels.newChannel(new URI(urlStr).toURL().openStream());
-             FileOutputStream fos = new FileOutputStream(destination.toFile())) {
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+    /**
+     * Downloads a file from the specified URL to the given destination path.
+     *
+     * @param url          The URL of the file to download.
+     * @param destination  The path where the file will be saved.
+     * @throws Exception If the download fails.
+     */
+    private void downloadFile(String url, Path destination) throws Exception {
+        try (var channel = Channels.newChannel(URI.create(url).toURL().openStream());
+             var outputStream = new FileOutputStream(destination.toFile());
+             var fileChannel = outputStream.getChannel()) {
+            fileChannel.transferFrom(channel, 0, Long.MAX_VALUE);
+            Config.io.println("Downloaded: " + destination);
         } catch (Exception e) {
-            Config.io.printError("Download failed: " + e.getMessage());
-            throw e;
+            Config.io.printError("Error downloading file: " + e.getMessage());
+            Config.exceptionHandler.handleException(e);
         }
     }
 
-    private boolean canDownload() throws Exception {
-        return Config.policyCheck.retrievePolicyValue("download").equals("on") || isUserAdmin;
+    /**
+     * Checks if the user has the specified permission.
+     *
+     * @param permission The permission to check (e.g., "Download").
+     * @return true if the user has the permission, false otherwise.
+     * @throws Exception If a database error occurs.
+     */
+    private boolean hasPermission(String permission) throws Exception {
+        String policyValue = Config.policyCheck.retrievePolicyValue(permission);
+        return login.checkPrivilegeLogic() || "true".equalsIgnoreCase(policyValue);
     }
 
-    private boolean canUpdate() throws Exception {
-        return Config.policyCheck.retrievePolicyValue("update").equals("on") || isUserAdmin;
+    /**
+     * Validates the file name.
+     *
+     * @param fileName The file name to validate.
+     * @return true if the file name is valid, false otherwise.
+     */
+    private boolean isValidFileName(String fileName) {
+        return Config.io.checkFileValidity(fileName);
+    }
+
+    /**
+     * Resolves the file name to a path within the current directory.
+     *
+     * @param fileName The file name.
+     * @return The resolved path.
+     */
+    private Path resolvePath(String fileName) {
+        return Path.of(System.getProperty("user.dir"), Config.io.convertFileSeparator(fileName));
     }
 }

@@ -1,24 +1,8 @@
 /*
-*                                                      |
-*                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
-* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
-* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
-* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
-*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
-*                                               ||
-*                                               |
-*
-* A Cross Platform OS Shell
-* Powered By Truncheon Core
-*/
-
-/*
  * This file is part of the Cataphract project.
  * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * This program is distributed under the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
@@ -31,7 +15,6 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package Cataphract.Core;
 
 import java.io.BufferedReader;
@@ -42,8 +25,11 @@ import java.util.Map;
 
 import Cataphract.API.Config;
 import Cataphract.API.Wraith.FileDownload;
-import Cataphract.API.Wraith.FileManager;
-import Cataphract.API.Wyvern.NionUpdate;
+import Cataphract.API.Wraith.FileManagement;
+import Cataphract.API.Wraith.FileRead;
+import Cataphract.API.Wraith.FileUnzip;
+import Cataphract.API.Wraith.FileWrite;
+import Cataphract.API.Wyvern.UpdateManager;
 import Cataphract.API.Dragon.AccountCreate;
 import Cataphract.API.Dragon.AccountDelete;
 import Cataphract.API.Dragon.AccountModify;
@@ -56,41 +42,51 @@ import Cataphract.API.Minotaur.PolicyManager;
  * Coordinates authentication, session management, and command processing.
  *
  * @author DAK404 (https://github.com/DAK404)
- * @version 1.4.1 (13-July-2025, Cataphract)
+ * @version 1.5.0 (14-July-2025, Cataphract)
  * @since 0.0.1 (Cataphract 0.0.1)
  */
 public class SycoraxKernel {
+    protected static final String LOG_FILE_NAME = "ShellLog";
     private final AuthenticationManager authManager;
     private final SessionManager sessionManager;
     private final CommandProcessor commandProcessor;
-    protected static final String LOG_FILE_NAME = "ShellLog";
+    private final FileWrite fileWrite;
 
-    public SycoraxKernel() {
-        this.authManager = new AuthenticationManager();
-        this.sessionManager = new SessionManager();
-        this.commandProcessor = new CommandProcessor(sessionManager);
+    /**
+     * Constructs a SycoraxKernel with injected dependencies.
+     *
+     * @param build       The build information handler.
+     * @param Config.io   The IO streams handler for console output.
+     * @param fileWrite   The file write handler for logging.
+     */
+    public SycoraxKernel(FileWrite fileWrite) {
+        this.fileWrite = fileWrite;
+        this.authManager = new AuthenticationManager(fileWrite);
+        this.sessionManager = new SessionManager(fileWrite);
+        this.commandProcessor = new CommandProcessor(sessionManager, fileWrite);
     }
 
     /**
      * Starts the Sycorax kernel, handles login, and launches user shell.
+     *
+     * @throws Exception If an error occurs during kernel startup.
      */
     public void startSycoraxKernel() throws Exception {
         try {
             Config.build.viewBuildInfo(false);
-            Config.fileWrite.log("Starting Sycorax kernel", LOG_FILE_NAME);
+            fileWrite.log("Starting Sycorax kernel", LOG_FILE_NAME);
             while (!authManager.login()) {
                 Config.io.printError("Incorrect Credentials! Please try again.");
-                Config.fileWrite.log("Failed login attempt", LOG_FILE_NAME);
+                fileWrite.log("Failed login attempt", LOG_FILE_NAME);
                 authManager.handleFailedLoginAttempt();
             }
             Config.io.printInfo("Login Successful. Loading Sycorax Kernel...");
-            Config.fileWrite.log("Login successful for user: " + authManager.getUsername(), LOG_FILE_NAME);
+            fileWrite.log("Login successful for user: " + authManager.getUsername(), LOG_FILE_NAME);
             sessionManager.fetchUserDetails(authManager.getUsername());
             commandProcessor.runUserShell();
         } catch (Exception e) {
             Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Kernel startup failed: " + e.getMessage(), LOG_FILE_NAME);
-            throw e;
+            fileWrite.log("Kernel startup failed: " + e.getMessage(), LOG_FILE_NAME);
         }
     }
 }
@@ -101,20 +97,27 @@ public class SycoraxKernel {
 class AuthenticationManager {
     private String username = "DEFAULT_USERNAME";
     private int loginAttemptsRemaining = 5;
+    private final FileWrite fileWrite;
+
+    public AuthenticationManager(FileWrite fileWrite) {
+        this.fileWrite = fileWrite;
+    }
 
     /**
      * Attempts to log in the user using credentials from AuthInputHelper.
+     *
      * @return true if login is successful, false otherwise.
+     * @throws Exception If an error occurs during authentication.
      */
     public boolean login() throws Exception {
         try {
             Config.build.viewBuildInfo(false);
             Config.io.printInfo("Authentication Attempts Left: " + loginAttemptsRemaining);
-            Config.fileWrite.log("Attempting login, attempts remaining: " + loginAttemptsRemaining, SycoraxKernel.LOG_FILE_NAME);
+            fileWrite.log("Attempting login, attempts remaining: " + loginAttemptsRemaining, SycoraxKernel.LOG_FILE_NAME);
             String[] credentials = AuthInputHelper.readCredentials(Config.console);
             if (credentials == null || credentials[0] == null || credentials[0].trim().isEmpty()) {
                 Config.io.printError("Username cannot be empty.");
-                Config.fileWrite.log("Login failed: Empty username", SycoraxKernel.LOG_FILE_NAME);
+                fileWrite.log("Login failed: Empty username", SycoraxKernel.LOG_FILE_NAME);
                 return false;
             }
             username = credentials[0];
@@ -122,53 +125,45 @@ class AuthenticationManager {
             String securityKey = credentials[2];
             boolean success = new Login(username).authenticationLogic(password, securityKey);
             if (success) {
-                Config.fileWrite.log("Login successful for user: " + username, SycoraxKernel.LOG_FILE_NAME);
+                fileWrite.log("Login successful for user: " + username, SycoraxKernel.LOG_FILE_NAME);
             }
             return success;
         } catch (Exception e) {
             Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Login error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
+            fileWrite.log("Login error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
             throw e;
         }
     }
 
     /**
      * Handles failed login attempts, locking the system after 5 failures.
+     *
+     * @throws Exception If an error occurs during lockout.
      */
     public void handleFailedLoginAttempt() throws Exception {
-        try {
-            loginAttemptsRemaining--;
-            Config.fileWrite.log("Failed login attempt, remaining: " + loginAttemptsRemaining, SycoraxKernel.LOG_FILE_NAME);
-            if (loginAttemptsRemaining <= 0) {
-                Config.io.printError("Authentication Attempts Exceeded! Further attempts are locked!");
-                Config.fileWrite.log("Authentication attempts exceeded, locking system", SycoraxKernel.LOG_FILE_NAME);
-                Thread.sleep(36000);
-                loginAttemptsRemaining = 5;
-                Config.fileWrite.log("Reset login attempts to 5 after lock", SycoraxKernel.LOG_FILE_NAME);
-            }
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Error handling failed login: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
+        loginAttemptsRemaining--;
+        fileWrite.log("Failed login attempt, remaining: " + loginAttemptsRemaining, SycoraxKernel.LOG_FILE_NAME);
+        if (loginAttemptsRemaining <= 0) {
+            Config.io.printError("Authentication Attempts Exceeded! Further attempts are locked!");
+            fileWrite.log("Authentication attempts exceeded, locking system", SycoraxKernel.LOG_FILE_NAME);
+            Thread.sleep(36000);
+            loginAttemptsRemaining = 5;
+            fileWrite.log("Reset login attempts to 5 after lock", SycoraxKernel.LOG_FILE_NAME);
         }
     }
 
     /**
      * Verifies the user's PIN for console unlocking.
+     *
      * @param storedPIN The stored PIN to compare against.
      * @return true if the entered PIN matches, false otherwise.
+     * @throws Exception If an error occurs during PIN verification.
      */
     public boolean challengePIN(String storedPIN) throws Exception {
-        try {
-            String enteredPIN = String.valueOf(Config.console.readPassword("> PIN : "));
-            boolean success = Config.cryptography.stringToSHA3_256(enteredPIN).equals(storedPIN);
-            Config.fileWrite.log("PIN challenge " + (success ? "successful" : "failed") + " for user: " + username, SycoraxKernel.LOG_FILE_NAME);
-            return success;
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("PIN challenge error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
-        }
+        String enteredPIN = String.valueOf(Config.console.readPassword("> PIN : "));
+        boolean success = Config.cryptography.stringToSHA3_256(enteredPIN).equals(storedPIN);
+        fileWrite.log("PIN challenge " + (success ? "successful" : "failed") + " for user: " + username, SycoraxKernel.LOG_FILE_NAME);
+        return success;
     }
 
     public String getUsername() {
@@ -186,44 +181,41 @@ class SessionManager {
     private String systemName = "DEFAULT_SYSNAME";
     private boolean isUserAdmin = false;
     private char prompt = '?';
+    private final FileWrite fileWrite;
+
+    public SessionManager(FileWrite fileWrite) {
+        this.fileWrite = fileWrite;
+    }
 
     /**
      * Fetches user details after successful login.
+     *
      * @param username The authenticated username.
+     * @throws Exception If an error occurs during detail fetching.
      */
     public void fetchUserDetails(String username) throws Exception {
-        try {
-            this.username = username;
-            this.accountName = new Login(username).getNameLogic();
-            this.isUserAdmin = new Login(username).checkPrivilegeLogic();
-            this.userUnlockPIN = new Login(username).getPINLogic();
-            this.systemName = Config.policyCheck.retrievePolicyValue("sysname");
-            this.prompt = isUserAdmin ? '!' : '*';
-            Config.fileWrite.log("Fetched user details for: " + username, SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Error fetching user details: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
-        }
+        this.username = username;
+        this.accountName = new Login(username).getNameLogic();
+        this.isUserAdmin = new Login(username).checkPrivilegeLogic();
+        this.userUnlockPIN = new Login(username).getPINLogic();
+        this.systemName = Config.policyCheck.retrievePolicyValue("sysname");
+        this.prompt = isUserAdmin ? '!' : '*';
+        fileWrite.log("Fetched user details for: " + username, SycoraxKernel.LOG_FILE_NAME);
     }
 
     /**
      * Clears session state on logout.
-     * @throws Exception 
+     *
+     * @throws Exception If an error occurs during state clearing.
      */
     public void clearSessionState() throws Exception {
-        try {
-            username = "DEFAULT_USERNAME";
-            accountName = "DEFAULT_USER";
-            userUnlockPIN = "";
-            isUserAdmin = false;
-            prompt = '?';
-            System.gc();
-            Config.fileWrite.log("Session state cleared", SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Error clearing session state: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-        }
+        username = "DEFAULT_USERNAME";
+        accountName = "DEFAULT_USER";
+        userUnlockPIN = "";
+        isUserAdmin = false;
+        prompt = '?';
+        System.gc();
+        fileWrite.log("Session state cleared", SycoraxKernel.LOG_FILE_NAME);
     }
 
     public String getPrompt() {
@@ -248,120 +240,110 @@ class SessionManager {
  */
 class CommandProcessor {
     private final SessionManager sessionManager;
+    private final FileWrite fileWrite;
     private final Map<String, Command> commands;
     private boolean scriptMode = false;
 
-    public CommandProcessor(SessionManager sessionManager) {
+    public CommandProcessor(SessionManager sessionManager, FileWrite fileWrite) {
         this.sessionManager = sessionManager;
+        this.fileWrite = fileWrite;
         this.commands = new HashMap<>();
         initializeCommands();
     }
 
     private void initializeCommands() {
-        commands.put("refresh", new RefreshCommand(sessionManager));
-        commands.put("lock", new LockCommand(sessionManager));
-        commands.put("policymgmt", new PolicyManagementCommand());
-        commands.put("grinch", new FileManagementCommand(sessionManager.getUsername()));
-        commands.put("filemanagement", new FileManagementCommand(sessionManager.getUsername()));
-        commands.put("files", new FileManagementCommand(sessionManager.getUsername()));
-        commands.put("exit", new ExitCommand());
-        commands.put("restart", new RestartCommand());
-        commands.put("script", new ScriptCommand(this));
-        commands.put("update", new UpdateCommand(sessionManager.getUsername()));
-        commands.put("usermgmt", new UserManagementCommand(sessionManager.getUsername()));
+        commands.put("refresh", new RefreshCommand(sessionManager, fileWrite));
+        commands.put("lock", new LockCommand(sessionManager, fileWrite));
+        commands.put("policymgmt", new PolicyManagementCommand(fileWrite));
+        commands.put("file", new FileManagementCommand(sessionManager.getUsername(), fileWrite));
+        commands.put("exit", new ExitCommand(fileWrite));
+        commands.put("restart", new RestartCommand(fileWrite));
+        commands.put("script", new ScriptCommand(this, fileWrite));
+        commands.put("update", new UpdateCommand(sessionManager.getUsername(), fileWrite));
+        commands.put("usermgmt", new UserManagementCommand(sessionManager.getUsername(), fileWrite));
     }
 
     /**
      * Runs the user shell, reading and processing commands.
+     *
+     * @throws Exception If an error occurs during shell execution.
      */
     public void runUserShell() throws Exception {
-        try {
-            Config.build.viewBuildInfo(false);
-            Config.fileWrite.log("Starting user shell for: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
-            String input;
-            do {
-                input = Config.console.readLine(sessionManager.getPrompt());
-                processCommand(input);
-            } while (!input.equalsIgnoreCase("logout"));
-            sessionManager.clearSessionState();
-            Config.fileWrite.log("User shell terminated", SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("User shell error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
-        }
+        Config.build.viewBuildInfo(false);
+        fileWrite.log("Starting user shell for: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
+        String input;
+        do {
+            input = Config.console.readLine(sessionManager.getPrompt());
+            processCommand(input);
+        } while (!input.equalsIgnoreCase("logout"));
+        sessionManager.clearSessionState();
+        fileWrite.log("User shell terminated", SycoraxKernel.LOG_FILE_NAME);
     }
 
     /**
      * Processes a single command or delegates to Anvil.
+     *
+     * @param input The command input to process.
+     * @throws Exception If an error occurs during command execution.
      */
     public void processCommand(String input) throws Exception {
-        try {
-            if (input == null || input.trim().isEmpty()) return;
-            Config.fileWrite.log("Processing command: " + input, SycoraxKernel.LOG_FILE_NAME);
-            String[] commandArray = Config.io.splitStringToArray(input);
-            Command command = commands.get(commandArray[0].toLowerCase());
-            if (command != null) {
-                command.execute(commandArray);
-                Config.fileWrite.log("Executed command: " + commandArray[0], SycoraxKernel.LOG_FILE_NAME);
-            } else {
-                Config.anvil.anvilInterpreter(commandArray);
-                Config.fileWrite.log("Delegated to Anvil: " + input, SycoraxKernel.LOG_FILE_NAME);
-            }
-        } catch (Exception e) {
-            Config.io.printError("Command execution failed: " + e.getMessage());
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Command execution failed: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
+        if (input == null || input.trim().isEmpty()) return;
+        fileWrite.log("Processing command: " + input, SycoraxKernel.LOG_FILE_NAME);
+        String[] commandArray = Config.io.splitStringToArray(input);
+        Command command = commands.get(commandArray[0].toLowerCase());
+        if (command != null) {
+            command.execute(commandArray);
+            fileWrite.log("Executed command: " + commandArray[0], SycoraxKernel.LOG_FILE_NAME);
+        } else {
+            Config.anvil.anvilInterpreter(commandArray);
+            fileWrite.log("Delegated to Anvil: " + input, SycoraxKernel.LOG_FILE_NAME);
         }
     }
 
     /**
      * Executes a script file line by line.
+     *
+     * @param scriptFileName The name of the script file.
+     * @return true if the script executes successfully, false otherwise.
+     * @throws Exception If an error occurs during script execution.
      */
     public boolean executeScript(String scriptFileName) throws Exception {
-        try {
-            if (scriptFileName == null || scriptFileName.trim().isEmpty() || scriptFileName.startsWith(" ")) {
-                Config.io.printError("The name of the script file cannot be blank.");
-                Config.fileWrite.log("Script execution failed: Invalid script file name", SycoraxKernel.LOG_FILE_NAME);
-                return false;
+        if (scriptFileName == null || scriptFileName.trim().isEmpty() || scriptFileName.startsWith(" ")) {
+            Config.io.printError("The name of the script file cannot be blank.");
+            fileWrite.log("Script execution failed: Invalid script file name", SycoraxKernel.LOG_FILE_NAME);
+            return false;
+        }
+        if (!Config.policyCheck.retrievePolicyValue("script").equals("on") && !sessionManager.isUserAdmin()) {
+            Config.io.printError("Insufficient Privileges to run scripts! Please contact the Administrator.");
+            fileWrite.log("Script execution failed: Insufficient privileges", SycoraxKernel.LOG_FILE_NAME);
+            return false;
+        }
+        String filePath = Config.io.convertFileSeparator(".|Users|Cataphract|" + sessionManager.getUsername() + "|" + scriptFileName);
+        File scriptFile = new File(filePath);
+        if (!scriptFile.exists() || scriptFile.isDirectory()) {
+            Config.io.printAttention("The specified script file is invalid or has not been found.\nPlease check the script file name and try again.");
+            fileWrite.log("Script execution failed: File not found - " + filePath, SycoraxKernel.LOG_FILE_NAME);
+            return false;
+        }
+        if (scriptMode) {
+            Config.io.printError("Cannot execute script within another script.");
+            fileWrite.log("Script execution failed: Nested script execution", SycoraxKernel.LOG_FILE_NAME);
+            return false;
+        }
+        scriptMode = true;
+        try (BufferedReader br = new BufferedReader(new FileReader(scriptFile))) {
+            String scriptLine;
+            fileWrite.log("Executing script: " + scriptFileName, SycoraxKernel.LOG_FILE_NAME);
+            while ((scriptLine = br.readLine()) != null) {
+                if (scriptLine.startsWith("#") || scriptLine.trim().isEmpty()) continue;
+                if (scriptLine.equalsIgnoreCase("End Script")) break;
+                processCommand(scriptLine);
             }
-            if (! Config.policyCheck.retrievePolicyValue("script").equals("on") && !sessionManager.isUserAdmin()) {
-                Config.io.printError("Insufficient Privileges to run scripts! Please contact the Administrator.");
-                Config.fileWrite.log("Script execution failed: Insufficient privileges", SycoraxKernel.LOG_FILE_NAME);
-                return false;
-            }
-            String filePath = Config.io.convertFileSeparator(".|Users|Cataphract|" + sessionManager.getUsername() + "|" + scriptFileName);
-            File scriptFile = new File(filePath);
-            if (!scriptFile.exists() || scriptFile.isDirectory()) {
-                Config.io.printAttention("The specified script file is invalid or has not been found.\nPlease check the script file name and try again.");
-                Config.fileWrite.log("Script execution failed: File not found - " + filePath, SycoraxKernel.LOG_FILE_NAME);
-                return false;
-            }
-            if (scriptMode) {
-                Config.io.printError("Cannot execute script within another script.");
-                Config.fileWrite.log("Script execution failed: Nested script execution", SycoraxKernel.LOG_FILE_NAME);
-                return false;
-            }
-            scriptMode = true;
-            try (BufferedReader br = new BufferedReader(new FileReader(scriptFile))) {
-                String scriptLine;
-                Config.fileWrite.log("Executing script: " + scriptFileName, SycoraxKernel.LOG_FILE_NAME);
-                while ((scriptLine = br.readLine()) != null) {
-                    if (scriptLine.startsWith("#") || scriptLine.trim().isEmpty()) continue;
-                    if (scriptLine.equalsIgnoreCase("End Script")) break;
-                    processCommand(scriptLine);
-                }
-                Config.fileWrite.log("Script execution completed: " + scriptFileName, SycoraxKernel.LOG_FILE_NAME);
-                return true;
-            } finally {
-                scriptMode = false;
-                System.gc();
-            }
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Script execution error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
+            fileWrite.log("Script execution completed: " + scriptFileName, SycoraxKernel.LOG_FILE_NAME);
+            return true;
+        } finally {
+            scriptMode = false;
+            System.gc();
         }
     }
 }
@@ -374,215 +356,223 @@ interface Command {
 }
 
 /**
- * Command implementations.
+ * Command to refresh user session details.
  */
 class RefreshCommand implements Command {
     private final SessionManager sessionManager;
+    private final FileWrite fileWrite;
 
-    public RefreshCommand(SessionManager sessionManager) {
+    public RefreshCommand(SessionManager sessionManager, FileWrite fileWrite) {
         this.sessionManager = sessionManager;
+        this.fileWrite = fileWrite;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            sessionManager.fetchUserDetails(sessionManager.getUsername());
-            Config.io.printInfo("User details refreshed.");
-            Config.fileWrite.log("Refreshed user details for: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Refresh command error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
-        }
+        sessionManager.fetchUserDetails(sessionManager.getUsername());
+        Config.io.printInfo("User details refreshed.");
+        fileWrite.log("Refreshed user details for: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
     }
 }
 
+/**
+ * Command to lock the console.
+ */
 class LockCommand implements Command {
     private final SessionManager sessionManager;
+    private final FileWrite fileWrite;
 
-    public LockCommand(SessionManager sessionManager) {
+    public LockCommand(SessionManager sessionManager, FileWrite fileWrite) {
         this.sessionManager = sessionManager;
+        this.fileWrite = fileWrite;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            AuthenticationManager authManager = new AuthenticationManager();
-            String input;
-            Config.build.clearScreen();
-            Config.fileWrite.log("Locking console for user: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
-            do {
-                StringBuilder lockPromptBuilder = new StringBuilder()
-                        .append((char)27).append("[33;49m")
-                        .append(Config.time.getDateTimeUsingSpecifiedFormat("yyyy-MMM-dd HH:mm:ss"))
-                        .append("  LOCKED\n")
-                        .append(sessionManager.getPrompt())
-                        .append((char)27).append("[0m");
-                input = Config.console.readLine(lockPromptBuilder.toString());
-            } while (!input.equalsIgnoreCase("unlock"));
-            Config.io.printAttention("Please Enter Unlock PIN To Continue.");
-            while (!authManager.challengePIN(sessionManager.getUserUnlockPIN())) {
-                Config.io.printError("Incorrect PIN.");
-                Config.fileWrite.log("Incorrect PIN entered", SycoraxKernel.LOG_FILE_NAME);
-                authManager.handleFailedLoginAttempt();
-            }
-            Config.build.viewBuildInfo(false);
-            Config.fileWrite.log("Console unlocked for user: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Lock command error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
+        AuthenticationManager authManager = new AuthenticationManager(fileWrite);
+        String input;
+        Config.build.clearScreen();
+        fileWrite.log("Locking console for user: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
+        do {
+            StringBuilder lockPromptBuilder = new StringBuilder()
+                    .append((char)27).append("[33;49m")
+                    .append(Config.time.getDateTimeUsingSpecifiedFormat("yyyy-MMM-dd HH:mm:ss"))
+                    .append("  LOCKED\n")
+                    .append(sessionManager.getPrompt())
+                    .append((char)27).append("[0m");
+            input = Config.console.readLine(lockPromptBuilder.toString());
+        } while (!input.equalsIgnoreCase("unlock"));
+        Config.io.printAttention("Please Enter Unlock PIN To Continue.");
+        while (!authManager.challengePIN(sessionManager.getUserUnlockPIN())) {
+            Config.io.printError("Incorrect PIN.");
+            fileWrite.log("Incorrect PIN entered", SycoraxKernel.LOG_FILE_NAME);
+            authManager.handleFailedLoginAttempt();
         }
+        Config.build.viewBuildInfo(false);
+        fileWrite.log("Console unlocked for user: " + sessionManager.getUsername(), SycoraxKernel.LOG_FILE_NAME);
     }
 }
 
+/**
+ * Command to manage policies.
+ */
 class PolicyManagementCommand implements Command {
+    private final FileWrite fileWrite;
+
+    public PolicyManagementCommand(FileWrite fileWrite) {
+        this.fileWrite = fileWrite;
+    }
+
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            new PolicyManager().policyEditorLogic();
-            Config.fileWrite.log("Policy management executed", SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Policy management error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
-        }
+        new PolicyManager().policyEditorLogic();
+        fileWrite.log("Policy management executed", SycoraxKernel.LOG_FILE_NAME);
     }
 }
 
+/**
+ * Command to manage files.
+ */
 class FileManagementCommand implements Command {
     private final String username;
+    private final FileWrite fileWrite;
 
-    public FileManagementCommand(String username) {
+    public FileManagementCommand(String username, FileWrite fileWrite) {
         this.username = username;
+        this.fileWrite = fileWrite;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            new FileManager(username, new Login(username), new FileDownload(username)).fileManagementLogic();
-            Config.fileWrite.log("File management executed for user: " + username, SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("File management error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
-        }
+        Login login = new Login(username);
+        new FileManagement(login, new FileRead(login)).execute(args);
+        fileWrite.log("File management executed for user: " + username, SycoraxKernel.LOG_FILE_NAME);
     }
 }
 
+/**
+ * Command to exit the system.
+ */
 class ExitCommand implements Command {
+    private final FileWrite fileWrite;
+
+    public ExitCommand(FileWrite fileWrite) {
+        this.fileWrite = fileWrite;
+    }
+
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            Config.fileWrite.log("Exiting system", SycoraxKernel.LOG_FILE_NAME);
-            System.exit(0);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Exit command error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-        }
+        fileWrite.log("Exiting system", SycoraxKernel.LOG_FILE_NAME);
+        System.exit(0);
     }
 }
 
+/**
+ * Command to restart the system.
+ */
 class RestartCommand implements Command {
+    private final FileWrite fileWrite;
+
+    public RestartCommand(FileWrite fileWrite) {
+        this.fileWrite = fileWrite;
+    }
+
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            Config.fileWrite.log("Restarting system", SycoraxKernel.LOG_FILE_NAME);
-            System.exit(100);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Restart command error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-        }
+        fileWrite.log("Restarting system", SycoraxKernel.LOG_FILE_NAME);
+        System.exit(211);
     }
 }
 
+/**
+ * Command to execute scripts.
+ */
 class ScriptCommand implements Command {
     private final CommandProcessor commandProcessor;
+    private final FileWrite fileWrite;
 
-    public ScriptCommand(CommandProcessor commandProcessor) {
+    public ScriptCommand(CommandProcessor commandProcessor, FileWrite fileWrite) {
         this.commandProcessor = commandProcessor;
+        this.fileWrite = fileWrite;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            if (args.length < 2) {
-                Config.io.printError("Invalid Syntax: script <filename>");
-                Config.fileWrite.log("Script command error: Invalid syntax", SycoraxKernel.LOG_FILE_NAME);
-                return;
-            }
-            boolean success = commandProcessor.executeScript(args[1]);
-            if (success) {
-                Config.fileWrite.log("Script command executed: " + args[1], SycoraxKernel.LOG_FILE_NAME);
-            }
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Script command error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
+        if (args.length < 2) {
+            Config.io.printError("Invalid Syntax: script <filename>");
+            fileWrite.log("Script command error: Invalid syntax", SycoraxKernel.LOG_FILE_NAME);
+            return;
+        }
+        boolean success = commandProcessor.executeScript(args[1]);
+        if (success) {
+            fileWrite.log("Script command executed: " + args[1], SycoraxKernel.LOG_FILE_NAME);
         }
     }
 }
 
+/**
+ * Command to update the system.
+ */
 class UpdateCommand implements Command {
     private final String username;
+    private final FileWrite fileWrite;
 
-    public UpdateCommand(String username) {
+    public UpdateCommand(String username, FileWrite fileWrite) {
         this.username = username;
+        this.fileWrite = fileWrite;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            new NionUpdate(username).updater();
-            new File(Config.io.convertFileSeparator(".|Update.zip")).delete();
-            Config.fileWrite.log("Update command executed for user: " + username, SycoraxKernel.LOG_FILE_NAME);
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("Update command error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
-        }
+        new UpdateManager(
+            username,
+            new FileDownload(new Login(username)),
+            new FileUnzip(new Login(username)),
+            fileWrite
+        ).performUpdate();
+        new File(Config.io.convertFileSeparator(".|Cataphract.zip")).delete();
+        fileWrite.log("Update command executed for user: " + username, SycoraxKernel.LOG_FILE_NAME);
     }
 }
 
+/**
+ * Command to manage user accounts.
+ */
 class UserManagementCommand implements Command {
     private final String username;
+    private final FileWrite fileWrite;
 
-    public UserManagementCommand(String username) {
+    public UserManagementCommand(String username, FileWrite fileWrite) {
         this.username = username;
+        this.fileWrite = fileWrite;
     }
 
     @Override
     public void execute(String[] args) throws Exception {
-        try {
-            if (args.length < 2) {
-                Config.io.printError("Module Usermgmt: Missing subcommand. Use: create, modify, or delete");
-                Config.fileWrite.log("User management error: Missing subcommand", SycoraxKernel.LOG_FILE_NAME);
-                return;
-            }
-            switch (args[1].toLowerCase()) {
-                case "create":
-                    new AccountCreate(username).execute();
-                    Config.fileWrite.log("User management: Created account", SycoraxKernel.LOG_FILE_NAME);
-                    break;
-                case "modify":
-                    new AccountModify(username).execute();
-                    Config.fileWrite.log("User management: Modified account", SycoraxKernel.LOG_FILE_NAME);
-                    break;
-                case "delete":
-                    new AccountDelete(username).execute();
-                    Config.io.printInfo("Account deleted. Logging out...");
-                    Config.fileWrite.log("User management: Deleted account, logging out", SycoraxKernel.LOG_FILE_NAME);
-                    Config.console.readLine("Press Enter to logout...");
-                    break;
-                default:
-                    Config.io.printError("Module Usermgmt: " + args[1] + " - Command Not Found");
-                    Config.fileWrite.log("User management error: Unknown subcommand - " + args[1], SycoraxKernel.LOG_FILE_NAME);
-                    break;
-            }
-        } catch (Exception e) {
-            Config.exceptionHandler.handleException(e);
-            Config.fileWrite.log("User management error: " + e.getMessage(), SycoraxKernel.LOG_FILE_NAME);
-            throw e;
+        if (args.length < 2) {
+            Config.io.printError("Module Usermgmt: Missing subcommand. Use: create, modify, or delete");
+            fileWrite.log("User management error: Missing subcommand", SycoraxKernel.LOG_FILE_NAME);
+            return;
+        }
+        switch (args[1].toLowerCase()) {
+            case "create":
+                new AccountCreate(username).execute();
+                fileWrite.log("User management: Created account", SycoraxKernel.LOG_FILE_NAME);
+                break;
+            case "modify":
+                new AccountModify(username).execute();
+                fileWrite.log("User management: Modified account", SycoraxKernel.LOG_FILE_NAME);
+                break;
+            case "delete":
+                new AccountDelete(username).execute();
+                Config.io.printInfo("Account deleted. Logging out...");
+                fileWrite.log("User management: Deleted account, logging out", SycoraxKernel.LOG_FILE_NAME);
+                Config.console.readLine("Press Enter to logout...");
+                break;
+            default:
+                Config.io.printError("Module Usermgmt: " + args[1] + " - Command Not Found");
+                fileWrite.log("User management error: Unknown subcommand - " + args[1], SycoraxKernel.LOG_FILE_NAME);
+                break;
         }
     }
 }

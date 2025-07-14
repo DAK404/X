@@ -264,84 +264,86 @@ public class Main
 
         //if above assert succeeds, start the below logic
         else
-
-        //execute the logic infinitely
-        while(true)
-        //logic to handle the exit codes by the kernel
-        switch(startKernelLogic(args))
         {
-            //Normal exit mode
-            case 0:
-            System.exit(0);
-            break;
-
-            //Kernel not found
-            case 1:
-            displayMessages(KERNEL_NOT_FOUND);
-            System.out.println(1234);
-            System.exit(0);
-            break;
-
-            //Normal Restart mode (for legacy compatibility)
-            case 100:
-            //Normal Restart mode (New implementation)
-            case 211:
-            args[1] = "normal";
-            break;
-
-            //Force repair mode
-            case 212:
-            args[1] = "repair";
-            break;
-
-            /*
-            * DEBUG OPTION!
-            *
-            * case 213:
-            * args[1] = "debug";
-            * break;
-            */
-
-            //Boot mode not found
-            case 3:
-            displayMessages(UNDEFINED_BOOTMODE);
-            System.exit(0);
-            break;
-
-            //Fatal error exit
-            case 4:
-            displayMessages(FATAL_ERROR_EXIT);
-            System.exit(0);
-            break;
-
-            //Fatal error restart
-            case 5:
-            displayMessages(FATAL_ERROR_RESTART);
-            System.in.read();
-            break;
-
-            //Restart after update
-            case 6:
-            displayMessages(RESTART_UPDATE);
-            System.exit(0);
-            break;
-
-            //PROBE: Kernel found
-            case 7:
-            displayMessages(KERNEL_FOUND);
-            System.exit(0);
-            break;
-
-            //PROBE: Kernel not found
-            case 1024:
-            displayMessages(KERNEL_NOT_FOUND);
-            System.exit(0);
-            break;
-
-            //Kernel not found
-            default:
-            displayMessages(UNDEFINED_EXIT_CODE);
-            System.exit(0);
+            //execute the logic infinitely
+            while(true)
+            {
+                //logic to handle the exit codes by the kernel
+                switch(startKernelLogic(args))
+                {
+                    //Normal exit mode
+                    case 0:
+                    System.exit(0);
+                    break;
+        
+                    //Kernel not found
+                    case 1:
+                    displayMessages(KERNEL_NOT_FOUND);
+                    System.exit(0);
+                    break;
+        
+                    //Normal Restart mode (for legacy compatibility)
+                    case 100:
+        
+                    //Force repair mode
+                    case 212:
+                    args[1] = "repair";
+                    break;
+        
+                    /*
+                    * DEBUG OPTION!
+                    *
+                    * case 213:
+                    * args[1] = "debug";
+                    * break;
+                    */
+        
+                    //Boot mode not found
+                    case 3:
+                    displayMessages(UNDEFINED_BOOTMODE);
+                    System.exit(0);
+                    break;
+        
+                    //Fatal error exit
+                    case 4:
+                    displayMessages(FATAL_ERROR_EXIT);
+                    System.exit(0);
+                    break;
+        
+                    //Fatal error restart
+                    case 5:
+                    displayMessages(FATAL_ERROR_RESTART);
+                    System.in.read();
+                    //Normal Restart mode (New implementation)
+                    case 211:
+                    args[1] = "normal";
+                    break;
+        
+                    //Restart after update
+                    case 6:
+                    displayMessages(RESTART_UPDATE);
+                    System.exit(0);
+                    break;
+        
+                    //PROBE: Kernel found
+                    case 7:
+                    displayMessages(KERNEL_FOUND);
+                    System.exit(0);
+                    break;
+        
+                    //PROBE: Kernel not found
+                    case 1024:
+                    displayMessages(KERNEL_NOT_FOUND);
+                    System.exit(0);
+                    break;
+        
+                    //Kernel not found
+                    default:
+                    displayMessages(UNDEFINED_EXIT_CODE);
+                    System.exit(0);
+                }
+                
+            }
         }
 
     }

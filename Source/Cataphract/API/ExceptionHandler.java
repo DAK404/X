@@ -1,43 +1,9 @@
-/*
-*                                                      |
-*                                                     ||
-*  |||||| ||||||||| |||||||| ||||||||| |||||||  |||  ||| ||||||| |||||||||  |||||| |||||||||
-* |||            ||    |||          ||       || |||  |||       ||       || |||        |||
-* |||      ||||||||    |||    ||||||||  ||||||  ||||||||  ||||||  |||||||| |||        |||
-* |||      |||  |||    |||    |||  |||  |||     |||  |||  ||  ||  |||  ||| |||        |||
-*  ||||||  |||  |||    |||    |||  |||  |||     |||  |||  ||   || |||  |||  ||||||    |||
-*                                               ||
-*                                               |
-*
-* A Cross Platform OS Shell
-* Powered By Truncheon Core
-*/
-
-/*
- * This file is part of the Cataphract project.
- * Copyright (C) 2024 DAK404 (https://github.com/DAK404)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
-
 package Cataphract.API;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import Cataphract.API.Wraith.FileWriter;
+import Cataphract.API.Wraith.FileWrite;
 
 /**
  * Handles exceptions by formatting stack traces, logging errors, and managing program termination.
@@ -48,15 +14,20 @@ public class ExceptionHandler {
     private final UserInteractionHandler userInteractionHandler;
     private final ExitHandler exitHandler;
 
-    public ExceptionHandler() { 
+    /**
+     * Constructs an ExceptionHandler instance with no arguments, using static dependencies from Config
+     * and a locally instantiated FileWrite for logging.
+     */
+    public ExceptionHandler() {
         this.stackTraceFormatter = new StackTraceFormatter();
-        this.errorLogger = new FileErrorLogger(Config.fileWrite);
+        this.errorLogger = new FileErrorLogger();
         this.userInteractionHandler = new ConsoleUserInteractionHandler();
         this.exitHandler = new DefaultExitHandler();
     }
 
     /**
      * Handles an exception by formatting its stack trace, logging it, collecting user input, and exiting.
+     *
      * @param e The exception to handle.
      */
     public void handleException(Exception e) {
@@ -83,6 +54,7 @@ public class ExceptionHandler {
 class StackTraceFormatter {
     /**
      * Formats an exception's stack trace into a string.
+     *
      * @param e The exception to format.
      * @return The formatted stack trace.
      */
@@ -114,14 +86,17 @@ interface ErrorLogger {
 }
 
 /**
- * Logs errors to a file using FileWrite.
+ * Logs errors to a file using a locally instantiated FileWrite.
  */
 class FileErrorLogger implements ErrorLogger {
     private static final String LOG_FILE_NAME = Config.LOG_FILE_NAME;
-    private final FileWriter fileWrite;
+    private static final FileWrite fileWrite;
 
-    FileErrorLogger(FileWriter fileWrite) {
-        this.fileWrite = fileWrite;
+    static {
+        // Instantiate FileWrite with dependencies for logging only (no Login or PolicyCheck)
+        fileWrite = new FileWrite(
+            null
+        );
     }
 
     @Override
@@ -155,11 +130,14 @@ interface UserInteractionHandler {
 class ConsoleUserInteractionHandler implements UserInteractionHandler {
     @Override
     public String collectUserComment() {
-        return Config.console.readLine("User Comment> ");
+        return Config.console != null ? Config.console.readLine("User Comment> ") : "";
     }
 
     @Override
     public boolean promptForRestart() {
+        if (Config.console == null) {
+            return false;
+        }
         String response = Config.console.readLine("Do you want to restart the program? [ Y | N ]> ");
         return response != null && response.trim().equalsIgnoreCase("y");
     }
@@ -176,7 +154,7 @@ interface ExitHandler {
  * Default exit handler with configurable exit codes.
  */
 class DefaultExitHandler implements ExitHandler {
-    private static final int EXIT_CODE_NORMAL = 4;
+    private static final int EXIT_CODE_NORMAL = 211;
     private static final int EXIT_CODE_RESTART = 5;
 
     @Override
